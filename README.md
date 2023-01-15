@@ -4,6 +4,7 @@
 **Unit Testing** is implemented to ensure accurate behavior.
 
 <h3>Currently added types:</h3>
+
 - [Dynamic Array](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Array/DynamicArray.h)
 - [Class Reference Dependency Injection](https://github.com/gabkhanfig/GkTypesLib/tree/master/GkTypesLib/GkTypes/ClassRef)
 - [String](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/String/String.h)
