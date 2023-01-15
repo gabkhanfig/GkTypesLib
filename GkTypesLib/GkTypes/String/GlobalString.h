@@ -3,18 +3,6 @@
 #include "String.h"
 #include <unordered_map>
 
-namespace std 
-{
-	template<>
-	struct hash<gk::string> 
-	{
-		size_t operator()(const gk::string& str) const {
-			return str.ComputeHash();
-		}
-
-	};
-}
-
 namespace gk 
 {
 	/* Runtime global immutable strings. GlobalString internally only holds a pointer, so const-referencing is not necessary. */

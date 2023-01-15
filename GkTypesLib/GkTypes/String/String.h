@@ -352,4 +352,16 @@ namespace gk
 
 }
 
+namespace std
+{
+	template<>
+	struct hash<gk::string>
+	{
+		size_t operator()(const gk::string& str) const {
+			return str.ComputeHash();
+		}
+
+	};
+}
+
 #undef _STRING_SSO_ALIGNMENT
