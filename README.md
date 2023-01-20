@@ -10,6 +10,8 @@
 - [String](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/String/String.h)
 - [Global String](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/String/GlobalString.h)
 - [Bitset](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Bitset/Bitset.h)
+- [Thread](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Thread/Thread.h)
+- [Thread Pool](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Thread/ThreadPool.h)
 
 <h2>
 
@@ -50,3 +52,19 @@ A global mapped string class, which only internally stores the mapped string poi
 </h2>
 
 A **constexpr** valid replacement to std::bitset that has a smaller memory footprint for small bitsets. Rather than a default smallest size of 4 bytes, this bitset has a smallest default of 1 byte, and then scaling up to 2, 4, and 8 as necessary depending on template parameters. This bitset is also [**unit tested**](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLibTests/Source/ConstexprTests/BitsetTests.cpp).
+
+<h2>
+
+[Thread](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Thread/Thread.h)
+
+</h2>
+
+A wrapper around std::thread to handle binding and asyncrhonously executing tasks, while not deleting the thread after execution. This is done by having the thread loop and sleep for 1ms to consume effectively no cpu resources.
+
+<h2>
+
+[Thread Pool](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Thread/ThreadPool.h)
+
+</h2>
+
+A bunch of [threads](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Thread/Thread.h) grouped together to batch execute tasks, along with the primary thread, without deleting any of the threads after the batch execution. This keeps the overhead of instantiating threads to be a one time occurrence.

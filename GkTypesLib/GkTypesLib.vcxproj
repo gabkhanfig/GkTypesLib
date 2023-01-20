@@ -27,6 +27,8 @@
     <ClInclude Include="GkTypes\GkTypesLib.h" />
     <ClInclude Include="GkTypes\String\GlobalString.h" />
     <ClInclude Include="GkTypes\String\String.h" />
+    <ClInclude Include="GkTypes\Thread\Thread.h" />
+    <ClInclude Include="GkTypes\Thread\ThreadPool.h" />
     <ClInclude Include="GkTypes\Utility.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -21,12 +21,12 @@
     <ClCompile Include="Source\ConstexprTests\DynamicArrayTests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ConstexprTests\BitsetTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\ConstexprTests\ConstexprTestUnitTest.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\TestConstChar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

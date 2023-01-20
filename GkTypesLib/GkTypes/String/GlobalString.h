@@ -76,7 +76,7 @@ namespace gk
 			return *this;
 		}
 
-		bool operator == (const gk::string& str) 
+		bool operator == (const gk::string& str) const
 		{
 			auto search = stringMap.find(str);
 			if (search == stringMap.end()) {
@@ -86,14 +86,26 @@ namespace gk
 			return internalString == search->second;
 		}
 
-		bool operator == (GlobalString str) 
+		bool operator == (GlobalString str) const
 		{
 			return internalString == str.internalString;
 		}
 
-		gk::string ToString() 
+		gk::string ToString() const
 		{
 			return *internalString;
+		}
+
+	};
+}
+
+namespace std
+{
+	template<>
+	struct hash<gk::GlobalString>
+	{
+		size_t operator()(const gk::GlobalString& str) const {
+			return str.ToString().ComputeHash();
 		}
 
 	};

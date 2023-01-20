@@ -1,0 +1,93 @@
+#pragma once
+
+#include "Thread.h"
+#include <queue>
+#include "../Array/DynamicArray.h"
+
+#define _HARDWARE_LOWEST_ALLOWED_THREAD_COUNT 1
+
+namespace gk
+{
+	class ThreadPool
+	{
+	private:
+
+		std::queue<gk::Thread::ThreadFunctionType> functionQueue;
+
+		gk::darray<gk::Thread*> threads;
+
+	public:
+
+		/* Get the amount of threads available on this system. Returns a minimum value of 1. */
+		[[nodiscard]] static const unsigned int SystemThreadCount() {
+			unsigned int hardwareCount = std::thread::hardware_concurrency();
+			return hardwareCount > _HARDWARE_LOWEST_ALLOWED_THREAD_COUNT ? hardwareCount : _HARDWARE_LOWEST_ALLOWED_THREAD_COUNT;
+		}
+
+		/**/
+		[[nodiscard("Avoid creating a thread pool without keeping track of it. Can cause memory leaks and consume system cpu resources.")]] 
+		ThreadPool(unsigned int _threadCount)
+		{
+			threads.Reserve(_threadCount);
+			for (int i = 0; i < _threadCount; i++) {
+				gk::Thread* thread = new gk::Thread();
+				threads.Add(thread);
+			}
+		}
+
+		/* Delete and join all threads. */
+		~ThreadPool()
+		{
+			unsigned int threadCount = GetThreadCount();
+			for (int i = 0; i < threadCount; i++) {
+				delete threads[i];
+			}
+		}
+
+		/* Get the amount of threads this threadpool is using. */
+		[[nodiscard]] unsigned int GetThreadCount() const { return threads.Size(); }
+
+		/* Bind a function to the queue for eventual execution when ExecuteQueue() is called.
+		@param function: Uses type std::function<void()>. See std::bind() for binding functions with parameters. */
+		size_t AddFunctionToQueue(gk::Thread::ThreadFunctionType function)
+		{
+			functionQueue.push(function);
+			return functionQueue.size();
+		}
+
+		/* Executes everything in the pool queue until the pool is empty and all thread have completed. Also uses the calling thread as a worker. */
+		void ExecuteQueue() {
+			while (functionQueue.size()) {
+				for (arrint i = 0; i < GetThreadCount(); i++) {
+					gk::Thread* thread = threads[i];
+					if (!thread->DidCompleteExecution()) continue;
+					if (functionQueue.size() == 0) break;
+
+					thread->BindFunction(functionQueue.front());
+					functionQueue.pop();
+				}
+
+				if (functionQueue.size() == 0) break;
+
+				const gk::Thread::ThreadFunctionType func = functionQueue.front();
+				func();
+				functionQueue.pop();
+			}
+
+			bool AllThreadsDone = false;
+			while (AllThreadsDone == false) {
+				AllThreadsDone = true;
+				for (int i = 0; i < GetThreadCount(); i++) {
+					gk::Thread* thread = threads[i];
+					if (!thread->DidCompleteExecution()) {
+						AllThreadsDone = false;
+					}
+				}
+			}
+
+		}
+
+	};
+}
+
+#undef _HARDWARE_LOWEST_ALLOWED_THREAD_COUNT

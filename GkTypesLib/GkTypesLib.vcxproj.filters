@@ -42,5 +42,11 @@
     <ClInclude Include="GkTypes\GkTypesLib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GkTypes\Thread\Thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Thread\ThreadPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
