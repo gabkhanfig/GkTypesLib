@@ -3,6 +3,7 @@
 #include "Thread.h"
 #include <queue>
 #include "../Array/DynamicArray.h"
+#include <iostream>
 
 #define _HARDWARE_LOWEST_ALLOWED_THREAD_COUNT 1
 
@@ -55,36 +56,53 @@ namespace gk
 			return functionQueue.size();
 		}
 
-		/* Executes everything in the pool queue until the pool is empty and all thread have completed. Also uses the calling thread as a worker. */
-		void ExecuteQueue() {
-			while (functionQueue.size()) {
-				for (arrint i = 0; i < GetThreadCount(); i++) {
-					gk::Thread* thread = threads[i];
-					if (!thread->DidCompleteExecution()) continue;
-					if (functionQueue.size() == 0) break;
+		/**/
+		bool AllThreadsReady() const {
+			bool AllThreadsDone = true;
+			for (int i = 0; i < GetThreadCount(); i++) {
+				gk::Thread* thread = threads[i];
+				if (!thread->IsReady()) {
+					AllThreadsDone = false;
+				}
+			}
+			return AllThreadsDone;
+		}
 
-					thread->BindFunction(functionQueue.front());
+		/* Executes everything in the pool queue until the pool is empty and all thread have completed. Also uses the calling thread as a worker. 
+		@param waitUntilAllComplete: If true, waits to return until every thread is complete, otherwise returns when primary thread only is known to be complete. */
+		void ExecuteQueue(bool waitUntilAllComplete = true) {
+			// Check if all the threads are ready. If not, wait.
+			while (!AllThreadsReady());
+
+			darray<darray<Thread::ThreadFunctionType>> functions;
+			for (arrint i = 0; i < GetThreadCount() + 1; i++) {
+				functions.Add(darray<Thread::ThreadFunctionType>());
+			}
+
+			while (functionQueue.size()) {
+				for (arrint i = 0; i < GetThreadCount() + 1; i++) {
+					if (functionQueue.size() == 0) break;
+					functions[i].Add(functionQueue.front());
 					functionQueue.pop();
 				}
-
-				if (functionQueue.size() == 0) break;
-
-				const gk::Thread::ThreadFunctionType func = functionQueue.front();
-				func();
-				functionQueue.pop();
 			}
+			std::cout << functions.Size() << std::endl;
 
-			bool AllThreadsDone = false;
-			while (AllThreadsDone == false) {
-				AllThreadsDone = true;
-				for (int i = 0; i < GetThreadCount(); i++) {
-					gk::Thread* thread = threads[i];
-					if (!thread->DidCompleteExecution()) {
-						AllThreadsDone = false;
-					}
+			for (arrint i = 0; i < GetThreadCount(); i++) {
+				gk::Thread* thread = threads[i];
+				darray<Thread::ThreadFunctionType>& arr = functions[i];
+				for (arrint func = 0; func < arr.Size(); func++) {
+					thread->BindFunction(functions[i].At(func));
 				}
+				thread->Execute();
+			}
+			darray<Thread::ThreadFunctionType>& last = functions[functions.Size() - 1];
+			for (arrint i = 0; i < last.Size(); i++) {
+				last[i]();
 			}
 
+			if (!waitUntilAllComplete) return;
+			while (!AllThreadsReady());
 		}
 
 	};

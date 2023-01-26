@@ -4,10 +4,9 @@
 #include <atomic>
 #include <functional>
 #include <Windows.h>
-
-#define sleep(ms) Sleep(ms)
-#define _SHOULD_THREAD_SLEEP_LOOP true
-#define _THREAD_WRAPPER_LOOP_SLEEP_MILLIS 1
+#include "../Array/DynamicArray.h"
+#include <condition_variable>
+#include <mutex>
 
 namespace gk 
 {
@@ -23,41 +22,26 @@ Only executes a function one time after binding. */
 
 	private:
 
+		/* The actual thread that will have functions ran on. */
 		std::thread thread;
 
-		ThreadFunctionType function;
+		/* Mutex for condition variable. */
+		std::mutex mutex;
 
+		/* Handles blocking and resuming the threads execution for timing under 1ms. */
+		std::condition_variable condVar;
+
+		/* Functions to execute on this thread. See Execute(); */
+		darray<ThreadFunctionType> functions;
+		
+		/* Flag that tracks whether the functions should execute. Tracked by the condition variable. */
 		std::atomic<bool> shouldExecuteFunction;
 
+		/* Whether this thread has completed execution of whatever tasks it did previously. */
 		std::atomic<bool> hasExecuted;
 
+		/* Informs that this thread will be destroyed, and stops the . Calls std::thread::join(). */
 		std::atomic<bool> pendingKill;
-
-	private:
-
-		/* Loop that runs constantly on the thread. */
-		void TickLoop() {
-			while (true) {
-				if (pendingKill) {
-					return;
-				}
-
-				if (shouldExecuteFunction) {
-					ExecuteThreadFunction();
-				}
-#if _SHOULD_THREAD_SLEEP_LOOP == true
-				sleep(_THREAD_WRAPPER_LOOP_SLEEP_MILLIS);
-#endif
-			}
-		}
-
-		/* Executed the bound thread function. Sets the thread to no longer "want" to execute the function on the next loop iteration, and says that it did execute the bound function. */
-		void ExecuteThreadFunction()
-		{
-			function();
-			shouldExecuteFunction = false;
-			hasExecuted = true;
-		}
 
 	public:
 
@@ -66,15 +50,16 @@ Only executes a function one time after binding. */
 		[[nodiscard("Avoid creating a new thread without keeping track of it. Can cause memory leaks and consume system cpu resources.")]] 
 		Thread()
 		{
-			thread = std::thread{ &Thread::TickLoop, this };
 			pendingKill = false;
 			shouldExecuteFunction = false;
 			hasExecuted = true;
+			thread = std::thread{ &Thread::ThreadLoop, this };
 		}
 
 		/* Sets the thread to stop looping, then joins it. */
 		~Thread() {
 			pendingKill = true;
+			Execute();
 			thread.join();
 		}
 
@@ -84,25 +69,59 @@ Only executes a function one time after binding. */
 		/* Bind a function to the thread for execution.
 		@param inFunction: Uses type std::function<void()>. See std::bind() for binding functions with parameters.
 		@param shouldExecute: Whether this thread will execute this function automatically. If not, call Execute(). */
-		void BindFunction(ThreadFunctionType inFunction, bool shouldExecute = true)
+		void BindFunction(ThreadFunctionType inFunction)
 		{
-			shouldExecuteFunction = shouldExecute;
 			hasExecuted = false;
-			function = inFunction;
+			functions.Add(inFunction);
 		}
 
 		/* Forcefully execute whatever bound function is contained, on the thread. */
 		void Execute()
 		{
 			shouldExecuteFunction = true;
-			hasExecuted = false;
+			hasExecuted = false; 
+			condVar.notify_one();
 		}
 
 		/* Get the id of the thread contained. */
 		[[nodiscard]] std::thread::id GetThreadId() const { return thread.get_id(); }
 
 		/* Did this thread complete execution of the bound function? */
-		[[nodiscard]] bool DidCompleteExecution() const { return hasExecuted; }
+		[[nodiscard]] bool IsReady() const { return hasExecuted; }
+
+	private:
+
+		/* Loop that runs constantly on the thread. */
+		void ThreadLoop() {
+			while (!pendingKill) {
+				std::unique_lock<std::mutex> lck(mutex);
+				condVar.wait(lck, std::bind(&Thread::ShouldExecute, this));
+				ExecuteThreadFunctions();
+				std::this_thread::yield;
+			}
+		}
+
+		/**/
+		bool ShouldExecute() const {
+			return shouldExecuteFunction;
+		}
+
+		/* Executed the bound thread function. Sets the thread to no longer "want" to execute the function on the next loop iteration, and says that it did execute the bound function. */
+		void ExecuteThreadFunctions()
+		{
+			if (functions.Size() == 0) return;
+
+			shouldExecuteFunction = false;
+			darray<ThreadFunctionType> copy = functions;
+			functions.Empty();
+			for (int i = 0; i < copy.Size(); i++) {
+				copy[i]();
+			}
+			hasExecuted = true;
+		}
+
 	};
+
+
 }
 

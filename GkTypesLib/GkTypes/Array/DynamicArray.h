@@ -337,6 +337,20 @@ namespace gk
 			return true;
 		}
 
+		[[nodiscard]] constexpr bool Contains(const T& element) const {
+			for (int i = 0; i < Size(); i++) {
+				if (data[i] == element) return true;
+			}
+			return false;
+		}
+
+		/* Empty the array */
+		constexpr void Empty() {
+			DeleteData(); 
+			data = new T[DEFAULT_CAPACITY];
+			size = 0;
+			capacity = DEFAULT_CAPACITY;
+		}
 	};
 
 	/* Static array. */
