@@ -76,6 +76,12 @@ namespace gk
 			return *this;
 		}
 
+		bool operator == (const char* str) const 
+		{
+			gk::string _str{ str };
+			return *this == _str;
+		}
+
 		bool operator == (const gk::string& str) const
 		{
 			auto search = stringMap.find(str);

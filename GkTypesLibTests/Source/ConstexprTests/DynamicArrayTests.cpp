@@ -397,7 +397,7 @@ consteval bool ReserveLowerCapacity() {
 		a.Add(0);
 	}
 
-	const arrint cap = a.Capacity();
+	const ArrSizeT cap = a.Capacity();
 	a.Reserve(50);
 	return a.Capacity() == cap;
 }
@@ -468,5 +468,136 @@ test(IndexCheckMultipleElementsComplex, "Darray indices with T as a complex type
 #pragma endregion
 
 #pragma region Contains
+
+consteval bool ContainsFirstIndex() {
+	gk::darray<int> a;
+	a.Add(10);
+	return a.Contains(10);
+}
+test(ContainsFirstIndex, "Darray should contain element at first index");
+
+consteval bool ContainsSecondIndex() {
+	gk::darray<int> a;
+	a.Add(20);
+	a.Add(15);
+	return a.Contains(15);
+}
+test(ContainsSecondIndex, "Darray should contain element at second index");
+
+consteval bool DoesntContain() {
+	gk::darray<int> a;
+	a.Add(20);
+	a.Add(15);
+	return !a.Contains(10);
+}
+test(DoesntContain, "Darray is not supposed to contain element");
+
+consteval bool ContainsComplexElement() {
+	gk::darray<darrayComplexElement> a;
+	a.Add(darrayComplexElement());
+	darrayComplexElement modified = darrayComplexElement();
+	modified.data[0] = 15;
+	a.Add(modified);
+	return a.Contains(modified);
+}
+test(ContainsComplexElement, "Darray should contain complex element");
+
+consteval bool DoesntContainComplexElement() {
+	gk::darray<darrayComplexElement> a;
+	a.Add(darrayComplexElement());
+	darrayComplexElement modified = darrayComplexElement();
+	modified.data[0] = 15;
+	a.Add(modified);
+	modified.data[0] = 20;
+	return !a.Contains(modified);
+}
+test(DoesntContainComplexElement, "Darray shouldn't contain modified complex element");
+
+#pragma endregion
+
+#pragma region Empty
+
+consteval bool EmptyNewPointer() {
+	gk::darray<int> a;
+	int* old = a.Data();
+	a.Add(10);
+	a.Add(100);
+	a.Add(15);
+	a.Add(1010101);
+	a.Add(5);
+	a.Empty();
+	return old != a.Data();
+}
+test(EmptyNewPointer, "Emptied darray should use a new pointer");
+
+consteval bool EmptySize() {
+	gk::darray<int> a;
+	a.Add(10);
+	a.Empty();
+	return a.Size() == 0;
+}
+test(EmptySize, "Emptied darray should have a size of 0");
+
+consteval bool EmptyCapacity() {
+	gk::darray<int> a;
+	a.Add(10);
+	a.Add(10);
+	a.Add(10);
+	a.Add(10);
+	a.Empty();
+	return a.Capacity() == a.DEFAULT_CAPACITY;
+}
+test(EmptyCapacity, "Emptied darray should have it's capacity set to the default");
+
+consteval bool EmptyValidPointer() {
+	gk::darray<int> a;
+	a.Add(11);
+	a.Add(10);
+	a.Empty();
+	a.Data()[0] = 5;
+	return a.Data()[0] == 5;
+}
+test(EmptyValidPointer, "Emptied darray has a valid data pointer");
+
+#pragma endregion
+
+#pragma region Find
+
+consteval bool FindFirst() {
+	gk::darray<int> a;
+	a.Add(10);
+	return a.Find(10) == 0;
+}
+test(FindFirst, "Could not find correct element in darray at first index");
+
+consteval bool FindOffset() {
+	gk::darray<int> a;
+	a.Add(10);
+	a.Add(10);
+	a.Add(11);
+	return a.Find(11) == 2;
+}
+test(FindOffset, "Could not find correct element in the darray at an offset index");
+
+consteval bool FindNone() {
+	gk::darray<int> a;
+	a.Add(10);
+	a.Add(11);
+	return a.Find(12) == a.INDEX_NONE;
+}
+test(FindNone, "Darray found an element that doesn't exist");
+
+consteval bool FindLastFirst() {
+	gk::darray<int> a;
+	a.Add(10);
+	return a.FindLast(10) == 0;
+}
+test(FindLastFirst, "Darray could not find the correct element starting from the back");
+
+consteval bool FindLastOffset() {
+	gk::darray<int> a = { 10, 10, 11 };
+	return a.FindLast(10) == 1;
+}
+test(FindLastOffset, "Darray could not find the correct element starting from the back");
 
 #pragma endregion

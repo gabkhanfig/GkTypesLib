@@ -7,7 +7,7 @@
 #include "../BasicTypes.h"
 
 /* Array integer type */
-typedef uint32 arrint;
+typedef uint32 ArrSizeT;
 
 namespace gk 
 {
@@ -18,20 +18,22 @@ namespace gk
 	private:
 
 		T* data;
-		arrint size;
-		arrint capacity;
+		ArrSizeT size;
+		ArrSizeT capacity;
 
 	public:
 
-		static constexpr arrint DEFAULT_CAPACITY = 1;
+		static constexpr ArrSizeT DEFAULT_CAPACITY = 1;
+
+		static constexpr ArrSizeT INDEX_NONE = 0xFFFFFFFFU;
 
 		/* @return The number of elements currently held in the array. */
-		constexpr arrint Size() const {
+		constexpr ArrSizeT Size() const {
 			return size;
 		}
 
 		/* @return The capacity of the allocated data. */
-		constexpr arrint Capacity() const {
+		constexpr ArrSizeT Capacity() const {
 			return capacity;
 		}
 
@@ -62,10 +64,10 @@ namespace gk
 
 		/* Reallocate and move the pre-existing data over. Increases capacity by 2x. */
 		constexpr void Reallocate() {
-			const arrint newCapacity = capacity * 2;
+			const ArrSizeT newCapacity = capacity * 2;
 
 			T* newData = new T[newCapacity];
-			for (arrint i = 0; i < Size(); i++) {
+			for (ArrSizeT i = 0; i < Size(); i++) {
 				newData[i] = std::move(data[i]);
 			}
 			delete[] data;
@@ -74,38 +76,38 @@ namespace gk
 		}
 
 		/* Copy num amount of data onto the end of the darray. */
-		constexpr void CopyData(const T* dataToCopy, const arrint num) {
+		constexpr void CopyData(const T* dataToCopy, const ArrSizeT num) {
 			if (capacity - size < num) {
 				Reserve(capacity + num);
 			}
 
-			for (arrint i = 0; i < num; i++) {
+			for (ArrSizeT i = 0; i < num; i++) {
 				data[size] = dataToCopy[i];
 				size++;
 			}
 		}
-		
+
 		/* Copy and cast num amount of data onto the end of the darray. U is required to be castable to T. */
 		template<typename U>
 			requires (std::convertible_to<U, T>)
-		constexpr void CopyDataCast(const U* dataToCopy, const arrint num) {
+		constexpr void CopyDataCast(const U* dataToCopy, const ArrSizeT num) {
 			if (capacity - size < num) {
 				Reserve(capacity + num);
 			}
 
-			for (arrint i = 0; i < num; i++) {
+			for (ArrSizeT i = 0; i < num; i++) {
 				data[size] = static_cast<T>(dataToCopy[i]);
 				size++;
 			}
 		}
 
 		/* Move num amount of data onto the end of the darray. */
-		constexpr void MoveData(T* dataToMove, const arrint num) {
+		constexpr void MoveData(T* dataToMove, const ArrSizeT num) {
 			if (capacity - size < num) {
 				Reserve(capacity + num);
 			}
 
-			for (arrint i = 0; i < num; i++) {
+			for (ArrSizeT i = 0; i < num; i++) {
 				data[size] = std::move(dataToMove[i]);
 				size++;
 			}
@@ -113,12 +115,12 @@ namespace gk
 
 		/* Construct this darray given another darray by copy. */
 		constexpr void ConstructCopy(const darray<T>& other) {
-			const arrint num = other.Size();
+			const ArrSizeT num = other.Size();
 			data = nullptr;
 			capacity = 0;
 			Reserve(num);
 
-			for (arrint i = 0; i < num; i++) {
+			for (ArrSizeT i = 0; i < num; i++) {
 				data[i] = other.data[i];
 			}
 			size = num;
@@ -144,7 +146,7 @@ namespace gk
 		}
 
 		/* Construct this darray given a pointer to a bunch of data. */
-		constexpr void ConstructData(const T* dataToCopy, const arrint num) {
+		constexpr void ConstructData(const T* dataToCopy, const ArrSizeT num) {
 			capacity = 0;
 			size = 0;
 			CopyData(dataToCopy, num);
@@ -185,7 +187,7 @@ namespace gk
 		}
 
 		/* Data to copy constructor. */
-		constexpr darray(const T* dataToCopy, arrint num) {
+		constexpr darray(const T* dataToCopy, ArrSizeT num) {
 			ConstructData(dataToCopy, num);
 		}
 
@@ -196,7 +198,7 @@ namespace gk
 		}
 
 		/* Reserves capacity in the darray. If the new capacity is less than the array's current capacity, this function does nothing. */
-		constexpr void Reserve(arrint newCapacity) {
+		constexpr void Reserve(ArrSizeT newCapacity) {
 			if (newCapacity < capacity) return;
 
 			if (newCapacity == 0) newCapacity = 1;
@@ -207,9 +209,9 @@ namespace gk
 				size = 0;
 				return;
 			}
-			
+
 			T* newData = new T[newCapacity];
-			for (arrint i = 0; i < Size(); i++) {
+			for (ArrSizeT i = 0; i < Size(); i++) {
 				newData[i] = std::move(data[i]);
 			}
 			delete[] data;
@@ -218,7 +220,7 @@ namespace gk
 		}
 
 		/* Get an element at the specified index by reference. */
-		constexpr T& At(arrint index) const {
+		constexpr T& At(ArrSizeT index) const {
 			if (index >= Size()) {
 				throw std::out_of_range("darray element index is out of bounds!");
 			}
@@ -227,12 +229,12 @@ namespace gk
 		}
 
 		/* Get an element at the specified index by reference. */
-		constexpr T& operator [] (arrint index) const {
+		constexpr T& operator [] (ArrSizeT index) const {
 			return At(index);
 		}
 
 		/* Add an element to the end of the darray by move. */
-		constexpr arrint Add(T&& element) {
+		constexpr ArrSizeT Add(T&& element) {
 			if (size == capacity) {
 				Reallocate();
 			}
@@ -243,7 +245,7 @@ namespace gk
 		}
 
 		/* Add an element to the end of the darray by copy. */
-		constexpr arrint Add(const T& element) {
+		constexpr ArrSizeT Add(const T& element) {
 			if (size == capacity) {
 				Reallocate();
 			}
@@ -277,7 +279,7 @@ namespace gk
 		}
 
 		/* Set this darray equal to a bunch of data given a pointer to the start of it and the number of elements. Wipes the array of any previously held data. */
-		constexpr darray<T>& Set(const T* dataToCopy, arrint num) {
+		constexpr darray<T>& Set(const T* dataToCopy, ArrSizeT num) {
 			DeleteData();
 			CopyData(dataToCopy, num);
 			return *this;
@@ -286,7 +288,7 @@ namespace gk
 		/* Set this darray equal to a bunch of template typed data to static cast given a pointer to the start of it and the number of elements. Wipes the array of any previously held data. */
 		template<typename U>
 			requires (std::convertible_to<U, T>)
-		constexpr darray<T>& Set(const U* dataToCopy, arrint num) {
+		constexpr darray<T>& Set(const U* dataToCopy, ArrSizeT num) {
 			DeleteData();
 			CopyDataCast<U>(dataToCopy, num);
 			return *this;
@@ -323,13 +325,13 @@ namespace gk
 
 		/* Compare two arrays for if the elements they contain are equal. */
 		[[nodiscard]] constexpr bool operator == (const darray<T>& other) const {
-			const arrint elementCount = Size();
+			const ArrSizeT elementCount = Size();
 			if (elementCount != other.Size()) {
 				return false;
 			}
 			const T* left = Data();
 			const T* right = other.Data();
-			for (arrint i = 0; i < elementCount; i++) {
+			for (ArrSizeT i = 0; i < elementCount; i++) {
 				if (left[i] != right[i]) {
 					return false;
 				}
@@ -337,6 +339,7 @@ namespace gk
 			return true;
 		}
 
+		/* Check if the darray contains a provided element. */
 		[[nodiscard]] constexpr bool Contains(const T& element) const {
 			for (int i = 0; i < Size(); i++) {
 				if (data[i] == element) return true;
@@ -344,13 +347,74 @@ namespace gk
 			return false;
 		}
 
-		/* Empty the array */
+		/* Empty the array. Basically sets it back to the state of default construction. */
 		constexpr void Empty() {
-			DeleteData(); 
+			DeleteData();
 			data = new T[DEFAULT_CAPACITY];
 			size = 0;
 			capacity = DEFAULT_CAPACITY;
 		}
+
+		/* Find the first index of an element in the array. Returns darray<>::INDEX_NONE if cannot find. */
+		[[nodiscard]] constexpr ArrSizeT Find(const T& element) const {
+			for (int i = 0; i < Size(); i++) {
+				if (data[i] == element) return i;
+			}
+			return INDEX_NONE;
+		}
+
+		/* Find the last index of an element in the array. Returns darray<>::INDEX_NONE if cannot find. */
+		[[nodiscard]] constexpr ArrSizeT FindLast(const T& element) const {
+			for (ArrSizeT i = Size() - 1; i != INDEX_NONE; i--) { // Potential UB?
+				if (data[i] == element) return i;
+			}
+			return INDEX_NONE;
+		}
+
+		/* Remove the first occurrence of a given element. */
+		constexpr void RemoveFirst(const T& element) {
+			const ArrSizeT index = Find(element);
+			if (index == INDEX_NONE) return;
+			Internal_RemoveAt(index);
+		}
+
+		constexpr void RemoveLast(const T& element) {
+			const ArrSizeT index = FindLast(element);
+			if (index == INDEX_NONE) return;
+			Internal_RemoveAt(index);
+		}
+
+		/* Remove an element at a specific index. */
+		constexpr void RemoveAt(ArrSizeT index) {
+			if (index >= Size()) {
+				throw std::out_of_range("Attempting to remove element from a darray at an index that's out of bounds");
+			}
+			Internal_RemoveAt(index);
+		}
+
+		/* Remove all occurrences of a specified element. */
+		//constexpr void RemoveAll(const T& element) {
+			//T* elem = data;
+			//T* move = start + 1;
+			//for (ArrSizeT i = 0; i < Size() - 1; i++) {
+			//	if (*elem != element) continue;
+			//	
+			//	*elem = std::move(*move);
+			//	elem++;
+			//	move++;
+			//}
+		//}
+
+
+	private:
+
+		constexpr void Internal_RemoveAt(ArrSizeT index) {
+			for (ArrSizeT i = index; i < Size() - 1; i++) {
+				data[i] = std::move(data[i + 1]);
+			}
+			size--;
+		}
+
 	};
 
 	/* Static array. */

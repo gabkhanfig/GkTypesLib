@@ -75,12 +75,12 @@ namespace gk
 			while (!AllThreadsReady());
 
 			darray<darray<Thread::ThreadFunctionType>> functions;
-			for (arrint i = 0; i < GetThreadCount() + 1; i++) {
+			for (ArrSizeT i = 0; i < GetThreadCount() + 1; i++) {
 				functions.Add(darray<Thread::ThreadFunctionType>());
 			}
 
 			while (functionQueue.size()) {
-				for (arrint i = 0; i < GetThreadCount() + 1; i++) {
+				for (ArrSizeT i = 0; i < GetThreadCount() + 1; i++) {
 					if (functionQueue.size() == 0) break;
 					functions[i].Add(functionQueue.front());
 					functionQueue.pop();
@@ -88,16 +88,16 @@ namespace gk
 			}
 			std::cout << functions.Size() << std::endl;
 
-			for (arrint i = 0; i < GetThreadCount(); i++) {
+			for (ArrSizeT i = 0; i < GetThreadCount(); i++) {
 				gk::Thread* thread = threads[i];
 				darray<Thread::ThreadFunctionType>& arr = functions[i];
-				for (arrint func = 0; func < arr.Size(); func++) {
+				for (ArrSizeT func = 0; func < arr.Size(); func++) {
 					thread->BindFunction(functions[i].At(func));
 				}
 				thread->Execute();
 			}
 			darray<Thread::ThreadFunctionType>& last = functions[functions.Size() - 1];
-			for (arrint i = 0; i < last.Size(); i++) {
+			for (ArrSizeT i = 0; i < last.Size(); i++) {
 				last[i]();
 			}
 
