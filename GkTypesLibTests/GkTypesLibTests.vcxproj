@@ -21,10 +21,12 @@
   <ItemGroup>
     <ClCompile Include="Source\ConstexprTests\BitsetTests.cpp" />
     <ClCompile Include="Source\ConstexprTests\DynamicArrayTests.cpp" />
+    <ClCompile Include="Source\ConstexprTests\StringTests.cpp" />
     <ClCompile Include="Source\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\ConstexprTests\ConstexprTestUnitTest.h" />
+    <ClInclude Include="Source\OldString.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -18,7 +18,6 @@ namespace gk
 			if (!in.good()) {
 				return gk::string();
 			}
-
 			std::string contents = std::string((std::istreambuf_iterator<char>(in)), {});
 
 			return gk::string(contents.c_str());

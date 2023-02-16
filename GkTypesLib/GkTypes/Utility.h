@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <psapi.h>
 #include <libloaderapi.h>
+#include <string>
 
 namespace gk
 {
@@ -17,5 +18,21 @@ namespace gk
 #else
 		return false;
 #endif
+	}
+
+	[[nodiscard]] constexpr static size_t Strlen(const char* str) {
+		return std::char_traits<char>::length(str);
+	}
+
+	[[nodiscard]] constexpr static bool StrEqual(const char* str1, const char* str2, size_t num) {
+		if (str1 == str2) {
+			return true;
+		}
+		for (int i = 0; i < num; i++) {
+			if (str1[i] != str2[i]) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

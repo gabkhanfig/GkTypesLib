@@ -601,3 +601,22 @@ consteval bool FindLastOffset() {
 test(FindLastOffset, "Darray could not find the correct element starting from the back");
 
 #pragma endregion
+
+#pragma region Iterator
+
+consteval bool IterateElements() {
+	gk::darray<int> arr;
+	for (int i = 0; i < 10; i++) {
+		arr.Add(i);
+	}
+
+	int index = 0;
+	for (auto a : arr) {
+		if (a != index) return false;
+		index++;
+	}
+	return true;
+}
+test(IterateElements, "Darray iterator does not iterate in the right order");
+
+#pragma endregion

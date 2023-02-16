@@ -48,5 +48,11 @@
     <ClInclude Include="GkTypes\Thread\ThreadPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GkTypes\Hashmap\Hashmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Hashmap\Hash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
