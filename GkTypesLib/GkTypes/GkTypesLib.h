@@ -7,4 +7,5 @@
 #include "GkTypes/ClassRef/ClassRef.h"
 #include "GkTypes/String/String.h"
 #include "GkTypes/String/GlobalString.h"
+#include "GkTypes/Thread/ThreadPool.h"
 

@@ -109,9 +109,12 @@ Only executes a function one time after binding. */
 		/* Executed the bound thread function. Sets the thread to no longer "want" to execute the function on the next loop iteration, and says that it did execute the bound function. */
 		void ExecuteThreadFunctions()
 		{
-			if (functions.Size() == 0) return;
-
 			shouldExecuteFunction = false;
+			if (functions.Size() == 0) {
+				hasExecuted = true;
+				return;
+			}
+
 			darray<ThreadFunctionType> copy = functions;
 			functions.Empty();
 			for (int i = 0; i < copy.Size(); i++) {

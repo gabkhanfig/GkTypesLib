@@ -86,7 +86,6 @@ namespace gk
 					functionQueue.pop();
 				}
 			}
-			std::cout << functions.Size() << std::endl;
 
 			for (ArrSizeT i = 0; i < GetThreadCount(); i++) {
 				gk::Thread* thread = threads[i];

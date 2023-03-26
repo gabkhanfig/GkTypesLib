@@ -14,26 +14,18 @@
 
 #define print(msg) std::cout << msg << '\n'
 
-constexpr bool is_digit(char c) {
-	return c <= '9' && c >= '0';
-}
 
-constexpr int stoi_impl(const char* str, int value = 0) {
-	return *str ?
-		is_digit(*str) ?
-		stoi_impl(str + 1, (*str - '0') + value * 10)
-		: throw "compile-time-error: not a digit"
-		: value;
+void TestFunc() {
+	print("thread: " << std::this_thread::get_id());
+	Sleep(2000);
+	return;
 }
-
-constexpr int stoi(const char* str) {
-	return stoi_impl(str);
-}
-
-constinit size_t size = gk::string::FromInt(-3556).Len();
 
 
 int main() {
-
-
+	gk::ThreadPool* threadPool = new gk::ThreadPool(gk::ThreadPool::SystemThreadCount() - 1);
+	for (int i = 0; i < 10; i++) {
+		threadPool->AddFunctionToQueue(TestFunc);
+	}
+	threadPool->ExecuteQueue();
 }
