@@ -7,6 +7,7 @@
 #include "ConstexprTests/ConstexprTestUnitTest.h"
 
 #include "GkTypes/Hashmap/Hashmap.h"
+#include "GkTypes/Bitset/Bitset.h"
 
 #include <immintrin.h>
 
@@ -23,9 +24,8 @@ void TestFunc() {
 
 
 int main() {
-	gk::ThreadPool* threadPool = new gk::ThreadPool(gk::ThreadPool::SystemThreadCount() - 1);
-	for (int i = 0; i < 10; i++) {
-		threadPool->AddFunctionToQueue(TestFunc);
-	}
-	threadPool->ExecuteQueue();
+	gk::bitset<8> b;
+	b.SetBit(1, true);
+	print(gk::string::FromBool(b.GetBit(0)));
+
 }

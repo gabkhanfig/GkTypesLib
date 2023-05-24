@@ -30,7 +30,7 @@ namespace gk
 		ThreadPool(unsigned int _threadCount)
 		{
 			threads.Reserve(_threadCount);
-			for (int i = 0; i < _threadCount; i++) {
+			for (ArrSizeT i = 0; i < _threadCount; i++) {
 				gk::Thread* thread = new gk::Thread();
 				threads.Add(thread);
 			}
@@ -40,7 +40,7 @@ namespace gk
 		~ThreadPool()
 		{
 			unsigned int threadCount = GetThreadCount();
-			for (int i = 0; i < threadCount; i++) {
+			for (ArrSizeT i = 0; i < threadCount; i++) {
 				delete threads[i];
 			}
 		}
@@ -59,7 +59,7 @@ namespace gk
 		/**/
 		bool AllThreadsReady() const {
 			bool AllThreadsDone = true;
-			for (int i = 0; i < GetThreadCount(); i++) {
+			for (ArrSizeT i = 0; i < GetThreadCount(); i++) {
 				gk::Thread* thread = threads[i];
 				if (!thread->IsReady()) {
 					AllThreadsDone = false;

@@ -243,7 +243,7 @@ namespace gk
 
 		/* Check if the darray contains a provided element. */
 		[[nodiscard]] constexpr bool Contains(const T& element) const {
-			for (int i = 0; i < Size(); i++) {
+			for (ArrSizeT i = 0; i < Size(); i++) {
 				if (data[i] == element) return true;
 			}
 			return false;
@@ -259,7 +259,7 @@ namespace gk
 
 		/* Find the first index of an element in the array. Returns darray<>::INDEX_NONE if cannot find. */
 		[[nodiscard]] constexpr ArrSizeT Find(const T& element) const {
-			for (int i = 0; i < Size(); i++) {
+			for (ArrSizeT i = 0; i < Size(); i++) {
 				if (data[i] == element) return i;
 			}
 			return INDEX_NONE;
@@ -478,7 +478,7 @@ namespace gk
 	private:
 
 		/* Reallocate and move the pre-existing data over. Increases capacity by 2x. */
-		constexpr void Reallocate(size_t newCapacity) {
+		constexpr void Reallocate(ArrSizeT newCapacity) {
 			T* newData = new T[newCapacity];
 			for (ArrSizeT i = 0; i < Size(); i++) {
 				newData[i] = std::move(data[i]);
@@ -550,7 +550,7 @@ namespace gk
 		/* Construct this darray given an initializer list. */
 		constexpr void ConstructInitializerList(const std::initializer_list<T>& il) {
 			size = 0;
-			capacity = il.size();
+			capacity = static_cast<ArrSizeT>(il.size());
 			data = new T[capacity];
 			for (const T& i : il) {
 				data[size] = i;

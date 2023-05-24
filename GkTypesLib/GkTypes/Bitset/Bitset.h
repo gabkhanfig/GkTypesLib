@@ -44,7 +44,7 @@ namespace gk
 		}
 
 		constexpr void SetBit(uint8 index, bool flag = true) {
-			bits ^= ((uint8)(-flag) ^ bits) & 1ULL << index;
+			bits ^= (-(static_cast<uint8>(flag)) ^ bits) & 1ULL << index;
 		}
 
 		template<uint8 N>
