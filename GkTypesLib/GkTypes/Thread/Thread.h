@@ -17,6 +17,9 @@ namespace gk
 	{
 	public:
 
+		static_assert(std::is_same<_Thrd_id_t, uint32>::value, "std::thread::id id integer type must be an unsigned int");
+		static_assert(sizeof(std::thread::id) == 4, "std::thread:id must have a size of 4 bytes");
+
 		/* Can use std::bind to bind a function with parameters. */
 		typedef std::function<void()> ThreadFunctionType;
 
@@ -60,7 +63,10 @@ namespace gk
 		}
 
 		/* Get the id of the thread contained. */
-		[[nodiscard]] std::thread::id GetThreadId() const { return thread.get_id(); }
+		[[nodiscard]] uint32 GetThreadId() const { 
+			const std::thread::id id = thread.get_id();
+			return *(uint32*)&id; 
+		}
 
 		/* Did this thread complete execution of the bound function? */
 		[[nodiscard]] bool IsReady() const { return hasExecuted.load(std::memory_order_relaxed); }
