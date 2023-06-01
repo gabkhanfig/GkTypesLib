@@ -260,6 +260,9 @@ namespace gk
 		/* Create a new string with a character appended to this one. Does not modify this string. */
 		[[nodiscard]] constexpr string operator + (const string& other) const { return Concatenate(other); }
 
+		/* Support const char*  concatenation on the left hand side. */
+		[[nodiscard]] constexpr friend string operator + (const char* lhs, const string& rhs) { gk::string(lhs).Concatenate(rhs); }
+
 		/* Get character in the string by reference. */
 		[[nodiscard]] constexpr char& At(size_t index) {
 			if (index >= length) {
@@ -383,6 +386,19 @@ namespace gk
 			str.length = end - start;
 			return str;
 		}
+
+		/* Creates a string from a custom data type. Example:
+		struct Example {
+			int a;
+			int b;
+		};
+		template<>
+		[[nodiscard]] constexpr static gk::string gk::string::From<Example>(const Example& value) {
+			return string::FromInt(value.a) + gk::string(", ") + gk::string::FromInt(value.b);
+		}
+		*/
+		template<typename T>
+		static string From(const T& value) = delete;
 
 		/* 
 			std::string support 
