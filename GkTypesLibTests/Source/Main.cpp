@@ -39,10 +39,12 @@ int main() {
 	b.SetBit(1, true);
 	print(gk::string::FromBool(b.GetBit(0)));
 
+	gk::string something = "aaaa" + gk::string("balls");
 
 	Example t{ 1, 2 };
 	print(gk::string::From<Example>(t));
 
-
-	gk::string test = "aaaa" + gk::string("aaaa");
+	std::to_string(1.123456789);
+	gk::string numStr = gk::string::FromFloat(1.123456789);
+	print(numStr);
 }
