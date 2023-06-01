@@ -12,6 +12,7 @@
 #include <immintrin.h>
 
 #include <numeric>
+#include <cmath>
 
 #define print(msg) std::cout << msg << '\n'
 
@@ -35,16 +36,22 @@ template<>
 
 
 int main() {
-	gk::bitset<8> b;
-	b.SetBit(1, true);
-	print(gk::string::FromBool(b.GetBit(0)));
 
-	gk::string something = "aaaa" + gk::string("balls");
+	print(gk::string::FromFloat(HUGE_VAL));
+	print(std::isinf(-1 * HUGE_VAL));
+	
+	std::cout << NAN << std::endl;
 
-	Example t{ 1, 2 };
-	print(gk::string::From<Example>(t));
+	//gk::bitset<8> b;
+	//b.SetBit(1, true);
+	//print(gk::string::FromBool(b.GetBit(0)));
 
-	std::to_string(1.123456789);
-	gk::string numStr = gk::string::FromFloat(1.123456789);
-	print(numStr);
+	//gk::string something = "aaaa" + gk::string("balls");
+
+	//Example t{ 1, 2 };
+	//print(gk::string::From<Example>(t));
+
+	//std::to_string(1.123456789);
+	//gk::string numStr = gk::string::FromFloat(1.123456789);
+	//print(numStr);
 }

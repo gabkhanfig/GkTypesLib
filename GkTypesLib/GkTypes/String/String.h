@@ -385,6 +385,16 @@ namespace gk
 		}
 
 		[[nodiscard]] constexpr static string FromFloat(double num, const int precision = 5) {
+			if (num > DBL_MAX) {
+				return "inf";
+			}
+			else if (num < -DBL_MAX) {
+				return "-inf";
+			}
+			else if (num != num) {
+				return "nan";
+			}
+
 			const double numCopy = num;
 			Internal_StripNegativeZero(num);
 
@@ -393,7 +403,7 @@ namespace gk
 			for (int i = 0; i < precision; i++) {
 				num *= 10;
 			}
-			const long long fraction = static_cast<long long>(num);
+			const long long fraction = num >= 0 ? static_cast<long long>(num) : static_cast<long long>(-num);
 
 			const string wholeString = string::FromInt(whole);
 			const char decimal = '.';
@@ -423,7 +433,7 @@ namespace gk
 		}
 		*/
 		template<typename T>
-		static string From(const T& value) = delete;
+		[[nodiscard]] constexpr static string From(const T& value) = delete;
 
 		/* 
 			std::string support 
@@ -559,8 +569,6 @@ namespace gk
 		}
 		__pragma(optimize("", on))
 
-		
-
 	};
 
 }
@@ -573,7 +581,6 @@ namespace std
 		size_t operator()(const gk::string& str) const {
 			return str.ComputeHash();
 		}
-
 	};
 }
 
