@@ -185,7 +185,7 @@ namespace gk
 			const size_t len = Strlen(str);
 			const size_t minCapacity = length + len + 1;
 			if (!isLong) {
-				if ((minCapacity - 1) <= SSO_STRLEN) {
+				if (minCapacity <= SSO_STRLEN) {
 					Internal_CharCopy(&rep.sso.chars[length], str, len + 1);
 					length += len;
 					return *this;
@@ -206,7 +206,7 @@ namespace gk
 			const size_t minCapacity = length + len + 1;
 			const char* str = other.CStr();
 			if (!isLong) {
-				if ((minCapacity - 1) <= SSO_STRLEN) {
+				if (minCapacity <= SSO_STRLEN) {
 					Internal_CharCopy(&rep.sso.chars[length], str, len + 1);
 					length += len;
 					return *this;

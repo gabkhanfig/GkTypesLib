@@ -35,19 +35,21 @@ template<>
 }
 
 
+#define flt(n) gk::string::FromFloat(n)
 int main() {
 
-	print(gk::string::FromFloat(-0.001));
-	//gk::bitset<8> b;
-	//b.SetBit(1, true);
-	//print(gk::string::FromBool(b.GetBit(0)));
+	//double num = 1.0101;
+	//print(gk::string::FromFloat(num));
 
-	//gk::string something = "aaaa" + gk::string("balls");
 
-	//Example t{ 1, 2 };
-	//print(gk::string::From<Example>(t));
+	double x = -6.8543370947168443;
+	double y = 6.3217900020572415;
+	double z = 5.7718790231604151;
+	gk::string step1 = "x: " + flt(x) + ", y: ";
+	gk::string step2 = step1 + "aaaaaaa" + "bb";
+	gk::string str = "x: " + flt(x) + ", y: " + flt(y) + ", z: " + flt(z);
+	print(step1);
+	print(step2);
+	print(str); // For some reason, produces "x: -6.8, z: 5.77187"
 
-	//std::to_string(1.123456789);
-	//gk::string numStr = gk::string::FromFloat(1.123456789);
-	//print(numStr);
 }
