@@ -336,6 +336,7 @@ namespace gk
 		/* Creates a string from a signed integer, including negative numbers which will have a '-' in front of the text.
 		Due to the size of the SSO_STRLEN buffer, the entire number can fit within it. */
 		[[nodiscard]] constexpr static string FromInt(long long num) {
+			if (num == 0) return "0";
 			constexpr const char* digits	= "9876543210123456789";
 			constexpr size_t zeroDigit		= 9;
 			constexpr size_t maxChars			= 21;
@@ -363,6 +364,7 @@ namespace gk
 
 		/* Creates a string from an unsigned integer. Due to the size of the SSO_STRLEN buffer, the entire number can fit within it. */
 		[[nodiscard]] constexpr static string FromUInt(size_t num) {
+			if (num == 0) return "0";
 			constexpr const char* digits = "9876543210123456789";
 			constexpr size_t zeroDigit = 9;
 			constexpr size_t maxChars = 21;
@@ -385,30 +387,35 @@ namespace gk
 		}
 
 		[[nodiscard]] constexpr static string FromFloat(double num, const int precision = 5) {
-			if (num > DBL_MAX) {
-				return "inf";
-			}
-			else if (num < -DBL_MAX) {
-				return "-inf";
-			}
-			else if (num != num) {
-				return "nan";
-			}
+			if (num == 0) return "0.0";								// Zero
+			else if (num > DBL_MAX) return "inf";			// Positive Infinity
+			else if (num < -DBL_MAX) return "-inf";		// Negative Infinity
+			else if (num != num) return "nan";				// Not a Number
 
-			const double numCopy = num;
+			const bool isNegative = num < 0;
+
 			Internal_StripNegativeZero(num);
 
 			const long long whole = static_cast<long long>(num);
-			num -= whole;
-			for (int i = 0; i < precision; i++) {
-				num *= 10;
-			}
-			const long long fraction = num >= 0 ? static_cast<long long>(num) : static_cast<long long>(-num);
+			const string wholeString = (isNegative && whole == 0) ? "-0" : string::FromInt(whole);
 
-			const string wholeString = string::FromInt(whole);
+			num -= whole;
+			if (num == 0) return wholeString + ".0"; // Quick return if no fractional part
+			if (num < 0) num *= -1; // Make positive for fractional part
+			int extraFractionZeroes = 0;
+			for (int i = 0; i < precision; i++) {
+				num *= 10; 
+				if (num < 1) extraFractionZeroes += 1;
+			}
+			const long long fraction = static_cast<long long>(num);
+
 			const char decimal = '.';
+			string fractionZeroesString;
+			for (int i = 0; i < extraFractionZeroes; i++) {
+				fractionZeroesString.Append('0');
+			}
 			const string fractionalString = Internal_RemoveZeroesFromFractional(fraction);
-			return wholeString + decimal + fractionalString;
+			return wholeString + decimal + fractionZeroesString + fractionalString;
 		}
 
 		/* Returns MAXUINT64 if it cannot find it */
@@ -554,7 +561,7 @@ namespace gk
 		constexpr static string Internal_RemoveZeroesFromFractional(long long num) {
 			string str = string::FromInt(num);
 			const size_t foundZero = str.Find('0');
-			if (foundZero == MAXUINT64) return str;
+			if (foundZero == MAXUINT64 || foundZero == 0) return str;
 			return str.Substring(0, foundZero);
 		}
 

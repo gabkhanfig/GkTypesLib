@@ -37,11 +37,7 @@ template<>
 
 int main() {
 
-	print(gk::string::FromFloat(HUGE_VAL));
-	print(std::isinf(-1 * HUGE_VAL));
-	
-	std::cout << NAN << std::endl;
-
+	print(gk::string::FromFloat(-0.001));
 	//gk::bitset<8> b;
 	//b.SetBit(1, true);
 	//print(gk::string::FromBool(b.GetBit(0)));
