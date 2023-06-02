@@ -393,7 +393,6 @@ namespace gk
 			else if (num != num) return "nan";				// Not a Number
 
 			const bool isNegative = num < 0;
-
 			Internal_StripNegativeZero(num);
 
 			const long long whole = static_cast<long long>(num);
@@ -408,13 +407,14 @@ namespace gk
 				if (num < 1) extraFractionZeroes += 1;
 			}
 			const long long fraction = static_cast<long long>(num);
+			if (fraction == 0) return wholeString + ".0";
 
 			const char decimal = '.';
 			string fractionZeroesString;
 			for (int i = 0; i < extraFractionZeroes; i++) {
 				fractionZeroesString.Append('0');
 			}
-			const string fractionalString = Internal_RemoveZeroesFromFractional(fraction);
+			const string fractionalString = Internal_RemoveZeroesFromFractional(fraction, precision - extraFractionZeroes);
 			return wholeString + decimal + fractionZeroesString + fractionalString;
 		}
 
@@ -558,11 +558,17 @@ namespace gk
 			isLong = true;
 		} 
 
-		constexpr static string Internal_RemoveZeroesFromFractional(long long num) {
+		constexpr static string Internal_RemoveZeroesFromFractional(long long num, int availableDigits) {
+			// should always have at least 1 available digit if it gets to this function.
 			string str = string::FromInt(num);
-			const size_t foundZero = str.Find('0');
-			if (foundZero == MAXUINT64 || foundZero == 0) return str;
-			return str.Substring(0, foundZero);
+			const char* data = str.CStr();
+			const size_t last = availableDigits > str.Len() - 1 ? str.Len() - 1 : availableDigits;
+			for (size_t i = last; i > 0; i--) {
+				if (data[i] != '0') {
+					return str.Substring(0, i + 1);
+				}
+			}
+			return str.Substring(0, last + 1);
 		}
 
 		__pragma(optimize("", off))

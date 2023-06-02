@@ -38,18 +38,7 @@ template<>
 #define flt(n) gk::string::FromFloat(n)
 int main() {
 
-	//double num = 1.0101;
-	//print(gk::string::FromFloat(num));
-
-
-	double x = -6.8543370947168443;
-	double y = 6.3217900020572415;
-	double z = 5.7718790231604151;
-	gk::string step1 = "x: " + flt(x) + ", y: ";
-	gk::string step2 = step1 + "aaaaaaa" + "bb";
-	gk::string str = "x: " + flt(x) + ", y: " + flt(y) + ", z: " + flt(z);
-	print(step1);
-	print(step2);
-	print(str); // For some reason, produces "x: -6.8, z: 5.77187"
+	double num = 1.010111;
+	print(gk::string::FromFloat(num));
 
 }
