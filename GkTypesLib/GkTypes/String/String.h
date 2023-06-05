@@ -310,7 +310,7 @@ namespace gk
 		@param endExclusive: The end index, which is not included. */
 		[[nodiscard]] constexpr string Substring(size_t startInclusive, size_t endExclusive) const {
 			const char* cstr = CStr();
-			return string(&cstr[startInclusive], &cstr[endExclusive - 1]);
+			return string(&cstr[startInclusive], &cstr[endExclusive]);
 		}
 
 		/* Creates a string from a boolean. If (bool)true, the string is "true", and if (bool)false, the string is "false". */
@@ -464,10 +464,10 @@ namespace gk
 
 			if (rep.longStr.data == nullptr) {
 				rep.longStr.data = new char[newCapacity];
-				rep.longStr.capacity = newCapacity;
 				return;
 			}
 
+			rep.longStr.capacity = newCapacity;
 			char* newData = new char[newCapacity];
 			Internal_CharCopy(newData, rep.longStr.data, length);
 			delete[] rep.longStr.data;
@@ -523,7 +523,7 @@ namespace gk
 
 		constexpr void Internal_ConstructRange(const char* _begin, const char* _end) {
 			const bool notNullTerminated = *_end != '\0';
-			length = (_end -_begin);
+			length = (_end - _begin);
 			isLong = length > SSO_STRLEN ? true : false;
 			if (isLong) {
 				rep.longStr = representation::longString();
