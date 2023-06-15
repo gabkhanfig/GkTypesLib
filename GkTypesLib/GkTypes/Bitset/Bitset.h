@@ -6,19 +6,19 @@
 namespace gk
 {
 	/* A more size compressed version of std::bitset.
-	@param BitCount: Amount of bits to store. Must be between 1-64 inclusive. */
-	template<uint8 BitCount>
+	@param BitCount: Amount of bits to store. Must be between 1-64 inclusive. */ //, typename = typename std::enable_if<(BitCount < 65 && BitCount > 0), void>::type
+	template<int BitCount>
 	struct bitset
 	{
-		static_assert(BitCount > 0, "bit count must be greater than 0");
-		static_assert(BitCount < 65, "bit count must be less than 65");
+		//static_assert(BitCount > 0, "bit count must be greater than 0");
+		//static_assert(BitCount < 65, "bit count must be less than 65");
 
 		typedef std::conditional_t <BitCount <= 8, unsigned char,
 			std::conditional_t <BitCount <= 16, unsigned short,
 			std::conditional_t<BitCount <= 32, unsigned int,
 			unsigned long long >>> Bittype;
 
-		constexpr static uint8 GetBitCount() { return BitCount; }
+		constexpr static int GetBitCount() { return BitCount; }
 
 		Bittype bits;
 
@@ -30,24 +30,24 @@ namespace gk
 			bits = initialFlags;
 		}
 
-		template<uint8 N>
+		template<int N>
 		constexpr bitset(const bitset<N> other) {
 			bits = other.bits;
 		}
 
-		constexpr bool GetBit(uint8 index) {
+		constexpr bool GetBit(int index) {
 			return bits >> index & 1U;
 		}
 
-		constexpr bool operator [] (uint8 index) {
+		constexpr bool operator [] (int index) {
 			return GetBit(index);
 		}
 
-		constexpr void SetBit(uint8 index, bool flag = true) {
-			bits ^= (-(static_cast<uint8>(flag)) ^ bits) & 1ULL << index;
+		constexpr void SetBit(int index, bool flag = true) {
+			bits ^= (-(static_cast<int>(flag)) ^ bits) & 1ULL << index;
 		}
 
-		template<uint8 N>
+		template<int N>
 		constexpr void operator = (const bitset<N> other) {
 			bits = other.bits;
 		}
@@ -56,7 +56,7 @@ namespace gk
 			bits = other;
 		}
 
-		template<uint8 N>
+		template<int N>
 		constexpr bool operator == (const bitset<N> other) {
 			return (uint64)bits == (uint64)other.bits;
 		}
@@ -65,7 +65,7 @@ namespace gk
 			return (uint64)bits == other;
 		}
 
-		template<uint8 N>
+		template<int N>
 		constexpr Bittype operator & (const bitset<N> other) {
 			return bits & other.bits;
 		}
@@ -74,7 +74,7 @@ namespace gk
 			return bits & other;
 		}
 
-		template<uint8 N>
+		template<int N>
 		constexpr Bittype operator &= (const bitset<N> other) {
 			bits &= other.bits;
 			return bits;
@@ -85,7 +85,7 @@ namespace gk
 			return bits;
 		}
 
-		template<uint8 N>
+		template<int N>
 		constexpr Bittype operator | (const bitset<N> other) {
 			return bits | other.bits;
 		}
@@ -94,7 +94,7 @@ namespace gk
 			return bits | other;
 		}
 
-		template<uint8 N>
+		template<int N>
 		constexpr Bittype operator |= (const bitset<N> other) {
 			bits |= other.bits;
 			return bits;
@@ -105,7 +105,7 @@ namespace gk
 			return bits;
 		}
 
-		template<uint8 N>
+		template<int N>
 		constexpr Bittype operator ^ (const bitset<N> other) {
 			return bits ^ other.bits;
 		}
@@ -114,7 +114,7 @@ namespace gk
 			return bits ^ other;
 		}
 
-		template<uint8 N>
+		template<int N>
 		constexpr Bittype operator ^= (const bitset<N> other) {
 			bits ^= other.bits;
 			return bits;
