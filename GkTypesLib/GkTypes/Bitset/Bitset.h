@@ -10,7 +10,7 @@ namespace gk
 	template<int BitCount>
 	struct bitset
 	{
-		//static_assert(BitCount > 0, "bit count must be greater than 0");
+		static_assert(BitCount > 0, "bit count must be greater than 0");
 		//static_assert(BitCount < 65, "bit count must be less than 65");
 
 		typedef std::conditional_t <BitCount <= 8, unsigned char,
@@ -44,7 +44,7 @@ namespace gk
 		}
 
 		constexpr void SetBit(int index, bool flag = true) {
-			bits ^= (-(static_cast<int>(flag)) ^ bits) & 1ULL << index;
+			bits ^= (-(static_cast<unsigned long long>(flag)) ^ bits) & 1ULL << index;
 		}
 
 		template<int N>
