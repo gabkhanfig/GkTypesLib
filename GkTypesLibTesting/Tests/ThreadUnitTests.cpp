@@ -17,6 +17,15 @@ void AddOne(int* num) {
 	*num = *num + 1;
 }
 
+class TestThreadClass {
+public:
+	int a;
+	void SomeFunc(int newVal) {
+		a = newVal;
+	}
+	
+};
+
 namespace UnitTests {
 
 	TEST(Thread, CreateAndDestroy) {
@@ -48,6 +57,7 @@ namespace UnitTests {
 		while (!thread->IsReady());
 		ASSERT_TRUE(*boolean);
 		delete thread;
+		delete boolean;
 	}
 
 	TEST(Thread, MultipleBindsInOneExecution) {
@@ -60,8 +70,24 @@ namespace UnitTests {
 		thread->BindFunction(std::bind(AddOne, num2));
 		thread->Execute();
 		while (!thread->IsReady());
-		ASSERT_EQ(*num1, 11);
-		ASSERT_EQ(*num2, 21);
+		EXPECT_EQ(*num1, 11);
+		EXPECT_EQ(*num2, 21);
+		delete thread;
+		delete num1;
+		delete num2;
+	}
+
+	TEST(Thread, ExecuteClassMemberFunction) {
+		gk::Thread* thread = new gk::Thread();
+		TestThreadClass* obj = new TestThreadClass();
+		obj->a = 5;
+		EXPECT_EQ(obj->a, 5);
+		thread->BindFunction(std::bind(&TestThreadClass::SomeFunc, obj, 10));
+		EXPECT_EQ(obj->a, 5);
+		thread->Execute();
+		while (!thread->IsReady());
+		EXPECT_EQ(obj->a, 10);
+		delete obj;
 		delete thread;
 	}
 }
