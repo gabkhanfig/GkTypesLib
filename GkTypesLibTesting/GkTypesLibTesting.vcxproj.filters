@@ -7,6 +7,7 @@
     <ClCompile Include="Tests\DynamicArrayUnitTests.cpp" />
     <ClCompile Include="Tests\BitsetUnitTests.cpp" />
     <ClCompile Include="Tests\ThreadUnitTests.cpp" />
+    <ClCompile Include="Tests\ThreadPoolUnitTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

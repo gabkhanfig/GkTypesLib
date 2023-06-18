@@ -1,7 +1,7 @@
 #include "../pch.h"
 #include "../../GkTypesLib/GkTypes/Thread/Thread.h"
 
-void DoSomeWork() {
+static void DoSomeWork() {
 	int* number = new int;
 	*number = 10;
 	delete number;
@@ -63,6 +63,14 @@ namespace UnitTests {
 		ASSERT_TRUE(*boolean);
 		delete thread;
 		delete boolean;
+	}
+
+	TEST(Thread, DifferentThreadIds) {
+		gk::Thread* thread1 = new gk::Thread();
+		gk::Thread* thread2 = new gk::Thread();
+		ASSERT_NE(thread1->GetThreadId(), thread2->GetThreadId());
+		delete thread1;
+		delete thread2;
 	}
 
 	TEST(Thread, MultipleBindsInOneExecution) {
