@@ -17,6 +17,11 @@ void AddOne(int* num) {
 	*num = *num + 1;
 }
 
+void DoDelayedWork(int* num) {
+ 	Sleep(10);
+	AddOne(num);
+}
+
 class TestThreadClass {
 public:
 	int a;
@@ -90,4 +95,18 @@ namespace UnitTests {
 		delete obj;
 		delete thread;
 	}
+
+	TEST(Thread, ExecuteDelayedFunctionWithDelete) {
+		gk::Thread* thread = new gk::Thread();
+		int* num1 = new int;
+		*num1 = 10;
+		thread->BindFunction(std::bind(DoDelayedWork, num1));
+		EXPECT_EQ(*num1, 10);
+		thread->Execute();
+		delete thread;
+		EXPECT_EQ(*num1, 11);
+		delete num1;
+	}
+
+
 }

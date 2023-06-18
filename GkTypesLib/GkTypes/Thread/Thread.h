@@ -37,6 +37,7 @@ namespace gk
 
 		/* Sets the thread to stop looping, then joins it. */
 		~Thread() {
+			while (!IsReady());
 			pendingKill = true;
 			Execute();
 			thread.join();
