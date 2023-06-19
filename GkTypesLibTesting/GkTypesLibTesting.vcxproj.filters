@@ -8,9 +8,11 @@
     <ClCompile Include="Tests\BitsetUnitTests.cpp" />
     <ClCompile Include="Tests\ThreadUnitTests.cpp" />
     <ClCompile Include="Tests\ThreadPoolUnitTests.cpp" />
+    <ClCompile Include="Utility\EnglishWords.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Utility\EnglishWords.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

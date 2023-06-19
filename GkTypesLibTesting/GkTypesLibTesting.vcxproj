@@ -34,6 +34,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Utility\EnglishWords.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp" />
@@ -48,6 +49,7 @@
     <ClCompile Include="Tests\DynamicArrayUnitTests.cpp" />
     <ClCompile Include="Tests\ThreadPoolUnitTests.cpp" />
     <ClCompile Include="Tests\ThreadUnitTests.cpp" />
+    <ClCompile Include="Utility\EnglishWords.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
