@@ -493,8 +493,10 @@ namespace UnitTests {
 		a.Add(15);
 		a.Add(1010101);
 		a.Add(5);
+		int* current = a.Data();
 		a.Empty();
-		ASSERT_NE(old, a.Data());
+		ASSERT_NE(old, current);
+		ASSERT_NE(a.Data(), current);
 	}
 
 	TEST(DynamicArray, EmptySize) {
