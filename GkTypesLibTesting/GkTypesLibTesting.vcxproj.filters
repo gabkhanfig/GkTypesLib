@@ -9,6 +9,7 @@
     <ClCompile Include="Tests\ThreadUnitTests.cpp" />
     <ClCompile Include="Tests\ThreadPoolUnitTests.cpp" />
     <ClCompile Include="Utility\EnglishWords.cpp" />
+    <ClCompile Include="Tests\StringTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

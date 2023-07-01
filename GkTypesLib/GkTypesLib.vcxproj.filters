@@ -54,5 +54,11 @@
     <ClInclude Include="GkTypes\Hashmap\Hash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GkTypes\String\NewString.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Core.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
