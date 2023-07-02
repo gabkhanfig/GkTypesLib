@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GkTypes\Array\DynamicArray.h" />
+    <ClInclude Include="GkTypes\Asserts.h" />
     <ClInclude Include="GkTypes\BasicTypes.h" />
     <ClInclude Include="GkTypes\Bitset\Bitset.h" />
     <ClInclude Include="GkTypes\ClassRef\ClassRef.h" />

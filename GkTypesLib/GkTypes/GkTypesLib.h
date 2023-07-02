@@ -8,4 +8,5 @@
 #include "String/String.h"
 #include "String/GlobalString.h"
 #include "Thread/ThreadPool.h"
+#include "Asserts.h"
 
