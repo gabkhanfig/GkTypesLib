@@ -8,6 +8,7 @@
 #include "BasicTypes.h"
 #include <immintrin.h>
 #include <iostream>
+#include "Asserts.h"
 
 namespace gk
 {
@@ -62,21 +63,22 @@ namespace gk
 		return !(iptr % alignment);
 	}
 
-	/* Expects 32 byte alignment */
+	/* Does not require aligned pointers. */
 	[[nodiscard]] static bool AVX2CheckEqual32ByteBlocks(const void* left, const void* right) {
-#if GK_CHECK
-		if (!isAligned(left, 32)) {
-			std::cout << uint64(left);
-			DebugBreak();
-		}
-		if (!isAligned(right, 32)) {
-			std::cout << uint64(right);
-			DebugBreak();
-		}
-#endif
 		const __m256i vectorLeft = _mm256_loadu_epi8(left);
 		const __m256i vectorRight = _mm256_loadu_epi8(right);
 		const __m256i compareResult = _mm256_cmpeq_epi8(vectorLeft, vectorRight);
+		const int bitmask = _mm256_movemask_epi8(compareResult);
+		return bitmask == -1; // all bits flipped (~0)
+	}
+
+	/* Does require aligned pointers. */
+	[[nodiscard]] static bool AVX2CheckEqualPreAligned32ByteBlocks(const void* left, const void* right) {
+		gk_assertNotNull(left);
+		gk_assertNotNull(right);
+		gk_assert(isAligned(left, 32));
+		gk_assert(isAligned(right, 32));
+		const __m256i compareResult = _mm256_cmpeq_epi8(*(__m256i*)left, *(__m256i*)right);
 		const int bitmask = _mm256_movemask_epi8(compareResult);
 		return bitmask == -1; // all bits flipped (~0)
 	}
