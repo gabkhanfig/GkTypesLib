@@ -83,6 +83,19 @@ namespace gk
 		return bitmask == -1; // all bits flipped (~0)
 	}
 
+	[[nodiscard]] static bool AVX2CheckEqualRangeUpTo32Bytes(const void* left, const void* right, uint64 numToCheck) {
+		gk_assert(numToCheck <= 32);
+		__m256i vectorLeft;
+		__m256i vectorRight;
+		memset(&vectorLeft, 0, 32);
+		memset(&vectorRight, 0, 32);
+		memcpy(&vectorLeft, left, numToCheck);
+		memcpy(&vectorRight, right, numToCheck);
+		const __m256i compareResult = _mm256_cmpeq_epi8(vectorLeft, vectorRight);
+		const int bitmask = _mm256_movemask_epi8(compareResult);
+		return bitmask == -1; // all bits flipped (~0)
+	}
+
 
 
 }
