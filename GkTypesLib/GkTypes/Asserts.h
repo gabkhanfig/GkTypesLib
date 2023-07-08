@@ -30,7 +30,7 @@
 	}\
 }
 
-#elif
+#else
 
 #define gk_assert(condition)
 #define gk_assertm(condition, message)
