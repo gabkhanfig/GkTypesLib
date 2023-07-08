@@ -78,9 +78,10 @@ namespace gk
 		gk_assertNotNull(right);
 		gk_assert(isAligned(left, 32));
 		gk_assert(isAligned(right, 32));
-		const __m256i compareResult = _mm256_cmpeq_epi8(*(__m256i*)left, *(__m256i*)right);
-		const int bitmask = _mm256_movemask_epi8(compareResult);
-		return bitmask == -1; // all bits flipped (~0)
+		//const __m256i compareResult = _mm256_cmpeq_epi8(*(__m256i*)left, *(__m256i*)right);
+		//const int bitmask = _mm256_movemask_epi8(compareResult);
+		//return bitmask == -1; // all bits flipped (~0)
+		return _mm256_cmpeq_epi8_mask(*(__m256i*)left, *(__m256i*)right) == -1;
 	}
 
 	[[nodiscard]] static bool AVX2CheckEqualRangeUpTo32Bytes(const void* left, const void* right, uint64 numToCheck) {
@@ -96,6 +97,21 @@ namespace gk
 		return bitmask == -1; // all bits flipped (~0)
 	}
 
+	[[nodiscard]] static bool CheckEqual128BitRange(const void* left, const void* right) {
+		__m128i _left = _mm_loadu_epi8(left);
+		__m128i _right = _mm_loadu_epi8(right);
+		//memcpy(&_left, left, 16);
+		//memcpy(&_right, right, 16);
 
+		__m128i result = _mm_cmpeq_epi16(_left, _right);
+		const int bitmask = _mm_movemask_epi8(result);
+		return bitmask == 65535;
+	}
+
+	[[nodiscard]] static bool CheckEqual128BitPreAligned(const void* left, const void* right) {
+		__m128i result = _mm_cmpeq_epi8(*(__m128i*)left, *(__m128i*)right);
+		const int bitmask = _mm_movemask_epi8(result);
+		return bitmask == 65535;
+	}
 
 }
