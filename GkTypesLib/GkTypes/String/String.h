@@ -541,7 +541,7 @@ namespace gk
 			num -= whole;
 			if (num == 0) return wholeString + ".0"; // Quick return if no fractional part
 			if (num < 0) num *= -1; // Make positive for fractional part
-			uint64 zeroesInFractionBeforeFirstNonZero = 0;
+			int zeroesInFractionBeforeFirstNonZero = 0;
 			for (int i = 0; i < precision; i++) {
 				num *= 10;
 				if (num < 1) zeroesInFractionBeforeFirstNonZero += 1;
