@@ -69,6 +69,11 @@ namespace gk
 			return *(uint32*)&id; 
 		}
 
+		/* Useful for checking against std::this_thread::get_id() */
+		[[nodiscard]] std::thread::id StdThreadId() const noexcept {
+			return thread.get_id();
+		}
+
 		/* Did this thread complete execution of the bound function? */
 		[[nodiscard]] bool IsReady() const { return hasExecuted.load(std::memory_order_relaxed); }
 
