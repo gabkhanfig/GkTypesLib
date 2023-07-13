@@ -35,6 +35,8 @@
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="GkTest.h" />
+    <ClInclude Include="Temp\OldString.h" />
+    <ClInclude Include="Utility\Benchmark.h" />
     <ClInclude Include="Utility\EnglishWords.h" />
   </ItemGroup>
   <ItemGroup>
@@ -52,10 +54,14 @@
     <ClCompile Include="Tests\StringTests.cpp" />
     <ClCompile Include="Tests\ThreadPoolUnitTests.cpp" />
     <ClCompile Include="Tests\ThreadUnitTests.cpp" />
+    <ClCompile Include="Utility\Benchmark.cpp" />
     <ClCompile Include="Utility\EnglishWords.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Resources\words.txt" />
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
@@ -73,6 +79,7 @@
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -90,6 +97,7 @@
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -106,6 +114,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -124,6 +133,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

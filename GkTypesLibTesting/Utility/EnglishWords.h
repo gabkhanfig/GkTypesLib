@@ -8,7 +8,7 @@ class EnglishWords {
 
 public:
 
-	static gk::darray<gk::string> LoadAllEnglishWordsToStrings();
+	static gk::darray<gk::String> LoadAllEnglishWordsToStrings();
 
-	static std::vector<gk::string> VectorLoadAllEnglishWordsToStrings();
+	static std::vector<gk::String> VectorLoadAllEnglishWordsToStrings();
 };

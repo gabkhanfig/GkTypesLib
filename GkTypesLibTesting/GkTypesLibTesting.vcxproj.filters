@@ -11,13 +11,19 @@
     <ClCompile Include="Utility\EnglishWords.cpp" />
     <ClCompile Include="Tests\StringTests.cpp" />
     <ClCompile Include="GkTest.cpp" />
+    <ClCompile Include="Utility\Benchmark.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="Utility\EnglishWords.h" />
     <ClInclude Include="GkTest.h" />
+    <ClInclude Include="Utility\Benchmark.h" />
+    <ClInclude Include="Temp\OldString.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Resources\words.txt" />
   </ItemGroup>
 </Project>

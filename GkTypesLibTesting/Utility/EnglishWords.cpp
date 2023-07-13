@@ -1,11 +1,11 @@
 #include "EnglishWords.h"
 #include "../../GkTypesLib/GkTypes/File/FileLoader.h"
 
-gk::darray<gk::string> EnglishWords::LoadAllEnglishWordsToStrings()
+gk::darray<gk::String> EnglishWords::LoadAllEnglishWordsToStrings()
 {
 	const char* wordsPath = "C:/Users/Admin/Documents/Code/GkTypesLib/GkTypesLibTesting/Resources/words.txt";
-	const gk::string wordsString = gk::FileLoader::LoadFile(wordsPath);
-	gk::darray<gk::string> words;
+	const gk::String wordsString = gk::FileLoader::LoadFile(wordsPath);
+	gk::darray<gk::String> words;
 	words.Reserve(467000);
 
 	const char* str = wordsString.CStr();
@@ -15,7 +15,7 @@ gk::darray<gk::string> EnglishWords::LoadAllEnglishWordsToStrings()
 		char c = str[i];
 		if (c == '\n') {
 			end = &str[i - 1];
-			words.Add(gk::string(start, end));
+			words.Add(gk::String(start, end));
 			start = &str[i + 1];
 		}
 	}
@@ -23,11 +23,11 @@ gk::darray<gk::string> EnglishWords::LoadAllEnglishWordsToStrings()
 	return words;
 }
 
-std::vector<gk::string> EnglishWords::VectorLoadAllEnglishWordsToStrings()
+std::vector<gk::String> EnglishWords::VectorLoadAllEnglishWordsToStrings()
 {
 	const char* wordsPath = "C:/Users/Admin/Documents/Code/GkTypesLib/GkTypesLibTesting/Resources/words.txt";
-	const gk::string wordsString = gk::FileLoader::LoadFile(wordsPath);
-	std::vector<gk::string> words;
+	const gk::String wordsString = gk::FileLoader::LoadFile(wordsPath);
+	std::vector<gk::String> words;
 	words.reserve(467000);
 
 	const char* str = wordsString.CStr();
@@ -37,7 +37,7 @@ std::vector<gk::string> EnglishWords::VectorLoadAllEnglishWordsToStrings()
 		char c = str[i];
 		if (c == '\n') {
 			end = &str[i - 1];
-			words.push_back(gk::string(start, end));
+			words.push_back(gk::String(start, end));
 			start = &str[i + 1];
 		}
 	}

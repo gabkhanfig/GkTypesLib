@@ -8,24 +8,24 @@ namespace gk
 	/* Runtime global immutable strings. GlobalString internally only holds a pointer, so const-referencing is not necessary. */
 	struct GlobalString
 	{
-		typedef std::unordered_map < gk::string, gk::string* > GlobalStringMapType;
+		typedef std::unordered_map < gk::String, gk::String* > GlobalStringMapType;
 
 	private:
 
 		inline static GlobalStringMapType stringMap;
 
-		gk::string* internalString;
+		gk::String* internalString;
 
 	private:
 
 		/* Will attempt to add a string to the map. If the string map already contains the passed in string, it will instead just get the contained string. */
-		static gk::string* AddStringToMap(const gk::string& str) 
+		static gk::String* AddStringToMap(const gk::String& str) 
 		{
 			auto search = stringMap.find(str);
 			if (search != stringMap.end()) {
 				return search->second;
 			}
-			gk::string* mapStr = new gk::string(str);
+			gk::String* mapStr = new gk::String(str);
 			stringMap.insert({ str, mapStr });
 			return mapStr;
 		}
@@ -33,14 +33,14 @@ namespace gk
 	public:
 
 		/* Check if the map contains a specified string. */
-		static bool DoesMapContainString(const gk::string& str) 
+		static bool DoesMapContainString(const gk::String& str) 
 		{
 			return stringMap.contains(str);
 		}
 
 		GlobalString()
 		{
-			internalString = AddStringToMap(gk::_emptyString);
+			internalString = AddStringToMap("");
 		}
 
 		GlobalString(const gk::GlobalString& other)
@@ -48,7 +48,7 @@ namespace gk
 			internalString = other.internalString;
 		}
 
-		GlobalString(const gk::string& str) 
+		GlobalString(const gk::String& str) 
 		{
 			internalString = AddStringToMap(str);
 		}
@@ -63,7 +63,7 @@ namespace gk
 
 		}
 
-		GlobalString& operator = (const gk::string& str) 
+		GlobalString& operator = (const gk::String& str) 
 		{
 			internalString = AddStringToMap(str);
 			return *this;
@@ -77,11 +77,11 @@ namespace gk
 
 		bool operator == (const char* str) const 
 		{
-			gk::string _str{ str };
+			gk::String _str{ str };
 			return *this == _str;
 		}
 
-		bool operator == (const gk::string& str) const
+		bool operator == (const gk::String& str) const
 		{
 			auto search = stringMap.find(str);
 			if (search == stringMap.end()) {
@@ -96,7 +96,7 @@ namespace gk
 			return internalString == str.internalString;
 		}
 
-		gk::string ToString() const
+		gk::String ToString() const
 		{
 			return *internalString;
 		}
