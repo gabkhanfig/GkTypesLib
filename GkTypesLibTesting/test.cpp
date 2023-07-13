@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <xmmintrin.h>
 #include <intrin.h>
+#include "../GkTypesLib/GkTypes/Event/Event.h"
 
 const int iterations = 1;
 
@@ -111,9 +112,41 @@ void RunGkStringConstCharBenchmark(const char* benchmarkName, const gk::darray<g
   std::cout << found << std::endl;
 }
 
+class Test {
+public:
+  int a;
+  void DoSomething(int num, float num2) {
+    a = num * num2;
+    std::cout << a << std::endl;
+  }
+};
+
+
+void SomeRandomFunc(bool b, int num) {
+  if (b) {
+    std::cout << "true... " << num << std::endl;
+  }
+  else {
+    std::cout << "false... " << num << std::endl;
+  }
+}
+
+//typedef void (Test::*TestMemberFunc)(int);
+
+
 int main(int argc, char** argv) {
 
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  //TestMemberFunc fn = &Test::DoSomething;
+  Test* obj = new Test();
+  //(obj->*fn)(5);
 
+
+  //::testing::InitGoogleTest(&argc, argv);
+  //return RUN_ALL_TESTS();
+
+  auto e = gk::Event<int, float>::Create(obj, &Test::DoSomething);
+  auto p = gk::Event<bool, int>::Create(SomeRandomFunc);
+  //gk::Event<int, float>* e = new gk::EventImpl<Test, int, float>(obj, &Test::DoSomething);
+  e->Invoke(4, 5);
+  p->Invoke(false, 10);
 }
