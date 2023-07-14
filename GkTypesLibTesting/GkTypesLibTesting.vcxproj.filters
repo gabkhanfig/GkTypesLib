@@ -12,6 +12,7 @@
     <ClCompile Include="Tests\StringTests.cpp" />
     <ClCompile Include="GkTest.cpp" />
     <ClCompile Include="Utility\Benchmark.cpp" />
+    <ClCompile Include="Tests\EventTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

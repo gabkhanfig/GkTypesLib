@@ -115,9 +115,22 @@ void RunGkStringConstCharBenchmark(const char* benchmarkName, const gk::darray<g
 class Test {
 public:
   int a;
+
+  Test(int _a) {
+    a = _a;
+  }
+
   void DoSomething(int num, float num2) {
     a = num * num2;
     std::cout << a << std::endl;
+  }
+
+  int GetNum() const {
+    return a;
+  }
+
+  int GetNumAdded(int b) const {
+    return a + b;
   }
 };
 
@@ -131,22 +144,35 @@ void SomeRandomFunc(bool b, int num) {
   }
 }
 
+double Multiply(double a, double b) {
+  return a * b;
+}
+
 //typedef void (Test::*TestMemberFunc)(int);
 
 
 int main(int argc, char** argv) {
 
   //TestMemberFunc fn = &Test::DoSomething;
-  Test* obj = new Test();
+  Test* obj = new Test(0);
+
+  Test* obj2 = new Test(14);
   //(obj->*fn)(5);
 
 
-  //::testing::InitGoogleTest(&argc, argv);
-  //return RUN_ALL_TESTS();
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 
-  auto e = gk::Event<int, float>::Create(obj, &Test::DoSomething);
-  auto p = gk::Event<bool, int>::Create(SomeRandomFunc);
-  //gk::Event<int, float>* e = new gk::EventImpl<Test, int, float>(obj, &Test::DoSomething);
-  e->Invoke(4, 5);
-  p->Invoke(false, 10);
+  //auto e = gk::Event<void, int, float>::Create(obj, &Test::DoSomething);
+  //auto p = gk::Event<void, bool, int>::Create(SomeRandomFunc);
+  //auto ret = gk::Event<double, double, double>::Create(Multiply);
+  //auto memFuncReturn = gk::Event<int, int>::Create(obj2, &Test::GetNumAdded);
+  //auto memFuncReturnNoArgs = gk::Event<int>::Create(obj2, &Test::GetNum);
+  //e->Invoke(4, 5);
+  //p->Invoke(false, 10);
+  //double c = ret->Invoke(10, 8);
+  //std::cout << c << std::endl;
+  //int number = memFuncReturn->Invoke(14);
+  //std::cout << number << std::endl;
+
 }
