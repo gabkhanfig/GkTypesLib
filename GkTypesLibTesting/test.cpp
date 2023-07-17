@@ -44,7 +44,7 @@ gk::darray<T> ConvertToOtherStringArray(const gk::darray<gk::String>& words) {
   gk::darray<T> strs;
   for (const gk::String& word : words) {
     T asStr = T(word.CStr());
-    const ArrSizeT element = strs.Add(asStr);
+    const uint32 element = strs.Add(asStr);
     //std::cout << asStr << std::endl;
     //std::cout << strs.At(element);
     //std::cout << "\n\n";
@@ -154,10 +154,16 @@ double Multiply(double a, double b) {
 int main(int argc, char** argv) {
 
   //TestMemberFunc fn = &Test::DoSomething;
-  Test* obj = new Test(0);
+  //Test* obj = new Test(0);
 
-  Test* obj2 = new Test(14);
+  //Test* obj2 = new Test(14);
   //(obj->*fn)(5);
+
+
+  long long num = -static_cast<long long>(bool(false));
+  long long other = ~static_cast<long long>(!bool(false));
+  std::cout << num << std::endl;
+  std::cout << other << std::endl;
 
 
   ::testing::InitGoogleTest(&argc, argv);

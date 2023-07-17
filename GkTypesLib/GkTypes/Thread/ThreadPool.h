@@ -30,7 +30,7 @@ namespace gk
 		ThreadPool(unsigned int _threadCount)
 		{
 			threads.Reserve(_threadCount);
-			for (ArrSizeT i = 0; i < _threadCount; i++) {
+			for (uint32 i = 0; i < _threadCount; i++) {
 				gk::Thread* thread = new gk::Thread();
 				threads.Add(thread);
 			}
@@ -40,7 +40,7 @@ namespace gk
 		~ThreadPool()
 		{
 			unsigned int threadCount = GetThreadCount();
-			for (ArrSizeT i = 0; i < threadCount; i++) {
+			for (uint32 i = 0; i < threadCount; i++) {
 				delete threads[i];
 			}
 		}
@@ -59,7 +59,7 @@ namespace gk
 		/**/
 		bool AllThreadsReady() const {
 			bool AllThreadsDone = true;
-			for (ArrSizeT i = 0; i < GetThreadCount(); i++) {
+			for (uint32 i = 0; i < GetThreadCount(); i++) {
 				gk::Thread* thread = threads[i];
 				if (!thread->IsReady()) {
 					AllThreadsDone = false;
@@ -75,28 +75,28 @@ namespace gk
 			while (!AllThreadsReady());
 
 			darray<darray<Thread::ThreadFunctionType>> functions;
-			for (ArrSizeT i = 0; i < GetThreadCount() + 1; i++) {
+			for (uint32 i = 0; i < GetThreadCount() + 1; i++) {
 				functions.Add(darray<Thread::ThreadFunctionType>());
 			}
 
 			while (functionQueue.size()) {
-				for (ArrSizeT i = 0; i < GetThreadCount() + 1; i++) {
+				for (uint32 i = 0; i < GetThreadCount() + 1; i++) {
 					if (functionQueue.size() == 0) break;
 					functions[i].Add(functionQueue.front());
 					functionQueue.pop();
 				}
 			}
 
-			for (ArrSizeT i = 0; i < GetThreadCount(); i++) {
+			for (uint32 i = 0; i < GetThreadCount(); i++) {
 				gk::Thread* thread = threads[i];
 				darray<Thread::ThreadFunctionType>& arr = functions[i];
-				for (ArrSizeT func = 0; func < arr.Size(); func++) {
+				for (uint32 func = 0; func < arr.Size(); func++) {
 					thread->BindFunction(functions[i].At(func));
 				}
 				thread->Execute();
 			}
 			darray<Thread::ThreadFunctionType>& last = functions[functions.Size() - 1];
-			for (ArrSizeT i = 0; i < last.Size(); i++) {
+			for (uint32 i = 0; i < last.Size(); i++) {
 				last[i]();
 			}
 

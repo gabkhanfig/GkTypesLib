@@ -99,7 +99,7 @@ namespace gk
 
 			darray<ThreadFunctionType> copy = functions;
 			functions.Empty();
-			for (ArrSizeT i = 0; i < copy.Size(); i++) {
+			for (uint32 i = 0; i < copy.Size(); i++) {
 				copy[i]();
 			}
 			hasExecuted.store(true, std::memory_order_relaxed);

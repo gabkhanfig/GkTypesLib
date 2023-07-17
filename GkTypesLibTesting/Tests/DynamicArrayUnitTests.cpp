@@ -547,18 +547,18 @@ namespace UnitTests {
 		gk::darray<int> a;
 		a.Add(10);
 		a.Add(11);
-		ASSERT_EQ(a.Find(12), a.INDEX_NONE);
+		ASSERT_FALSE(a.Find(12).IsValidIndex());
 	}
 
 	TEST(DynamicArray, FindLastFirst) {
 		gk::darray<int> a;
 		a.Add(10);
-		ASSERT_EQ(a.FindLast(10), 0);
+		ASSERT_EQ(a.FindLast(10).Get(), 0);
 	}
 
 	TEST(DynamicArray, FindLastOffset) {
 		gk::darray<int> a = { 10, 10, 11 };
-		ASSERT_EQ(a.FindLast(10), 1);
+		ASSERT_EQ(a.FindLast(10).Get(), 1);
 	}
 
 #pragma endregion
