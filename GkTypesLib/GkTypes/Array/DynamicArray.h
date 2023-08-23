@@ -44,8 +44,6 @@ namespace gk
 			uint32 _index;
 		};
 
-		static constexpr uint32 DEFAULT_CAPACITY = 1;
-
 		/* @return The number of elements currently held in the array. */
 		uint32 Size() const {
 			return size;
@@ -87,9 +85,9 @@ namespace gk
 
 		/* Defualt constructor. See darray::INITIAL_CAPACITY. */
 		darray() {
-			data = new T[DEFAULT_CAPACITY];
+			data = nullptr;
 			size = 0;
-			capacity = DEFAULT_CAPACITY;
+			capacity = 0;
 		}
 
 		/* Copy constructor. The copied darray is still valid. */
@@ -121,21 +119,17 @@ namespace gk
 		/* Reserves capacity in the darray. If the new capacity is less than the array's current capacity, this function does nothing. */
 		void Reserve(uint32 newCapacity) {
 			if (newCapacity < capacity) return;
-
 			if (newCapacity == 0) newCapacity = 1;
 
-			if (data == nullptr) {
-				data = new T[newCapacity];
-				capacity = newCapacity;
-				size = 0;
-				return;
-			}
-
 			T* newData = new T[newCapacity];
-			for (uint32 i = 0; i < Size(); i++) {
-				newData[i] = std::move(data[i]);
+
+			if (data != nullptr) {
+				for (uint32 i = 0; i < Size(); i++) {
+					newData[i] = std::move(data[i]);
+				}
+				delete[] data;
 			}
-			delete[] data;
+			
 			data = newData;
 			capacity = newCapacity;
 		}
@@ -155,7 +149,7 @@ namespace gk
 		/* Add an element to the end of the darray by move. */
 		uint32 Add(T&& element) {
 			if (size == capacity) {
-				Reallocate(capacity * 2);
+				Reallocate((capacity + 1) * 2);
 			}
 
 			data[size] = std::move(element);
@@ -166,7 +160,7 @@ namespace gk
 		/* Add an element to the end of the darray by copy. */
 		uint32 Add(const T& element) {
 			if (size == capacity) {
-				Reallocate(capacity * 2);
+				Reallocate((capacity + 1) * 2);
 			}
 
 			data[size] = element;
@@ -269,9 +263,6 @@ namespace gk
 		/* Empty the array. Basically sets it back to the state of default construction. */
 		void Empty() {
 			DeleteData();
-			data = new T[DEFAULT_CAPACITY];
-			size = 0;
-			capacity = DEFAULT_CAPACITY;
 		}
 
 		/* Find the first index of an element in the array. */
@@ -498,7 +489,9 @@ namespace gk
 			for (uint32 i = 0; i < Size(); i++) {
 				newData[i] = std::move(data[i]);
 			}
-			delete[] data;
+			if (data != nullptr) {
+				delete[] data;
+			}
 			data = newData;
 			capacity = newCapacity;
 		}
@@ -545,13 +538,18 @@ namespace gk
 		void ConstructCopy(const darray<T>& other) {
 			const uint32 num = other.Size();
 			data = nullptr;
+			size = num;
 			capacity = 0;
+
+			if (num == 0) {
+				std::cerr << "size other array is 0";
+				return;
+			}
 			Reserve(num);
 
 			for (uint32 i = 0; i < num; i++) {
 				data[i] = other.data[i];
 			}
-			size = num;
 		}
 
 		/* Construct this darray given another darray by move. */
