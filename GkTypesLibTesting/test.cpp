@@ -112,73 +112,21 @@ void RunGkStringConstCharBenchmark(const char* benchmarkName, const gk::darray<g
   std::cout << found << std::endl;
 }
 
-class Test {
-public:
-  int a;
-
-  Test(int _a) {
-    a = _a;
-  }
-
-  void DoSomething(int num, float num2) {
-    a = num * num2;
-    std::cout << a << std::endl;
-  }
-
-  int GetNum() const {
-    return a;
-  }
-
-  int GetNumAdded(int b) const {
-    return a + b;
-  }
-};
-
-
-void SomeRandomFunc(bool b, int num) {
-  if (b) {
-    std::cout << "true... " << num << std::endl;
-  }
-  else {
-    std::cout << "false... " << num << std::endl;
-  }
-}
-
-double Multiply(double a, double b) {
-  return a * b;
-}
-
-//typedef void (Test::*TestMemberFunc)(int);
-
 
 int main(int argc, char** argv) {
 
-  //TestMemberFunc fn = &Test::DoSomething;
-  //Test* obj = new Test(0);
+  //gk::String word = "hello";
+  //gk::String definition = "a greeting";
+  //uint64 hashCode = 8;
+  //int dictionary[26];
 
-  //Test* obj2 = new Test(14);
-  //(obj->*fn)(5);
+  
+  //const float modded = std::fmod(-1, 8);
+  //std::cout << modded;
 
-
-  long long num = -static_cast<long long>(bool(false));
-  long long other = ~static_cast<long long>(!bool(false));
-  std::cout << num << std::endl;
-  std::cout << other << std::endl;
 
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
-
-  //auto e = gk::Event<void, int, float>::Create(obj, &Test::DoSomething);
-  //auto p = gk::Event<void, bool, int>::Create(SomeRandomFunc);
-  //auto ret = gk::Event<double, double, double>::Create(Multiply);
-  //auto memFuncReturn = gk::Event<int, int>::Create(obj2, &Test::GetNumAdded);
-  //auto memFuncReturnNoArgs = gk::Event<int>::Create(obj2, &Test::GetNum);
-  //e->Invoke(4, 5);
-  //p->Invoke(false, 10);
-  //double c = ret->Invoke(10, 8);
-  //std::cout << c << std::endl;
-  //int number = memFuncReturn->Invoke(14);
-  //std::cout << number << std::endl;
 
 }
