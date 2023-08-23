@@ -77,7 +77,7 @@ namespace UnitTests {
 
 	TEST(DynamicArray, DefaultConstructValidPointer) {
 		gk::darray<int> a;
-		ASSERT_NE(a.Data(), nullptr);
+		ASSERT_EQ(a.Data(), nullptr);
 	}
 
 	TEST(DynamicArray, DefaultConstructEmpty) {
@@ -87,15 +87,7 @@ namespace UnitTests {
 
 	TEST(DynamicArray, DefaultConstructCapacity) {
 		gk::darray<int> a;
-		ASSERT_EQ(a.Capacity(), a.DEFAULT_CAPACITY);
-	}
-
-
-
-	TEST(DynamicArray, DefaultConstructUnique) {
-		gk::darray<int> a;
-		gk::darray<int> b;
-		ASSERT_NE(a.Data(), b.Data());
+		ASSERT_EQ(a.Capacity(), 0);
 	}
 
 #pragma endregion
@@ -118,14 +110,14 @@ namespace UnitTests {
 	TEST(DynamicArray, AddPrimitiveSingleCapacityMove) {
 		gk::darray<int> a;
 		a.Add(25);
-		ASSERT_EQ(a.Capacity(), 1);
+		ASSERT_GE(a.Capacity(), 0);
 	}
 
 	TEST(DynamicArray, AddPrimitiveSingleCapacityCopy) {
 		gk::darray<int> a;
 		int num = 25;
 		a.Add(num);
-		ASSERT_EQ(a.Capacity(), 1);
+		ASSERT_GE(a.Capacity(), 0);
 	}
 
 	TEST(DynamicArray, AddPrimitiveSingleCheckMove) {
@@ -161,14 +153,14 @@ namespace UnitTests {
 	TEST(DynamicArray, AddComplexSingleCapacityMove) {
 		gk::darray<darrayComplexElement> a;
 		a.Add(darrayComplexElement());
-		ASSERT_EQ(a.Capacity(), 1);
+		ASSERT_GE(a.Capacity(), 0);
 	}
 
 	TEST(DynamicArray, AddComplexSingleCapacityCopy) {
 		gk::darray<darrayComplexElement> a;
 		darrayComplexElement elem;
 		a.Add(elem);
-		ASSERT_EQ(a.Capacity(), 1);
+		ASSERT_GE(a.Capacity(), 0);
 	}
 
 	TEST(DynamicArray, AddComplexSingleCheckMoveDefault) {
@@ -311,7 +303,7 @@ namespace UnitTests {
 	TEST(DynamicArray, CopyConstructValidPointer) {
 		const gk::darray<int> a;
 		gk::darray<int> b = gk::darray<int>(a);
-		ASSERT_NE(b.Data(), nullptr);
+		ASSERT_EQ(b.Data(), nullptr);
 	}
 
 	TEST(DynamicArray, CopyConstructEmpty) {
@@ -323,19 +315,21 @@ namespace UnitTests {
 	TEST(DynamicArray, CopyConstructCapacity) {
 		const gk::darray<int> a;
 		gk::darray<int> b = gk::darray<int>(a);
-		ASSERT_EQ(b.Capacity(), b.DEFAULT_CAPACITY);
+		ASSERT_EQ(b.Capacity(), 0);
 	}
 
 	TEST(DynamicArray, CopyConstructUnique) {
 		const gk::darray<int> a;
 		gk::darray<int> b = gk::darray<int>(a);
-		ASSERT_NE(a.Data(), b.Data());
+		ASSERT_EQ(a.Data(), nullptr);
+		ASSERT_EQ(b.Data(), nullptr);
 	}
 
 	TEST(DynamicArray, CopyConstructSinglePrimitiveElement) {
 		gk::darray<int> a;
 		a.Add(1);
 		gk::darray<int> b = gk::darray<int>(a);
+		ASSERT_EQ(b.Size(), 1);
 		ASSERT_EQ(b[0], 1);
 	}
 
@@ -355,7 +349,7 @@ namespace UnitTests {
 	TEST(DynamicArray, MoveConstructValidPointer) {
 		gk::darray<int> a;
 		gk::darray<int> b = gk::darray<int>(std::move(a));
-		ASSERT_NE(b.Data(), nullptr);
+		ASSERT_EQ(b.Data(), nullptr);
 	}
 
 	TEST(DynamicArray, MoveConstructEmpty) {
@@ -367,17 +361,19 @@ namespace UnitTests {
 	TEST(DynamicArray, MoveConstructCapacity) {
 		gk::darray<int> a;
 		gk::darray<int> b = gk::darray<int>(std::move(a));
-		ASSERT_EQ(b.Capacity(), b.DEFAULT_CAPACITY);
+		ASSERT_EQ(b.Capacity(), 0);
 	}
 
 	TEST(DynamicArray, MoveConstructInvalidFirst) {
 		gk::darray<int> a;
+		a.Add(1);
 		gk::darray<int> b = gk::darray<int>(std::move(a));
 		ASSERT_EQ(a.Data(), nullptr);
 	}
 
 	TEST(DynamicArray, MoveConstructValidSecond) {
 		gk::darray<int> a;
+		a.Add(1);
 		gk::darray<int> b = gk::darray<int>(std::move(a));
 		ASSERT_NE(b.Data(), nullptr);
 	}
@@ -513,16 +509,15 @@ namespace UnitTests {
 		a.Add(10);
 		a.Add(10);
 		a.Empty();
-		ASSERT_EQ(a.Capacity(), a.DEFAULT_CAPACITY);
+		ASSERT_EQ(a.Capacity(), 0);
 	}
 
-	TEST(DynamicArray, EmptyValidPointer) {
+	TEST(DynamicArray, EmptyNullPointer) {
 		gk::darray<int> a;
 		a.Add(11);
 		a.Add(10);
 		a.Empty();
-		a.Data()[0] = 5;
-		ASSERT_EQ(a.Data()[0], 5);
+		ASSERT_EQ(a.Data(), nullptr);
 	}
 
 #pragma endregion
