@@ -13,7 +13,7 @@ namespace gk
 	{
 	private:
 
-		std::queue<gk::Thread::ThreadFunctionType> functionQueue;
+		gk::darray<gk::Thread::ThreadFunctionType> functionQueue;
 
 		gk::darray<gk::Thread*> threads;
 
@@ -50,10 +50,10 @@ namespace gk
 
 		/* Bind a function to the queue for eventual execution when ExecuteQueue() is called.
 		@param function: Uses type std::function<void()>. See std::bind() for binding functions with parameters. */
-		size_t AddFunctionToQueue(gk::Thread::ThreadFunctionType function)
+		size_t AddFunctionToQueue(const gk::Thread::ThreadFunctionType& function)
 		{
-			functionQueue.push(function);
-			return functionQueue.size();
+			functionQueue.Add(function);
+			return functionQueue.Size();
 		}
 
 		/**/
@@ -71,17 +71,55 @@ namespace gk
 		/* Executes everything in the pool queue until the pool is empty and all thread have completed. Also uses the calling thread as a worker. 
 		@param waitUntilAllComplete: If true, waits to return until every thread is complete, otherwise returns when primary thread only is known to be complete. */
 		void ExecuteQueue(bool waitUntilAllComplete = true) {
+			const uint32 totalFunctions = functionQueue.Size();
+			if (totalFunctions == 0) return;
+
+			const uint32 availableExecuteThreads = GetThreadCount() + 1;
+			const uint32 maxFunctionsPerThread = static_cast<uint32>(std::ceil(double(totalFunctions) / double(availableExecuteThreads)));
+
+			uint32 functionIndex = 0;
+			uint32 threadIndex = 0;
+			uint32 functionsOnThisThread = 0;
+
+			while (!AllThreadsReady());
+
+			while (functionIndex < totalFunctions) {
+				if (threadIndex == threads.Size()) { // No more gk::Threads? Use this thread.
+					gk::Thread::ThreadFunctionType& function = functionQueue[functionIndex];
+					function(); 
+					functionIndex++;
+					continue;
+				}
+
+				gk::Thread* thread = threads[threadIndex];
+				thread->BindFunction(std::move(functionQueue[functionIndex]));
+
+				functionIndex++;
+				functionsOnThisThread++;
+				if (functionsOnThisThread == maxFunctionsPerThread) {
+					functionsOnThisThread = 0;
+					threadIndex++;
+					thread->Execute();
+				}
+			}
+
+			functionQueue.Empty();
+
+			if (!waitUntilAllComplete) return;
+			while (!AllThreadsReady());
+
+			/*
 			// Check if all the threads are ready. If not, wait.
 			while (!AllThreadsReady());
 
-			darray<darray<Thread::ThreadFunctionType>> functions;
-			for (uint32 i = 0; i < GetThreadCount() + 1; i++) {
-				functions.Add(darray<Thread::ThreadFunctionType>());
-			}
+			//darray<darray<Thread::ThreadFunctionType>> functions;
+			//for (uint32 i = 0; i < GetThreadCount() + 1; i++) {
+			//	functions.Add(darray<Thread::ThreadFunctionType>());
+			//}
 
-			while (functionQueue.size()) {
+			while (functionQueue.Size()) {
 				for (uint32 i = 0; i < GetThreadCount() + 1; i++) {
-					if (functionQueue.size() == 0) break;
+					if (functionQueue.Size() == 0) break;
 					functions[i].Add(functionQueue.front());
 					functionQueue.pop();
 				}
@@ -101,7 +139,7 @@ namespace gk
 			}
 
 			if (!waitUntilAllComplete) return;
-			while (!AllThreadsReady());
+			while (!AllThreadsReady());*/
 		}
 
 	};

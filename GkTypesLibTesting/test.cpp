@@ -112,21 +112,7 @@ void RunGkStringConstCharBenchmark(const char* benchmarkName, const gk::darray<g
   std::cout << found << std::endl;
 }
 
-
 int main(int argc, char** argv) {
-
-  //gk::String word = "hello";
-  //gk::String definition = "a greeting";
-  //uint64 hashCode = 8;
-  //int dictionary[26];
-
-  
-  //const float modded = std::fmod(-1, 8);
-  //std::cout << modded;
-
-
-
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
-
 }

@@ -28,7 +28,6 @@ namespace gk
 		[[nodiscard("Avoid creating a new thread without keeping track of it. Can cause memory leaks and consume system cpu resources.")]] 
 		Thread()
 		{
-			mutex = new std::mutex;
 			pendingKill.store(false, std::memory_order_relaxed);
 			shouldExecuteFunction.store(false, std::memory_order_relaxed);
 			hasExecuted.store(true, std::memory_order_relaxed);
@@ -48,10 +47,20 @@ namespace gk
 
 		/* Bind a function to the thread for execution.
 		@param inFunction: Uses type std::function<void()>. See std::bind() for binding functions with parameters. */
-		void BindFunction(ThreadFunctionType inFunction)
+		void BindFunction(const ThreadFunctionType& inFunction)
 		{
-			hasExecuted.store(false, std::memory_order_relaxed);
+			if (hasExecuted.load(std::memory_order_relaxed) != false) {
+				hasExecuted.store(false, std::memory_order_relaxed);
+			}
 			functions.Add(inFunction);
+		}
+
+		void BindFunction(ThreadFunctionType&& inFunction)
+		{
+			if (hasExecuted.load(std::memory_order_relaxed) != false) {
+				hasExecuted.store(false, std::memory_order_relaxed);
+			}
+			functions.Add(std::move(inFunction));
 		}
 
 		/* Forcefully execute whatever bound function is contained, on the thread. */
@@ -59,7 +68,7 @@ namespace gk
 		{
 			shouldExecuteFunction.store(true, std::memory_order_relaxed);
 			hasExecuted.store(false, std::memory_order_relaxed);
-			std::unique_lock<std::mutex> lock(*mutex);
+			std::unique_lock<std::mutex> lock(mutex);
 			condVar.notify_all();
 		}
 
@@ -82,7 +91,7 @@ namespace gk
 		/* Loop that runs constantly on the thread. */
 		void ThreadLoop() {
 			while (!pendingKill.load()) {
-				std::unique_lock<std::mutex> lck(*mutex);
+				std::unique_lock<std::mutex> lck(mutex);
 				condVar.wait(lck, [&]{return this->shouldExecuteFunction.load(); });
 				ExecuteThreadFunctions();
 			}
@@ -97,8 +106,8 @@ namespace gk
 				return;
 			}
 
-			darray<ThreadFunctionType> copy = functions;
-			functions.Empty();
+			darray<ThreadFunctionType> copy = std::move(functions);
+			functions = darray<ThreadFunctionType>();
 			for (uint32 i = 0; i < copy.Size(); i++) {
 				copy[i]();
 			}
@@ -106,6 +115,9 @@ namespace gk
 		}
 
 	private:
+
+		/* Mutex for condition variable. */
+		std::mutex mutex;
 
 		/* Handles blocking and resuming the threads execution. */
 		std::condition_variable condVar;
@@ -115,9 +127,6 @@ namespace gk
 
 		/* Functions to execute on this thread. See Execute(); */
 		darray<ThreadFunctionType> functions;
-
-		/* Mutex for condition variable. */
-		std::mutex* mutex;
 
 		/* Flag that tracks whether the functions should execute. Tracked by the condition variable. */
 		std::atomic<bool> shouldExecuteFunction;
