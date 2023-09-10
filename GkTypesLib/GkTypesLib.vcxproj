@@ -35,6 +35,7 @@
     <ClInclude Include="GkTypes\Thread\Thread.h" />
     <ClInclude Include="GkTypes\Thread\ThreadPool.h" />
     <ClInclude Include="GkTypes\Utility.h" />
+    <ClInclude Include="GkTypes\Function\Fptr.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
