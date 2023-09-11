@@ -66,5 +66,8 @@
     <ClInclude Include="GkTypes\Function\Fptr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GkTypes\Option\Option.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

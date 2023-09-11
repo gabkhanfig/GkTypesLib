@@ -30,6 +30,7 @@
     <ClInclude Include="GkTypes\GkTypesLib.h" />
     <ClInclude Include="GkTypes\Hashmap\Hash.h" />
     <ClInclude Include="GkTypes\Hashmap\Hashmap.h" />
+    <ClInclude Include="GkTypes\Option\Option.h" />
     <ClInclude Include="GkTypes\String\GlobalString.h" />
     <ClInclude Include="GkTypes\String\String.h" />
     <ClInclude Include="GkTypes\Thread\Thread.h" />
