@@ -53,6 +53,7 @@
     <ClCompile Include="GkTest.cpp" />
     <ClCompile Include="Tests\EventTests.cpp" />
     <ClCompile Include="Tests\FunctionPointerTests.cpp" />
+    <ClCompile Include="Tests\OptionUnitTests.cpp" />
     <ClCompile Include="Tests\StringTests.cpp" />
     <ClCompile Include="Tests\ThreadPoolUnitTests.cpp" />
     <ClCompile Include="Tests\ThreadUnitTests.cpp" />

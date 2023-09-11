@@ -14,6 +14,7 @@
     <ClCompile Include="Utility\Benchmark.cpp" />
     <ClCompile Include="Tests\EventTests.cpp" />
     <ClCompile Include="Tests\FunctionPointerTests.cpp" />
+    <ClCompile Include="Tests\OptionUnitTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

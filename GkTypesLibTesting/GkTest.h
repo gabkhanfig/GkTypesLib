@@ -1,5 +1,6 @@
 #pragma once
 #include "../GkTypesLib/GkTypes/BasicTypes.h"
+#include <Windows.h>
 
 /* https://stackoverflow.com/questions/29174938/googletest-and-memory-leaks
 Only works in debug mode (_DEBUG macro).
