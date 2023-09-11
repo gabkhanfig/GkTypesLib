@@ -527,7 +527,7 @@ namespace UnitTests {
 	TEST(DynamicArray, FindFirst) {
 		gk::darray<int> a;
 		a.Add(10);
-		ASSERT_EQ(a.Find(10), 0);
+		ASSERT_EQ(a.Find(10).some(), 0);
 	}
 
 	TEST(DynamicArray, FindOffset) {
@@ -535,25 +535,25 @@ namespace UnitTests {
 		a.Add(10);
 		a.Add(10);
 		a.Add(11);
-		ASSERT_EQ(a.Find(11), 2);
+		ASSERT_EQ(a.Find(11).some(), 2);
 	}
 
 	TEST(DynamicArray, FindNone) {
 		gk::darray<int> a;
 		a.Add(10);
 		a.Add(11);
-		ASSERT_FALSE(a.Find(12).IsValidIndex());
+		ASSERT_TRUE(a.Find(12).none());
 	}
 
 	TEST(DynamicArray, FindLastFirst) {
 		gk::darray<int> a;
 		a.Add(10);
-		ASSERT_EQ(a.FindLast(10).Get(), 0);
+		ASSERT_EQ(a.FindLast(10).some(), 0);
 	}
 
 	TEST(DynamicArray, FindLastOffset) {
 		gk::darray<int> a = { 10, 10, 11 };
-		ASSERT_EQ(a.FindLast(10).Get(), 1);
+		ASSERT_EQ(a.FindLast(10).some(), 1);
 	}
 
 #pragma endregion

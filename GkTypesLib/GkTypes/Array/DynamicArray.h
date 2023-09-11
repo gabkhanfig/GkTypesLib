@@ -9,40 +9,44 @@
 #include <iostream>
 #include "../BasicTypes.h"
 #include "../Asserts.h"
+#include "../Option/Option.h"
 
 namespace gk 
 {
+	/* Empty struct for Option template specialization */
+	struct darrayIndex {};
+
+	template<>
+	struct Option<darrayIndex>
+	{
+		Option() : _index(INDEX_NONE) {}
+		Option(const uint32 index) : _index(index) {}
+		Option(const Option<darrayIndex>& other) : _index(other._index) {}
+		void operator = (const uint32 index) { _index = index; }
+		void operator = (const Option<darrayIndex>& other) { _index = other._index; }
+
+		[[nodiscard]] uint32 some() const {
+			gk_assertm(!none(), "Cannot get optional darray index value if its none");
+			return _index;
+		}
+
+		[[nodiscard]] bool none() const {
+			return _index == INDEX_NONE;
+		}
+
+		static constexpr uint32 INDEX_NONE = 0xFFFFFFFFU;
+
+	private:
+
+		uint32 _index;
+
+	};
+
 	/* Dynamic array. */
 	template <typename T>
 	struct darray
 	{
 	public:
-
-		struct OptionalIndex {
-
-			static constexpr uint32 INDEX_NONE = 0xFFFFFFFFU;
-
-			OptionalIndex(uint32 index) : _index(index) {}
-
-			OptionalIndex(const OptionalIndex& other) : _index(other._index) {}
-
-			void operator = (const OptionalIndex& other) { _index = other._index; }
-
-			bool IsValidIndex() const { return _index != INDEX_NONE; }
-
-			/* Will throw an assertion if IsValidIndex() returns false. */
-			uint32 Get() const {
-				gk_assertm(IsValidIndex(), "Cannot get the an invalid optional index");
-				return _index;
-			}
-
-			bool operator == (OptionalIndex rhs) const { return _index == rhs._index; }
-			bool operator == (uint32 rhs) const { return _index == rhs; }
-
-		private:
-
-			uint32 _index;
-		};
 
 		/* @return The number of elements currently held in the array. */
 		uint32 Size() const {
@@ -266,19 +270,19 @@ namespace gk
 		}
 
 		/* Find the first index of an element in the array. */
-		[[nodiscard]] OptionalIndex Find(const T& element) const {
+		[[nodiscard]] Option<darrayIndex> Find(const T& element) const {
 			for (uint32 i = 0; i < Size(); i++) {
-				if (data[i] == element) return i;
+				if (data[i] == element) return Option<darrayIndex>(i);
 			}
-			return OptionalIndex::INDEX_NONE;
+			return Option<darrayIndex>();
 		}
 
 		/* Find the last index of an element in the array. */
-		[[nodiscard]] OptionalIndex FindLast(const T& element) const {
-			for (uint32 i = Size() - 1; i != OptionalIndex::INDEX_NONE; i--) { // Potential UB?
-				if (data[i] == element) return i;
+		[[nodiscard]] Option<darrayIndex> FindLast(const T& element) const {
+			for (uint32 i = Size() - 1; i != Option<darrayIndex>::INDEX_NONE; i--) { // Potential UB?
+				if (data[i] == element) return Option<darrayIndex>(i);
 			}
-			return OptionalIndex::INDEX_NONE;
+			return Option<darrayIndex>();
 		}
 
 		/* Find all indices of a provided element. */
@@ -301,15 +305,15 @@ namespace gk
 
 		/* Remove the first occurrence of a given element. */
 		void RemoveFirst(const T& element) {
-			const OptionalIndex index = Find(element);
-			if (!index.IsValidIndex()) return;
+			const Option<darrayIndex> index = Find(element);
+			if (index.none()) return;
 			Internal_RemoveAt(index.Get());
 		}
 
 		/* Remove the last occurrence of a given element. */
 		void RemoveLast(const T& element) {
-			const OptionalIndex index = FindLast(element);
-			if (!index.IsValidIndex()) return;
+			const Option<darrayIndex> index = FindLast(element);
+			if (index.none()) return;
 			Internal_RemoveAt(index.Get());
 		}
 
