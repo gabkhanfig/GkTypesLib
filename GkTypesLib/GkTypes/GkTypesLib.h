@@ -10,5 +10,6 @@
 #include "Thread/ThreadPool.h"
 #include "Event/Event.h"
 #include "Function/Fptr.h"
+#include "Option/Option.h"
 #include "Asserts.h"
 
