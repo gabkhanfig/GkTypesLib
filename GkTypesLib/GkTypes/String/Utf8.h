@@ -3,7 +3,7 @@
 #include "../BasicTypes.h"
 #include "../Asserts.h"
 #include <Windows.h>
-#include "../Result/Result.h"
+#include "../Error/Result.h"
 
 // https://arxiv.org/pdf/2010.03090.pdf
 // https://en.wikipedia.org/wiki/UTF-8
