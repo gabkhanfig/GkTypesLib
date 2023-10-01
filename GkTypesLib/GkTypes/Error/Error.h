@@ -57,21 +57,5 @@ namespace gk
 		String _errorCause;
 
 	};
-
-
-	class SomeError : public Error
-	{
-	public:
-
-		SomeError(const String& errorCause, const char* errorFileOrigin = nullptr) : Error(errorCause, errorFileOrigin) {}
-
-		virtual const char* errorName() const {
-			return "some error";
-		}
-
-		virtual const char* description() const {
-			return "idk";
-		}
-	};
 }
 
