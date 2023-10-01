@@ -31,3 +31,5 @@ typedef unsigned long long uint64;
 /* Aligns data types on linux / mac. */
 #define ALIGN_AS alignas(alignment)
 #endif
+
+#define forceinline __forceinline
