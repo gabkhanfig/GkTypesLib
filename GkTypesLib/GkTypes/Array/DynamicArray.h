@@ -19,18 +19,18 @@ namespace gk
 	template<>
 	struct Option<darrayIndex>
 	{
-		Option() : _index(INDEX_NONE) {}
-		Option(const uint32 index) : _index(index) {}
-		Option(const Option<darrayIndex>& other) : _index(other._index) {}
-		void operator = (const uint32 index) { _index = index; }
-		void operator = (const Option<darrayIndex>& other) { _index = other._index; }
+		constexpr Option() : _index(INDEX_NONE) {}
+		constexpr Option(const uint32 index) : _index(index) {}
+		constexpr Option(const Option<darrayIndex>& other) : _index(other._index) {}
+		constexpr void operator = (const uint32 index) { _index = index; }
+		constexpr void operator = (const Option<darrayIndex>& other) { _index = other._index; }
 
-		[[nodiscard]] uint32 some() const {
+		[[nodiscard]] constexpr  uint32 some() const {
 			gk_assertm(!none(), "Cannot get optional darray index value if its none");
 			return _index;
 		}
 
-		[[nodiscard]] bool none() const {
+		[[nodiscard]] constexpr bool none() const {
 			return _index == INDEX_NONE;
 		}
 
