@@ -23,15 +23,20 @@ namespace gk
 		};
 
 		class _EventFreeFuncImpl : public _BaseEvent {
-			typedef ReturnT(*Func)(Types...);
 		public:
+
+			typedef ReturnT(*Func)(Types...);
+
 			_EventFreeFuncImpl(Func func) : _func(func) {}
+
 			virtual ReturnT invoke(Types... vars) const override {
 				return _func(vars...);
 			}
+
 			virtual bool isObject(const void* obj) const override {
 				return false;
 			}
+
 			virtual const _BaseEvent* makeCopy() const override {
 				return new _EventFreeFuncImpl(_func);
 			}
@@ -41,15 +46,20 @@ namespace gk
 
 		template <typename ObjT, typename FuncClassT>
 		class _EventObjectImpl : public _BaseEvent {
-			typedef ReturnT(FuncClassT::* MemberFunc)(Types...);
 		public:
+
+			typedef ReturnT(FuncClassT::* MemberFunc)(Types...);
+		
 			_EventObjectImpl(ObjT* obj, MemberFunc func) : _obj(obj), _func(func) {}
+
 			virtual ReturnT invoke(Types... vars) const override {
 				return ((FuncClassT*)_obj->*_func)(vars...);
 			}
+
 			virtual bool isObject(const void* obj) const override {
 				return _obj == obj;
 			}
+
 			virtual const _BaseEvent* makeCopy() const override {
 				return new _EventObjectImpl(_obj, _func);
 			}
@@ -60,15 +70,20 @@ namespace gk
 
 		template <typename ObjT, typename FuncClassT>
 		class _EventConstObjectImpl : public _BaseEvent {
-			typedef ReturnT(FuncClassT::* MemberFunc)(Types...) const;
 		public:
+
+			typedef ReturnT(FuncClassT::* MemberFunc)(Types...) const;
+		
 			_EventConstObjectImpl(const ObjT* obj, MemberFunc func) : _obj(obj), _func(func) {}
+
 			virtual ReturnT invoke(Types... vars) const override {
 				return ((const FuncClassT*)_obj->*_func)(vars...);
 			}
+
 			virtual bool isObject(const void* obj) const override {
 				return _obj == obj;
 			}
+
 			virtual _BaseEvent* makeCopy() const override {
 				return new _EventConstObjectImpl(_obj, _func);
 			}
@@ -202,6 +217,7 @@ namespace gk
 			return _eventObj->invoke(vars...);
 		}
 
+		/* Check if the contained event object is the argument. */
 		template<typename T>
 		[[nodiscard]] bool isObject(const T* obj) const {
 			gk_assertm(isBound(), "Event not bound");
