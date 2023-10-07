@@ -70,7 +70,7 @@ namespace gk
 
 			iterator(T* _data) : data(_data) {}
 
-			iterator operator++() { ++data; return *this; }
+			iterator& operator++() { ++data; return *this; }
 
 			bool operator!=(const iterator& other) const { return data != other.data; }
 
