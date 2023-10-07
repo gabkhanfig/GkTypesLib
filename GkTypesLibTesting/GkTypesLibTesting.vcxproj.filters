@@ -15,6 +15,7 @@
     <ClCompile Include="Tests\EventTests.cpp" />
     <ClCompile Include="Tests\FunctionPointerTests.cpp" />
     <ClCompile Include="Tests\OptionUnitTests.cpp" />
+    <ClCompile Include="Tests\RingQueueTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
