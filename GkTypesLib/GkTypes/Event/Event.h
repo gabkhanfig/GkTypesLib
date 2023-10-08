@@ -141,7 +141,9 @@ namespace gk
 		}
 
 		Event(const Event& other) {
-			other.getEventObj()->makeCopy(_internalBuffer);
+			if (other.isBound()) {
+				other.getEventObj()->makeCopy(_internalBuffer);
+			}
 		}
 
 		Event(Event&& other) noexcept {
@@ -157,7 +159,9 @@ namespace gk
 
 		Event& operator = (const Event& other) {
 			freeEventObject();
-			other.getEventObj()->makeCopy(_internalBuffer);
+			if (other.isBound()) {
+				other.getEventObj()->makeCopy(_internalBuffer);
+			}
 			return *this;
 		}
 
@@ -233,7 +237,7 @@ namespace gk
 		}
 
 		[[nodiscard]] bool isBound() const {
-			return getEventObj() != nullptr;
+			return _internalBuffer[0] != 0;
 		}
 
 	private:
