@@ -75,6 +75,7 @@ namespace gk
 			bool operator!=(const iterator& other) const { return data != other.data; }
 
 			const T& operator*() const { return *data; }
+			T& operator*() { return *data; }
 
 		private:
 
