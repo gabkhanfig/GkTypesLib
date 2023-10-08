@@ -19,12 +19,6 @@ namespace gk
 
 	public:
 
-		/* Get the amount of threads available on this system. Returns a minimum value of 1. */
-		[[nodiscard]] static const unsigned int SystemThreadCount() {
-			unsigned int hardwareCount = std::thread::hardware_concurrency();
-			return hardwareCount > _HARDWARE_LOWEST_ALLOWED_THREAD_COUNT ? hardwareCount : _HARDWARE_LOWEST_ALLOWED_THREAD_COUNT;
-		}
-
 		/**/
 		[[nodiscard("Avoid creating a thread pool without keeping track of it. Can cause memory leaks and consume system cpu resources.")]] 
 		ThreadPool(unsigned int _threadCount)

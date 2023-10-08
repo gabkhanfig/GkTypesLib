@@ -1,5 +1,6 @@
 #include "../pch.h"
 #include "../../GkTypesLib/GkTypes/Thread/ThreadPool.h"
+#include "../../GkTypesLib/GkTypes/CpuFeatures/CpuFeatureDetector.h"
 
 static void DoSomeWork() {
 	int* number = new int;
@@ -19,7 +20,7 @@ void AddOneAfterFixedDelay(int* num, long long msdelay) {
 namespace UnitTests {
 
 	TEST(ThreadPool, HardwareThreadCount) {
-		const unsigned int systemThreadCount = gk::ThreadPool::SystemThreadCount();
+		const unsigned int systemThreadCount = gk::systemThreadCount();
 		EXPECT_TRUE(systemThreadCount > 1);
 		EXPECT_EQ(systemThreadCount, std::thread::hardware_concurrency());
 	}
