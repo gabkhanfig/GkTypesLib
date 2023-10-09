@@ -59,7 +59,11 @@ namespace gk
 		}
 
 		/* DANGEROUS. @return Raw array data pointer. */
-		T* Data() const {
+		T* Data() {
+			return data;
+		}
+
+		const T* Data() const {
 			return data;
 		}
 
