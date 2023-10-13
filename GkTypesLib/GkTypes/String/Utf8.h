@@ -11,7 +11,9 @@
 namespace gk
 {
 	struct Utf8Metadata {
+		/* Length of the string as utf8. */
 		uint64 length;
+		/* Total bytes used by the string including null terminator. */
 		uint64 totalBytes;
 
 		constexpr Utf8Metadata() : length(0), totalBytes(0) {}
