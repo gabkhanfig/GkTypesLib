@@ -9,7 +9,12 @@ namespace gk
 
   /* UTF8 characters pointer. Can deduce string length at compile time from string literals. 
   To enable UTF8, navigate to:
-  Project (Or right click on the project in the solution explorer) -> [Your Project] Properties -> C/C++ -> Command Line -> Additional Options -> Insert "/utf-8" */
+  Project (Or right click on the project in the solution explorer) -> [Your Project] Properties -> C/C++ -> Command Line -> Additional Options -> Insert "/utf-8" 
+  It's also necessary that all of the project files are saved using UTF-8. 
+  Example of usage:
+  gk::Str str = gk::Str("hello world!);
+  gk::Str str2 = "hello world!";
+  auto str3 = "hello world!"_str; */
   struct Str {
     /* Reference to a pre-existing string. On destruction, will not free this data. */
     const char* str;
@@ -28,7 +33,7 @@ namespace gk
       totalBytes = metadata.totalBytes;
       gk_assertm(inStr[totalBytes - 1] == '\0', "Str is not null terminated");
     }
-
+    
     static constexpr Str fromAscii(const char* inStr) {
       Str str;
       str.str = inStr;
@@ -87,4 +92,14 @@ namespace gk
       return *this;
     }
   };
+}
+
+consteval gk::Str operator "" _str(const char* inStr, size_t) {
+  const gk::Utf8Metadata metadata = gk::utf8::strlen(inStr).ok();
+  gk::Str str;
+  str.str = inStr;
+  str.len = metadata.length;
+  str.totalBytes = metadata.totalBytes;
+  gk_assertm(inStr[str.totalBytes - 1] == '\0', "Str is not null terminated");
+  return str;
 }
