@@ -51,7 +51,7 @@ namespace UnitTests
 
 	TEST(Utf8, StrlenInvalidUtf8) {
 		char buf[2];
-		buf[0] = 255;
+		buf[0] = (char)255;
 		buf[1] = '\0';
 		auto result = gk::utf8::strlen(buf);
 		ASSERT_TRUE(result.isError());
@@ -225,7 +225,7 @@ namespace UnitTests
 
 	TEST(Str, RuntimeMultibyteCharacterInvalid) {
 		char buf[2];
-		buf[0] = 255;
+		buf[0] = (char)255;
 		buf[1] = '\0';
 		auto res = gk::Str::fromUtf8(buf);
 		ASSERT_TRUE(res.isError());
