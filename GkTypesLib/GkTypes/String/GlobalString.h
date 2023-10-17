@@ -33,14 +33,14 @@ namespace gk
 	public:
 
 		/* Check if the map contains a specified string. */
-		static bool DoesMapContainString(const gk::String& str) 
+		static bool doesMapContainString(const gk::String& str) 
 		{
 			return stringMap.contains(str);
 		}
 
 		GlobalString()
 		{
-			internalString = AddStringToMap("");
+			internalString = AddStringToMap(""_str);
 		}
 
 		GlobalString(const gk::GlobalString& other)
@@ -53,7 +53,7 @@ namespace gk
 			internalString = AddStringToMap(str);
 		}
 
-		GlobalString(const char* str) 
+		GlobalString(const gk::Str& str) 
 		{
 			internalString = AddStringToMap(str);
 		}
@@ -75,7 +75,7 @@ namespace gk
 			return *this;
 		}
 
-		bool operator == (const char* str) const 
+		bool operator == (const gk::Str& str) const
 		{
 			gk::String _str{ str };
 			return *this == _str;
@@ -96,24 +96,24 @@ namespace gk
 			return internalString == str.internalString;
 		}
 
-		gk::String ToString() const
+		gk::String toString() const
 		{
 			return *internalString;
 		}
 
-		const char* CStr() const
+		const char* cstr() const
 		{
-			return internalString->CStr();
+			return internalString->cstr();
 		}
 
-		size_t ComputeHash() const
+		size_t hash() const
 		{
 			return (size_t)internalString;
 		}
 
 		/* std::cout << GlobalString */
 		friend std::ostream& operator << (std::ostream& os, const GlobalString& _string) {
-			return os << _string.CStr();
+			return os << _string.cstr();
 		}
 
 	};
@@ -125,7 +125,7 @@ namespace std
 	struct hash<gk::GlobalString>
 	{
 		size_t operator()(const gk::GlobalString& str) const {
-			return str.ComputeHash();
+			return str.hash();
 		}
 
 	};

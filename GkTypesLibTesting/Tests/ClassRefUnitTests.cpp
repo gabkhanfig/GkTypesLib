@@ -32,7 +32,7 @@ public:
 namespace UnitTests {
   TEST(ClassRef, Name) {
     gk::ClassRef* ref = gk::ClassRef::CreateClassReference<ClassRefTestClass1>(gk::GlobalString("TestClass1"));
-    EXPECT_EQ(ref->GetName(), "TestClass1");
+    EXPECT_EQ(ref->GetName(), "TestClass1"_str);
   }
 
   TEST(ClassRef, NewCorrectClassType) {

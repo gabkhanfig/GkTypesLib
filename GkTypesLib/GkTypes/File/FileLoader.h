@@ -14,20 +14,20 @@ namespace gk
 		/* Loads a file into a string. */
 		static gk::String LoadFile(const gk::String& filePath)
 		{
-			std::ifstream in(filePath.CStr());
+			std::ifstream in(filePath.cstr());
 			if (!in.good()) {
 				return gk::String();
 			}
 			std::string contents = std::string((std::istreambuf_iterator<char>(in)), {});
 
-			return gk::String(contents.c_str());
+			return gk::String(gk::Str::fromUtf8(contents.c_str()).ok());
 		}
 
 		/* Checks if a file exists at the specified path. Also works for folders! */
 		static bool DoesFileExist(const gk::String& filePath)
 		{
 			struct stat buffer;
-			return (stat(filePath.CStr(), &buffer) == 0);
+			return (stat(filePath.cstr(), &buffer) == 0);
 		}
 
 		/* Checks if a folder exists at the specified path. Also works for files! */
