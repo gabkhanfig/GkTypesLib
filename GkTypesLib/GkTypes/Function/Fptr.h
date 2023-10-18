@@ -20,15 +20,11 @@ namespace gk
 
 		Fptr(Fptr<ReturnT, Types...>&& other) noexcept { 
 			_func = other._func;
-#if GK_CHECK // Ensure not use a moved instance
 			other._func = nullptr;
-#endif
 		}
 
 		~Fptr() {
-#if GK_CHECK // Ensure cannot use after explicit delete
 			_func = nullptr;
-#endif
 		}
 
 		inline void operator = (const FuncPtrT func) { bind(func); }
@@ -37,9 +33,7 @@ namespace gk
 
 		inline void operator = (Fptr<ReturnT, Types...>&& other) noexcept {
 			_func = other._func;
-#if GK_CHECK // Ensure not use a moved instance
 			other._func = nullptr;
-#endif
 		}
 
 		/* Will assert if func is nullptr. */
