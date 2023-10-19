@@ -1708,3 +1708,17 @@ namespace std
 		}
 	};
 }
+
+inline gk::String gk::Error::toString() const {
+	String outString = String("Error: "_str).append(gk::Str::fromAscii(errorName())).append('\n');
+	if (_errorFileOrigin != nullptr) {
+		outString.append(gk::Str::fromAscii(_errorFileOrigin)).append('\n');
+	}
+	outString.append("Description: "_str).append(gk::Str::fromAscii(description())).append("\nCause: "_str).append(cause());
+	return outString;
+}
+
+inline gk::String gk::InvalidUtf8Error::cause() const {
+	return gk::String(gk::Str::fromAscii(_cause));
+}
+

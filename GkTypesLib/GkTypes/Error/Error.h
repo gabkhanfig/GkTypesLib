@@ -16,26 +16,11 @@ namespace gk
 	{
 	public:
 
-		//virtual String toString() const {
-		//	String outString = String("Error: "_str).append(gk::Str::fromAscii(errorName())).append('\n');
-		//	if (_errorFileOrigin != nullptr) {
-		//		outString.append(gk::Str::fromAscii(_errorFileOrigin)).append('\n');
-		//	}
-		//	outString.append("Description: "_str).append(gk::Str::fromAscii(description())).append("\nCause: "_str).append(_errorCause);
-		//	const Option<String> extraErrorInfo = extraInfo();
-		//	if (extraErrorInfo.none()) {
-		//		return outString;
-		//	}
-		//	return outString.append("\nInfo: "_str).append(extraErrorInfo.some());
-		//}
+		virtual struct String toString() const;
 
 	protected:
 
-		// See ERROR_FILE_ORIGIN
-		//Error(const String& errorCause, const char* errorFileOrigin = nullptr) : _errorCause(errorCause), _errorFileOrigin(errorFileOrigin) {}
-		// See ERROR_FILE_ORIGIN
-		//Error(String&& errorCause, const char* errorFileOrigin = nullptr) : _errorCause(std::move(errorCause)), _errorFileOrigin(errorFileOrigin) {}
-
+		/* See ERROR_FILE_ORIGIN macro */
 		Error(const char* errorFileOrigin = nullptr) : _errorFileOrigin(errorFileOrigin) {}
 
 		// Name of the error for printing. Should be independent of error instances.
@@ -45,16 +30,11 @@ namespace gk
 		virtual const char* description() const = 0;
 
 		// Information about the actual cause of the error.
-		//const String& cause() const {
-		//	return _errorCause;
-		//}
-
-		//virtual Option<String> extraInfo() const { return Option<String>(); }
+		virtual struct String cause() const = 0;
 
 	private:
 
 		const char* _errorFileOrigin;
-		//String _errorCause;
 
 	};
 }

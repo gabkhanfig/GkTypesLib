@@ -24,7 +24,11 @@ namespace gk
 	{
 	public:
 
-		InvalidUtf8Error() : Error(nullptr) {}
+		InvalidUtf8Error(const char* inCause) : Error(nullptr) {
+			_cause = inCause;
+		}
+
+	private:
 
 		virtual const char* errorName() const {
 			return "Invalid Utf8";
@@ -33,6 +37,13 @@ namespace gk
 		virtual const char* description() const {
 			return "The parsed string is not valid utf8";
 		}
+
+		virtual struct String cause() const;
+
+	private:
+
+		const char* _cause;
+
 	};
 
 	template<>
@@ -118,6 +129,7 @@ namespace gk
 
 	namespace utf8
 	{
+		/* Will fail to compile if error in constexpr. */
 		constexpr gk::Result<Utf8Metadata> strlen(const char* str) {
 			constexpr char asciiBitmask = (char)0b10000000;
 
@@ -177,29 +189,22 @@ namespace gk
 						index++;
 					}
 					else if ((leadingChar & utf8_2ByteBitmask) == utf8_2ByteCodePoint) {
-						//if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("Trailing byte of 2 byte utf8 character is not 0b10xxxxxx at index " + String::FromUint(index + 1))); }
-						if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error()); }
+						if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("Trailing byte of 2 byte utf8 character is not 0b10xxxxxx")); }
 						index += 2;
 					}
 					else if ((leadingChar & utf8_3ByteBitmask) == utf8_3ByteCodePoint) {
-						//if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("First trailing byte of 3 byte utf8 character is not 0b10xxxxxx at index " + String::FromUint(index + 1))); }
-						//if (!(str[index] + 2 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("Second trailing byte of 3 byte utf8 character is not 0b10xxxxxx at index " + String::FromUint(index + 2))); }
-						if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error()); }
-						if (!(str[index] + 2 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error()); }
+						if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("First trailing byte of 3 byte utf8 character is not 0b10xxxxxx")); }
+						if (!(str[index] + 2 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("Second trailing byte of 3 byte utf8 character is not 0b10xxxxxx")); }
 						index += 3;
 					}
 					else if ((leadingChar & utf8_4ByteBitmask) == utf8_4ByteCodePoint) {
-						//if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("First trailing byte of 4 byte utf8 character is not 0b10xxxxxx at index " + String::FromUint(index + 1))); }
-						//if (!(str[index] + 2 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("Second trailing byte of 4 byte utf8 character is not 0b10xxxxxx at index " + String::FromUint(index + 2))); }
-						//if (!(str[index] + 3 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("Third trailing byte of 5 byte utf8 character is not 0b10xxxxxx at index " + String::FromUint(index + 3))); }
-						if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error()); }
-						if (!(str[index] + 2 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error()); }
-						if (!(str[index] + 3 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error()); }
+						if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("First trailing byte of 4 byte utf8 character is not 0b10xxxxxx")); }
+						if (!(str[index] + 2 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("Second trailing byte of 3 byte utf8 character is not 0b10xxxxxx")); }
+						if (!(str[index] + 3 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("Third trailing byte of 5 byte utf8 character is not 0b10xxxxxx")); }
 						index += 4;
 					}
 					else [[unlikely]] {
-						//return ResultErr(new InvalidUtf8Error("Does not have leading bits specifying one-four byte code points at index " + String::FromUint(index)));
-						return ResultErr(new InvalidUtf8Error());
+						return ResultErr(new InvalidUtf8Error("Does not have leading bits specifying one-four byte code points"));
 					}
 
 					length++;
