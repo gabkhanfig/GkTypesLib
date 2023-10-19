@@ -35,3 +35,4 @@ private:
 
 };
 
+void runGkTests(int argc, char** argv);

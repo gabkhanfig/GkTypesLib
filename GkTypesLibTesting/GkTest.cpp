@@ -27,3 +27,9 @@ void MemoryLeakDetector::reportFailure(uint64 unfreedBytes)
 {
   FAIL() << "Memory leak of " << unfreedBytes << " byte(s) detected.";
 }
+
+void runGkTests(int argc, char** argv)
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  RUN_ALL_TESTS();
+}
