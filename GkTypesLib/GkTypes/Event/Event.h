@@ -247,7 +247,7 @@ namespace gk
 		}
 
 		void freeEventObject() {
-			if (getEventObj() != nullptr) {
+			if (isBound()) {
 				_internalBuffer[0] = 0;
 				_internalBuffer[1] = 0;
 				_internalBuffer[2] = 0;
