@@ -121,8 +121,11 @@ namespace gk
 
 		/**/
 		constexpr ~darray() {
-			if (data != nullptr)
+			if (data != nullptr) {
 				delete[] data;
+				std::cout << "freed darray memory\n";
+			}
+				
 		}
 
 		/* Reserves capacity in the darray. If the new capacity is less than the array's current capacity, this function does nothing. */
@@ -144,14 +147,26 @@ namespace gk
 		}
 
 		/* Get an element at the specified index by reference. */
-		constexpr T& At(uint32 index) const {
+		constexpr T& At(uint32 index) {
 			gk_assertm(index < Size(), "Darray index out of bounds! Tried to reach index " << index << " from a darray of size " << Size());
 
 			return data[index];
 		}
 
 		/* Get an element at the specified index by reference. */
-		constexpr T& operator [] (uint32 index) const {
+		constexpr const T& At(uint32 index) const {
+			gk_assertm(index < Size(), "Darray index out of bounds! Tried to reach index " << index << " from a darray of size " << Size());
+
+			return data[index];
+		}
+
+		/* Get an element at the specified index by reference. */
+		constexpr T& operator [] (uint32 index) {
+			return At(index);
+		}		
+		
+		/* Get an element at the specified index by reference. */
+		constexpr const T& operator [] (uint32 index) const {
 			return At(index);
 		}
 
