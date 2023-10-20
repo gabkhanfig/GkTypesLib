@@ -123,7 +123,6 @@ namespace gk
 		constexpr ~darray() {
 			if (data != nullptr) {
 				delete[] data;
-				std::cout << "freed darray memory\n";
 			}
 				
 		}
