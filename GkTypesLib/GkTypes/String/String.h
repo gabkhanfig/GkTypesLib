@@ -1527,30 +1527,30 @@ namespace gk
 
 		[[nodiscard]] static FuncCmpEqStringAndStr loadOptimalCmpEqFuncStringAndStr() {
 			if (gk::x86::isAvx512Supported()) {
-				std::cout << "[String function loader]: Using AVX-512 String-Str comparison\n";
+				std::cout << "[gk::String function loader]: Using AVX-512 String-Str comparison\n";
 				return avx512CompareEqualHeapBufferAndStr;
 			}
 			else if(gk::x86::isAvx2Supported()) {
-				std::cout << "[String function loader]: Using AVX-2 String-Str comparison\n";
+				std::cout << "[gk::String function loader]: Using AVX-2 String-Str comparison\n";
 				return avx2CompareEqualHeapBufferAndStr;
 			}
 			else {
-				std::cout << "[String function loader]: ERROR\nCannot load string comparison functions if AVX-512 or AVX-2 aren't supported\n";
+				std::cout << "[gk::String function loader]: ERROR\nCannot load string comparison functions if AVX-512 or AVX-2 aren't supported\n";
 				abort();
 			}
 		}
 
 		[[nodiscard]] static FuncCmpEqStringAndString loadOptimalCmpEqFuncStringAndString() {
 			if (gk::x86::isAvx512Supported()) {
-				std::cout << "[String function loader]: Using AVX-512 String-String comparison\n";
+				std::cout << "[gk::String function loader]: Using AVX-512 String-String comparison\n";
 				return avx512CompareEqualHeapBufferAndOtherStringHeapBuffer;
 			}
 			else if(gk::x86::isAvx2Supported()) {
-				std::cout << "[String function loader]: Using AVX-2 String-String comparison\n";
+				std::cout << "[gk::String function loader]: Using AVX-2 String-String comparison\n";
 				return avx2CompareEqualHeapBufferAndOtherStringHeapBuffer;
 			}
 			else {
-				std::cout << "[String function loader]: ERROR\nCannot load string comparison functions if AVX-512 or AVX-2 aren't supported\n";
+				std::cout << "[gk::String function loader]: ERROR\nCannot load string comparison functions if AVX-512 or AVX-2 aren't supported\n";
 				abort();
 			}
 		}
@@ -1614,15 +1614,15 @@ namespace gk
 
 		[[nodiscard]] static FuncFindCharInString loadOptimalFindCharInStringFunction() {
 			if (gk::x86::isAvx512Supported()) {
-				std::cout << "[String function loader]: Using AVX-512 find char in string\n";
+				std::cout << "[gk::String function loader]: Using AVX-512 find char in string\n";
 				return avx512FindCharInString;
 			}
 			else if (gk::x86::isAvx2Supported()) {
-				std::cout << "[String function loader]: Using AVX-2 find char in string\n";
+				std::cout << "[gk::String function loader]: Using AVX-2 find char in string\n";
 				return avx2FindCharInString;
 			}
 			else {
-				std::cout << "[String function loader]: ERROR\nCannot load find char in string function if AVX-512 or AVX-2 aren't supported\n";
+				std::cout << "[gk::String function loader]: ERROR\nCannot load find char in string function if AVX-512 or AVX-2 aren't supported\n";
 				abort();
 			}
 		}
