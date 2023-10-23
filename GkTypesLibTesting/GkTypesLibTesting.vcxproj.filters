@@ -9,13 +9,16 @@
     <ClCompile Include="Tests\ThreadUnitTests.cpp" />
     <ClCompile Include="Tests\ThreadPoolUnitTests.cpp" />
     <ClCompile Include="Utility\EnglishWords.cpp" />
-    <ClCompile Include="Tests\StringTests.cpp" />
     <ClCompile Include="GkTest.cpp" />
     <ClCompile Include="Utility\Benchmark.cpp" />
     <ClCompile Include="Tests\EventTests.cpp" />
     <ClCompile Include="Tests\FunctionPointerTests.cpp" />
     <ClCompile Include="Tests\OptionUnitTests.cpp" />
     <ClCompile Include="Tests\RingQueueTests.cpp" />
+    <ClCompile Include="Tests\StringUnitTests.cpp" />
+    <ClCompile Include="Tests\Utf8StrUnitTests.cpp" />
+    <ClCompile Include="Tests\MutexTests.cpp" />
+    <ClCompile Include="Tests\JobSystemUnitTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
