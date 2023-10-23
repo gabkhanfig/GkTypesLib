@@ -15,6 +15,10 @@ void randomJobFuncIncrementWithDelay(gk::JobRunDataBuffer* buf) {
 	(*ptr)++;
 }
 
+void randomJobFunc10MsDelay(gk::JobRunDataBuffer*) {
+	Sleep(10);
+}
+
 namespace UnitTests
 {
 #pragma region Job_Run_Data_Buffer
@@ -429,6 +433,232 @@ namespace UnitTests
 		EXPECT_EQ(*ptr, 110);
 		delete thread;
 		delete ptr;
+	}
+
+#pragma endregion
+
+#pragma region Job_System
+
+	TEST(JobSystem, QueueAndExecuteJob) {
+		MemoryLeakDetector leakDetector;
+
+		int* ptr = new int;
+		*ptr = 10;
+
+		gk::JobData job;
+		job.jobFunc = randomJobFuncIncrementWithDelay;
+		gk::JobRunDataBuffer buf;
+		buf.store(ptr, false);
+		job.data = std::move(buf);
+
+		gk::JobSystem::queueJob(std::move(job));
+		gk::JobSystem::executeQueue();
+		gk::JobSystem::wait();
+
+		EXPECT_EQ(*ptr, 11);
+		delete ptr;
+	}
+
+	TEST(JobSystem, RunJob) {
+		MemoryLeakDetector leakDetector;
+
+		int* ptr = new int;
+		*ptr = 10;
+
+		gk::JobData job;
+		job.jobFunc = randomJobFuncIncrementWithDelay;
+		gk::JobRunDataBuffer buf;
+		buf.store(ptr, false);
+		job.data = std::move(buf);
+
+		gk::JobSystem::runJob(std::move(job));
+		gk::JobSystem::wait();
+
+		EXPECT_EQ(*ptr, 11);
+		delete ptr;
+	}
+
+	TEST(JobSystem, QueueAndExecuteJobs) {
+		MemoryLeakDetector leakDetector;
+
+		int* ptrs[4];
+
+		gk::darray<gk::JobData> jobs;
+		for (int i = 0; i < 4; i++) {
+			gk::JobData job;
+			job.jobFunc = randomJobFuncIncrement;
+			int* ptr = new int;
+			*ptr = 10;
+			ptrs[i] = ptr;
+			gk::JobRunDataBuffer buf;
+			buf.store(ptr, false);
+			job.data = std::move(buf);
+
+			jobs.Add(std::move(job));
+		}
+
+		gk::JobSystem::queueJobs(std::move(jobs));
+		gk::JobSystem::executeQueue();
+		gk::JobSystem::wait();
+
+		EXPECT_EQ(*(ptrs[0]), 11);
+		EXPECT_EQ(*(ptrs[1]), 11);
+		EXPECT_EQ(*(ptrs[2]), 11);
+		EXPECT_EQ(*(ptrs[3]), 11);
+
+		for (int i = 0; i < 4; i++) {
+			delete ptrs[i];
+		}
+	}
+
+	TEST(JobSystem, RunJobs) {
+		MemoryLeakDetector leakDetector;
+
+		int* ptrs[4];
+
+		gk::darray<gk::JobData> jobs;
+		for (int i = 0; i < 4; i++) {
+			gk::JobData job;
+			job.jobFunc = randomJobFuncIncrement;
+			int* ptr = new int;
+			*ptr = 10;
+			ptrs[i] = ptr;
+			gk::JobRunDataBuffer buf;
+			buf.store(ptr, false);
+			job.data = std::move(buf);
+
+			jobs.Add(std::move(job));
+		}
+
+		gk::JobSystem::runJobs(std::move(jobs));
+		gk::JobSystem::wait();
+
+		EXPECT_EQ(*(ptrs[0]), 11);
+		EXPECT_EQ(*(ptrs[1]), 11);
+		EXPECT_EQ(*(ptrs[2]), 11);
+		EXPECT_EQ(*(ptrs[3]), 11);
+
+		for (int i = 0; i < 4; i++) {
+			delete ptrs[i];
+		}
+	}
+
+	TEST(JobSystem, QueueAndExecuteJobsPointer) {
+		MemoryLeakDetector leakDetector;
+
+		int* ptrs[4];
+		gk::JobData jobs[4];
+
+		for (int i = 0; i < 4; i++) {
+			gk::JobData job;
+			job.jobFunc = randomJobFuncIncrement;
+			int* ptr = new int;
+			*ptr = 10;
+			ptrs[i] = ptr;
+			gk::JobRunDataBuffer buf;
+			buf.store(ptr, false);
+			job.data = std::move(buf);
+
+			jobs[i] = std::move(job);
+		}
+
+		gk::JobSystem::queueJobs(jobs, 4);
+		gk::JobSystem::executeQueue();
+		gk::JobSystem::wait();
+
+		EXPECT_EQ(*(ptrs[0]), 11);
+		EXPECT_EQ(*(ptrs[1]), 11);
+		EXPECT_EQ(*(ptrs[2]), 11);
+		EXPECT_EQ(*(ptrs[3]), 11);
+
+		for (int i = 0; i < 4; i++) {
+			delete ptrs[i];
+		}
+	}
+
+	TEST(JobSystem, RunJobsPointer) {
+		MemoryLeakDetector leakDetector;
+
+		int* ptrs[4];
+		gk::JobData jobs[4];
+
+		for (int i = 0; i < 4; i++) {
+			gk::JobData job;
+			job.jobFunc = randomJobFuncIncrement;
+			int* ptr = new int;
+			*ptr = 10;
+			ptrs[i] = ptr;
+			gk::JobRunDataBuffer buf;
+			buf.store(ptr, false);
+			job.data = std::move(buf);
+
+			jobs[i] = std::move(job);
+		}
+
+		gk::JobSystem::runJobs(jobs, 4);
+		gk::JobSystem::wait();
+
+		EXPECT_EQ(*(ptrs[0]), 11);
+		EXPECT_EQ(*(ptrs[1]), 11);
+		EXPECT_EQ(*(ptrs[2]), 11);
+		EXPECT_EQ(*(ptrs[3]), 11);
+
+		for (int i = 0; i < 4; i++) {
+			delete ptrs[i];
+		}
+	}
+
+	TEST(JobSystem, QueueAndExecutePerformance) {
+		MemoryLeakDetector leakDetector;
+
+		auto start = std::chrono::high_resolution_clock::now();
+
+		gk::darray<gk::JobData> jobs;
+		for (int i = 0; i < 4; i++) {
+			gk::JobData job;
+			job.jobFunc = randomJobFunc10MsDelay;
+			int* ptr = new int;
+			*ptr = 10;
+			gk::JobRunDataBuffer buf;
+			buf.store(ptr, true);
+			job.data = std::move(buf);
+
+			jobs.Add(std::move(job));
+		}
+
+		gk::JobSystem::queueJobs(std::move(jobs));
+		gk::JobSystem::executeQueue();
+		gk::JobSystem::wait();
+
+		auto end = std::chrono::high_resolution_clock::now();
+		double elapsedMs = std::chrono::duration<double, std::milli>(end - start).count();
+		EXPECT_LE(elapsedMs, 30.0) << "Given 4 job threads, the elapsed time for executing 4 jobs should be substantially less than 10x4 ms";
+	}
+
+	TEST(JobSystem, RunPerformance) {
+		MemoryLeakDetector leakDetector;
+
+		auto start = std::chrono::high_resolution_clock::now();
+
+		gk::darray<gk::JobData> jobs;
+		for (int i = 0; i < 4; i++) {
+			gk::JobData job;
+			job.jobFunc = randomJobFunc10MsDelay;
+			int* ptr = new int;
+			*ptr = 10;
+			gk::JobRunDataBuffer buf;
+			buf.store(ptr, true);
+			job.data = std::move(buf);
+
+			jobs.Add(std::move(job));
+		}
+
+		gk::JobSystem::runJobs(std::move(jobs));
+		gk::JobSystem::wait();
+
+		auto end = std::chrono::high_resolution_clock::now();
+		double elapsedMs = std::chrono::duration<double, std::milli>(end - start).count();
+		EXPECT_LE(elapsedMs, 20.0) << "Given 4 job threads, the elapsed time for executing 4 jobs should be substantially less than 10x4 ms";
 	}
 
 #pragma endregion
