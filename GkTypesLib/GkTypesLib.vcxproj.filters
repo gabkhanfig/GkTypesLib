@@ -27,9 +27,6 @@
     <ClInclude Include="GkTypes\ClassRef\ClassRef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GkTypes\String\String.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GkTypes\String\GlobalString.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -67,6 +64,39 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GkTypes\Option\Option.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Error\Result.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Error\Error.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\String\Str.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\String\Utf8.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\String\String.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\CpuFeatures\CpuFeatureDetector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Job\JobSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Queue\RingQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Job\JobThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Job\JobInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Thread\Mutex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
