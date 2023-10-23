@@ -10,6 +10,7 @@
 #include "String/Str.h"
 #include "String/String.h"
 #include "String/GlobalString.h"
+#include "Thread/Mutex.h"
 #include "Thread/ThreadPool.h"
 #include "Event/Event.h"
 #include "Function/Fptr.h"
