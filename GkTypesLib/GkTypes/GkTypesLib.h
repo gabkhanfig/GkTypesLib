@@ -6,6 +6,8 @@
 #include "Array/DynamicArray.h"
 #include "Bitset/Bitset.h"
 #include "ClassRef/ClassRef.h"
+#include "String/Utf8.h"
+#include "String/Str.h"
 #include "String/String.h"
 #include "String/GlobalString.h"
 #include "Thread/ThreadPool.h"
