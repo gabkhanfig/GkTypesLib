@@ -7,12 +7,6 @@
 #include <intrin.h>
 #include <vector>
 #include <compare>
-#include "../GkTypesLib/GkTypes/Job/JobSystem.h"
-
-#include "../GkTypesLib/GkTypes/Queue/RingQueue.h"
-#include "../GkTypesLib/GkTypes/Job/JobThread.h"
-#include <shared_mutex>
-#include "../GkTypesLib/GkTypes/Thread/Mutex.h"
 #include "GkTest.h"
 
 /*
