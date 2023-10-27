@@ -6,6 +6,7 @@
 #include "../Option/Option.h"
 #include "../CpuFeatures/CpuFeatureDetector.h"
 #include "../Utility.h"
+#include "../Hash/Hash.h"
 
 namespace gk
 {
@@ -1720,5 +1721,13 @@ inline gk::String gk::Error::toString() const {
 
 inline gk::String gk::InvalidUtf8Error::cause() const {
 	return gk::String(gk::Str::fromAscii(_cause));
+}
+
+namespace gk 
+{
+	template<>
+	constexpr size_t hash<gk::String>(const gk::String& key) {
+		return key.hash();
+	}
 }
 
