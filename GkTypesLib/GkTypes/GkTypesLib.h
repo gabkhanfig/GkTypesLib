@@ -16,4 +16,5 @@
 #include "Function/Fptr.h"
 #include "Option/Option.h"
 #include "Error/Result.h"
+#include "Hash/Hashmap.h"
 
