@@ -4,6 +4,11 @@
 
 namespace gk
 {
+	enum class ThreadSafety {
+		Safe,
+		Unsafe
+	};
+
 	template<typename T>
 	struct Mutex;
 
