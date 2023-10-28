@@ -52,6 +52,7 @@
     <ClCompile Include="GkTest.cpp" />
     <ClCompile Include="Tests\EventTests.cpp" />
     <ClCompile Include="Tests\FunctionPointerTests.cpp" />
+    <ClCompile Include="Tests\HashMapTests.cpp" />
     <ClCompile Include="Tests\JobSystemUnitTests.cpp" />
     <ClCompile Include="Tests\MutexTests.cpp" />
     <ClCompile Include="Tests\OptionUnitTests.cpp" />
