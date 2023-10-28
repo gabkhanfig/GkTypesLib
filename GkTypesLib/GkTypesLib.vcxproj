@@ -29,8 +29,8 @@
     <ClInclude Include="GkTypes\Event\Event.h" />
     <ClInclude Include="GkTypes\File\FileLoader.h" />
     <ClInclude Include="GkTypes\GkTypesLib.h" />
-    <ClInclude Include="GkTypes\Hashmap\Hash.h" />
-    <ClInclude Include="GkTypes\Hashmap\Hashmap.h" />
+    <ClInclude Include="GkTypes\Hash\Hash.h" />
+    <ClInclude Include="GkTypes\Hash\Hashmap.h" />
     <ClInclude Include="GkTypes\Job\JobInfo.h" />
     <ClInclude Include="GkTypes\Job\JobSystem.h" />
     <ClInclude Include="GkTypes\Job\JobThread.h" />

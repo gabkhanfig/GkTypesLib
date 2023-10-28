@@ -45,10 +45,10 @@
     <ClInclude Include="GkTypes\Thread\ThreadPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GkTypes\Hashmap\Hashmap.h">
+    <ClInclude Include="GkTypes\Hash\Hashmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GkTypes\Hashmap\Hash.h">
+    <ClInclude Include="GkTypes\Hash\Hash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GkTypes\Core.h">
