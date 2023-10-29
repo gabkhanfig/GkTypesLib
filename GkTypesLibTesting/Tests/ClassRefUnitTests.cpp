@@ -31,12 +31,12 @@ public:
 
 namespace UnitTests {
   TEST(ClassRef, Name) {
-    gk::ClassRef* ref = gk::ClassRef::CreateClassReference<ClassRefTestClass1>(gk::GlobalString("TestClass1"));
-    EXPECT_EQ(ref->GetName(), "TestClass1"_str);
+    gk::ClassRef* ref = gk::ClassRef::CreateClassReference<ClassRefTestClass1>(gk::GlobalString::create("TestClass1"_str));
+    EXPECT_EQ(ref->GetName().toString(), "TestClass1"_str);
   }
 
   TEST(ClassRef, NewCorrectClassType) {
-    gk::ClassRef* ref = gk::ClassRef::CreateClassReference<ClassRefTestClass1>(gk::GlobalString("TestClass1"));
+    gk::ClassRef* ref = gk::ClassRef::CreateClassReference<ClassRefTestClass1>(gk::GlobalString::create("TestClass1"_str));
     ClassRefTestClass1* instance = (ClassRefTestClass1*)ref->NewObject();
     EXPECT_EQ(instance->a, 1);
     EXPECT_EQ(instance->b, 2);
@@ -44,7 +44,7 @@ namespace UnitTests {
   }
 
   TEST(ClassRef, SubclassConstructorValues) {
-    gk::ClassRef* ref = gk::ClassRef::CreateClassReference<ClassRefTestClass2>(gk::GlobalString("TestClass2"));
+    gk::ClassRef* ref = gk::ClassRef::CreateClassReference<ClassRefTestClass2>(gk::GlobalString::create("TestClass2"_str));
     ClassRefTestClass1* instance = (ClassRefTestClass1*)ref->NewObject();
     EXPECT_EQ(instance->a, 4);
     EXPECT_EQ(instance->b, 5);
@@ -52,13 +52,13 @@ namespace UnitTests {
   }
 
   TEST(ClassRef, BaseClassVirtualCall) {
-    gk::ClassRef* ref = gk::ClassRef::CreateClassReference<ClassRefTestClass1>(gk::GlobalString("TestClass1"));
+    gk::ClassRef* ref = gk::ClassRef::CreateClassReference<ClassRefTestClass1>(gk::GlobalString::create("TestClass1"_str));
     ClassRefTestClass1* instance = (ClassRefTestClass1*)ref->NewObject();
     EXPECT_EQ(instance->GetNumber(), 10);
   }
 
   TEST(ClassRef, ChildClassVirtualCall) {
-    gk::ClassRef* ref = gk::ClassRef::CreateClassReference<ClassRefTestClass2>(gk::GlobalString("TestClass2"));
+    gk::ClassRef* ref = gk::ClassRef::CreateClassReference<ClassRefTestClass2>(gk::GlobalString::create("TestClass2"_str));
     ClassRefTestClass1* instance = (ClassRefTestClass1*)ref->NewObject();
     EXPECT_EQ(instance->GetNumber(), 20);
   }
