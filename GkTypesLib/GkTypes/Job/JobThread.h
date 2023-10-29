@@ -108,6 +108,7 @@ namespace gk
 		JobThread(JobThread&& other) = delete;
 
 		~JobThread() {
+			wait();
 			_isPendingKill = true;
 			execute();
 			_thread.join();
@@ -139,6 +140,7 @@ namespace gk
 
 		void execute() {
 			_shouldExecute = true;
+			std::scoped_lock lock(_mutex);
 			_condVar.notify_one();
 			_isExecuting = true;
 		}
