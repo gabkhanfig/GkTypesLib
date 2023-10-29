@@ -20,6 +20,7 @@
     <ClCompile Include="Tests\MutexTests.cpp" />
     <ClCompile Include="Tests\JobSystemUnitTests.cpp" />
     <ClCompile Include="Tests\HashMapTests.cpp" />
+    <ClCompile Include="Tests\GlobalStringUnitTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
