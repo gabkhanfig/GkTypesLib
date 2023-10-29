@@ -16,6 +16,8 @@ namespace gk
 			gk::HashMap<gk::String, uint32> ids;
 			gk::darray<gk::String> strings;
 			uint32 nextId;
+
+			GlobalStringContainers() : nextId(0) {}
 		};
 
 		static gk::Mutex<GlobalStringContainers> initializeGlobalStringContainers() {
