@@ -108,8 +108,8 @@ namespace gk
 		JobThread(JobThread&& other) = delete;
 
 		~JobThread() {
-			execute();
 			_isPendingKill = true;
+			execute();
 			_thread.join();
 		}
 
