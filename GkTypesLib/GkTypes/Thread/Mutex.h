@@ -1,14 +1,10 @@
 #pragma once
 
 #include <windows.h>
+#include "ThreadEnums.h"
 
 namespace gk
 {
-	enum class ThreadSafety {
-		Safe,
-		Unsafe
-	};
-
 	template<typename T>
 	struct Mutex;
 
