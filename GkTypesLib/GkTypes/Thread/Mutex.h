@@ -78,7 +78,8 @@ namespace gk
 
 		~Mutex() = default;
 
-		/* Supports recursive locking. Is unlocked by the destructor of LockedMutex<T>. */
+		/* Supports recursive locking. Is unlocked by the destructor of LockedMutex<T>. 
+		Will yield to the operating system to retry locking. */
 		[[nodiscard]] LockedMutex<T> lock() {
 			constexpr uint64 threadIdBitmask = 0xFFFFFFFF00000000ULL;
 			constexpr uint64 threadLockedBitmask = 0xFFFFFFFF;
@@ -107,6 +108,42 @@ namespace gk
 			expected = expected & threadIdBitmask;
 			while (!_lockState.compare_exchange_weak(expected, desired, std::memory_order_release)) {
 				std::this_thread::yield();
+				expected = expected & threadIdBitmask; // Ensure has no active locks, so the 32 lowest bits are zero
+			}
+
+			return LockedMutex(this, &Mutex::unlock, &_data);
+		}
+
+		/* Supports recursive locking. Is unlocked by the destructor of LockedMutex<T>. 
+		Will not yield to the operating system to retry locking. */
+		[[nodiscard]] LockedMutex<T> spinlock() {
+			constexpr uint64 threadIdBitmask = 0xFFFFFFFF00000000ULL;
+			constexpr uint64 threadLockedBitmask = 0xFFFFFFFF;
+
+			const std::thread::id id = std::this_thread::get_id();
+			const uint64 thisThreadId = static_cast<uint64>(*(uint32*)&id);
+
+			uint64 expected = _lockState.load(std::memory_order_acquire);
+			//if (((expected & threadIdBitmask) == (thisThreadId) << 32) && (expected & threadLockedBitmask) > 0) { // already owned and is going to get nested
+			//	const uint64 desired = expected + 1;
+			//	expected = expected & threadIdBitmask; 
+			//	//std::cerr << "incrementing lock count for thread id: " << thisThreadId << " to " << (desired & threadLockedBitmask) << std::endl;
+			//	while (!_lockState.compare_exchange_weak(expected, desired, std::memory_order_release)) {
+			//		_mm_pause();
+			//		expected = (thisThreadId << 32) | (expected & threadLockedBitmask);
+			//	}
+			//	return LockedMutex(this, &Mutex::unlock, &_data);
+			//}
+
+			if (((expected & threadIdBitmask) == (thisThreadId) << 32) && (expected & threadLockedBitmask) > 0) {
+				_lockState.store(expected + 1, std::memory_order_release); // support nested lock
+				return LockedMutex(this, &Mutex::unlock, &_data);
+			}
+
+			const uint64 desired = (thisThreadId << 32) | 1; // If thread doesn't own a lock already, this will be the first nested lock.
+			expected = expected & threadIdBitmask;
+			while (!_lockState.compare_exchange_weak(expected, desired, std::memory_order_release)) {
+				_mm_pause();
 				expected = expected & threadIdBitmask; // Ensure has no active locks, so the 32 lowest bits are zero
 			}
 
