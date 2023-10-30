@@ -47,11 +47,11 @@ namespace gk
 		static GlobalString create(gk::String inString) {
 			if constexpr (safety == ThreadSafety::Safe) {
 				gk::LockedMutex<GlobalStringContainers> lock = getAllGlobalStrings().lock();
-				GlobalStringContainers& containers = *lock;
+				GlobalStringContainers& containers = *lock.get();
 				return createNewEntryIfDoesntExist(std::move(inString), containers);
 			}
 			// thread unsafe
-			GlobalStringContainers& containers = getAllGlobalStrings().getDataNoLock();
+			GlobalStringContainers& containers = *getAllGlobalStrings().getDataNoLock();
 			return createNewEntryIfDoesntExist(std::move(inString), containers);
 		}
 
@@ -62,11 +62,11 @@ namespace gk
 			GlobalString gstrOut;
 			if constexpr (safety == ThreadSafety::Safe) {
 				gk::LockedMutex<GlobalStringContainers> lock = getAllGlobalStrings().lock();
-				const GlobalStringContainers& containers = *lock;
+				const GlobalStringContainers& containers = *lock.get();
 				return createFromExistingEntryIfExist(inString, containers);
 			}
 			// thread unsafe
-			const GlobalStringContainers& containers = getAllGlobalStrings().getDataNoLock();
+			const GlobalStringContainers& containers = *getAllGlobalStrings().getDataNoLock();
 			return createFromExistingEntryIfExist(inString, containers);
 		}
 
@@ -85,11 +85,11 @@ namespace gk
 		const gk::String& toString() const {
 			if constexpr (safety == ThreadSafety::Safe) {
 				gk::LockedMutex<GlobalStringContainers> lock = getAllGlobalStrings().lock();
-				const GlobalStringContainers& containers = *lock;
+				const GlobalStringContainers& containers = *lock.get();
 				return toStringFromGlobalContainers(containers);
 			}
 			// thread unsafe
-			const GlobalStringContainers& containers = getAllGlobalStrings().getDataNoLock();
+			const GlobalStringContainers& containers = *getAllGlobalStrings().getDataNoLock();
 			return toStringFromGlobalContainers(containers);
 		}
 

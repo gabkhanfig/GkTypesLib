@@ -118,7 +118,7 @@ namespace gk
 		void queueJob(JobData&& job) {
 			gk_assertm(job.jobFunc.isBound(), "Queued job does not have a bound function for execution");
 			auto lock = _queue.lock();
-			(*lock).push(std::move(job));
+			lock.get()->push(std::move(job));
 			_queuedJobsCount++;
 		}
 
@@ -133,7 +133,7 @@ namespace gk
 			for (uint32 i = 0; i < count; i++) {
 				JobData& job = arrayStart[i];
 				gk_assertm(job.jobFunc.isBound(), "Queued job does not have a bound function for execution");
-				(*lock).push(std::move(job));
+				lock.get()->push(std::move(job));
 			}
 			_queuedJobsCount += count;
 		}
@@ -174,7 +174,7 @@ namespace gk
 		void loadAllJobs() {
 			gk::LockedMutex<JobRingQueue> lock = _queue.lock();
 			{
-				loadJobs(&(*lock), &(*_activeWork.lock()));
+				loadJobs(lock.get(), _activeWork.lock().get());
 			}
 		}
 
@@ -195,10 +195,10 @@ namespace gk
 			bool shouldReExecute = false;
 			{
 				gk::LockedMutex<ActiveJobs> activeLock = _activeWork.lock();
-				(*activeLock).execute();
+				activeLock.get()->execute();
 				gk::LockedMutex<JobRingQueue> queueLock = _queue.lock();
-				if ((*queueLock).len() > 0) {
-					loadJobs(&(*queueLock), &(*activeLock));
+				if (queueLock.get()->len() > 0) {
+					loadJobs(queueLock.get(), activeLock.get());
 					shouldReExecute = true;
 				}
 			}

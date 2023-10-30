@@ -5,7 +5,7 @@
 
 void incrementValue(gk::Mutex<int>* mutex) {
 	auto lock = mutex->lock();
-	(*lock)++;
+	(*lock.get())++;
 }
 
 void runIncrement(gk::Mutex<int>* mutex) {
@@ -26,7 +26,7 @@ namespace UnitTests
 
 		t1.join();
 
-		EXPECT_EQ(mutex.getDataNoLock(), 100);
+		EXPECT_EQ(*mutex.getDataNoLock(), 100);
 	}
 
 	TEST(Mutex, MultipleThreadsAccess) {
@@ -44,6 +44,6 @@ namespace UnitTests
 		t3.join();
 		t4.join();
 
-		EXPECT_EQ(mutex.getDataNoLock(), 400);
+		EXPECT_EQ(*mutex.getDataNoLock(), 400);
 	}
 }

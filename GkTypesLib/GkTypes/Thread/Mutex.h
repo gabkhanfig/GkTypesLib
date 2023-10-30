@@ -36,12 +36,12 @@ namespace gk
 			(_mutex->*_unlockFunc)();
 		}
 
-		[[nodiscard]] T& operator * () {
-			return *_data;
+		[[nodiscard]] T* get() {
+			return _data;
 		}
 
-		[[nodiscard]] const T& operator * () const {
-			return *_data;
+		[[nodiscard]] const T* get() const {
+			return _data;
 		}
 
 	private:
@@ -102,12 +102,12 @@ namespace gk
 			return LockedMutex(this, &Mutex::unlock, &_data);
 		}
 
-		[[nodiscard]] T& getDataNoLock() {
-			return _data;
+		[[nodiscard]] T* getDataNoLock() {
+			return &_data;
 		}
 
-		[[nodiscard]] const T& getDataNoLock() const {
-			return _data;
+		[[nodiscard]] const T* getDataNoLock() const {
+			return &_data;
 		}
 
 	private:
