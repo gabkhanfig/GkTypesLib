@@ -78,7 +78,7 @@ namespace gk
 
 		~Mutex() = default;
 
-		/* Does not support recursive locking. */
+		/* Supports recursive locking. Is unlocked by the destructor of LockedMutex<T>. */
 		[[nodiscard]] LockedMutex<T> lock() {
 			constexpr uint64 threadIdBitmask = 0xFFFFFFFF00000000ULL;
 			constexpr uint64 threadLockedBitmask = 0xFFFFFFFF;
