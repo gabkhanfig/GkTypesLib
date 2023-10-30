@@ -52,7 +52,7 @@ namespace gk
 
 	};
 
-	/* Mutex that forces locking in order to access it's owned/held data. */
+	/* Lock-free mutex that forces locking in order to access it's owned/held data. */
 	template<typename T>
 	struct Mutex {
 	public:
