@@ -87,7 +87,18 @@ namespace gk
 			const uint64 thisThreadId = static_cast<uint64>(*(uint32*)&id);
 
 			uint64 expected = _lockState.load(std::memory_order_acquire);
-			if ((expected & threadIdBitmask) == (thisThreadId) << 32) {
+			//if (((expected & threadIdBitmask) == (thisThreadId) << 32) && (expected & threadLockedBitmask) > 0) { // already owned and is going to get nested
+			//	const uint64 desired = expected + 1;
+			//	expected = expected & threadIdBitmask; 
+			//	//std::cerr << "incrementing lock count for thread id: " << thisThreadId << " to " << (desired & threadLockedBitmask) << std::endl;
+			//	while (!_lockState.compare_exchange_weak(expected, desired, std::memory_order_release)) {
+			//		_mm_pause();
+			//		expected = (thisThreadId << 32) | (expected & threadLockedBitmask);
+			//	}
+			//	return LockedMutex(this, &Mutex::unlock, &_data);
+			//}
+
+			if (((expected & threadIdBitmask) == (thisThreadId) << 32) && (expected & threadLockedBitmask) > 0) {
 				_lockState.store(expected + 1, std::memory_order_release); // support nested lock
 				return LockedMutex(this, &Mutex::unlock, &_data);
 			}
@@ -116,16 +127,17 @@ namespace gk
 		void unlock() {
 			constexpr uint64 threadIdBitmask = 0xFFFFFFFF00000000ULL;
 			constexpr uint64 threadLockedBitmask = 0xFFFFFFFF;
-			uint64 current = _lockState.load(std::memory_order_acquire);
+			const uint64 current = _lockState.load(std::memory_order_acquire);
 
 			gk_assertm([&]() {
 				const std::thread::id id = std::this_thread::get_id();
 				const uint64 thisThreadId = static_cast<uint64>(*(uint32*)&id);
-				return (current & threadIdBitmask) == (thisThreadId << 32);
+				return (current & threadIdBitmask) == (thisThreadId << 32);		
 				}(), "Cannot unlock a mutex lock that is not currently owned by the calling thread");
 			gk_assertm((current & threadLockedBitmask) > 0, "Cannot unlock a mutex lock that is not locked");
 
-			_lockState.store((current & threadLockedBitmask) - 1, std::memory_order_release); // support nested lock
+			
+			_lockState.store((current & threadIdBitmask) | ((current & threadLockedBitmask) - 1), std::memory_order_release); // support nested lock
 		}
 
 	private:
