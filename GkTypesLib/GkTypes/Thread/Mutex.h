@@ -88,7 +88,6 @@ namespace gk
 
 			uint64 expected = _lockState.load(std::memory_order_acquire);
 			if ((expected & threadIdBitmask) == (thisThreadId) << 32) {
-				//std::cout << "already owns lock\n";
 				_lockState.store(expected + 1, std::memory_order_release); // support nested lock
 				return LockedMutex(this, &Mutex::unlock, &_data);
 			}
