@@ -55,6 +55,11 @@ namespace gk
 	/* Lock-free mutex that forces locking in order to access it's owned/held data. */
 	template<typename T>
 	struct Mutex {
+	private:
+
+		constexpr static uint64 THREAD_ID_BITMASK = 0xFFFFFFFF00000000ULL;
+		constexpr static uint64 THREAD_LOCK_COUNT_BITMASK = 0xFFFFFFFF;
+
 	public:
 
 		Mutex() {
@@ -81,9 +86,6 @@ namespace gk
 		/* Supports recursive locking. Is unlocked by the destructor of LockedMutex<T>. 
 		Will yield to the operating system to retry locking. */
 		[[nodiscard]] LockedMutex<T> lock() {
-			constexpr uint64 threadIdBitmask = 0xFFFFFFFF00000000ULL;
-			constexpr uint64 threadLockedBitmask = 0xFFFFFFFF;
-
 			const std::thread::id id = std::this_thread::get_id();
 			const uint64 thisThreadId = static_cast<uint64>(*(uint32*)&id);
 
@@ -99,16 +101,16 @@ namespace gk
 			//	return LockedMutex(this, &Mutex::unlock, &_data);
 			//}
 
-			if (((expected & threadIdBitmask) == (thisThreadId) << 32) && (expected & threadLockedBitmask) > 0) {
+			if (((expected & THREAD_ID_BITMASK) == (thisThreadId) << 32) && (expected & THREAD_LOCK_COUNT_BITMASK) > 0) {
 				_lockState.store(expected + 1, std::memory_order_release); // support nested lock
 				return LockedMutex(this, &Mutex::unlock, &_data);
 			}
 
 			const uint64 desired = (thisThreadId << 32) | 1; // If thread doesn't own a lock already, this will be the first nested lock.
-			expected = expected & threadIdBitmask;
+			expected = expected & THREAD_ID_BITMASK;
 			while (!_lockState.compare_exchange_weak(expected, desired, std::memory_order_release)) {
 				std::this_thread::yield();
-				expected = expected & threadIdBitmask; // Ensure has no active locks, so the 32 lowest bits are zero
+				expected = expected & THREAD_ID_BITMASK; // Ensure has no active locks, so the 32 lowest bits are zero
 			}
 
 			return LockedMutex(this, &Mutex::unlock, &_data);
@@ -117,9 +119,6 @@ namespace gk
 		/* Supports recursive locking. Is unlocked by the destructor of LockedMutex<T>. 
 		Will not yield to the operating system to retry locking. */
 		[[nodiscard]] LockedMutex<T> spinlock() {
-			constexpr uint64 threadIdBitmask = 0xFFFFFFFF00000000ULL;
-			constexpr uint64 threadLockedBitmask = 0xFFFFFFFF;
-
 			const std::thread::id id = std::this_thread::get_id();
 			const uint64 thisThreadId = static_cast<uint64>(*(uint32*)&id);
 
@@ -135,16 +134,16 @@ namespace gk
 			//	return LockedMutex(this, &Mutex::unlock, &_data);
 			//}
 
-			if (((expected & threadIdBitmask) == (thisThreadId) << 32) && (expected & threadLockedBitmask) > 0) {
+			if (((expected & THREAD_ID_BITMASK) == (thisThreadId) << 32) && (expected & THREAD_LOCK_COUNT_BITMASK) > 0) {
 				_lockState.store(expected + 1, std::memory_order_release); // support nested lock
 				return LockedMutex(this, &Mutex::unlock, &_data);
 			}
 
 			const uint64 desired = (thisThreadId << 32) | 1; // If thread doesn't own a lock already, this will be the first nested lock.
-			expected = expected & threadIdBitmask;
+			expected = expected & THREAD_ID_BITMASK;
 			while (!_lockState.compare_exchange_weak(expected, desired, std::memory_order_release)) {
 				_mm_pause();
-				expected = expected & threadIdBitmask; // Ensure has no active locks, so the 32 lowest bits are zero
+				expected = expected & THREAD_ID_BITMASK; // Ensure has no active locks, so the 32 lowest bits are zero
 			}
 
 			return LockedMutex(this, &Mutex::unlock, &_data);
@@ -162,19 +161,17 @@ namespace gk
 
 		/* Is unlocked by the destructor of LockedMutex<T>. For nested locks, it just decrements the lock count. */
 		void unlock() {
-			constexpr uint64 threadIdBitmask = 0xFFFFFFFF00000000ULL;
-			constexpr uint64 threadLockedBitmask = 0xFFFFFFFF;
 			const uint64 current = _lockState.load(std::memory_order_acquire);
 
 			gk_assertm([&]() {
 				const std::thread::id id = std::this_thread::get_id();
 				const uint64 thisThreadId = static_cast<uint64>(*(uint32*)&id);
-				return (current & threadIdBitmask) == (thisThreadId << 32);		
+				return (current & THREAD_ID_BITMASK) == (thisThreadId << 32);		
 				}(), "Cannot unlock a mutex lock that is not currently owned by the calling thread");
-			gk_assertm((current & threadLockedBitmask) > 0, "Cannot unlock a mutex lock that is not locked");
+			gk_assertm((current & THREAD_LOCK_COUNT_BITMASK) > 0, "Cannot unlock a mutex lock that is not locked");
 
 			
-			_lockState.store((current & threadIdBitmask) | ((current & threadLockedBitmask) - 1), std::memory_order_release); // support nested lock
+			_lockState.store((current & THREAD_ID_BITMASK) | ((current & THREAD_LOCK_COUNT_BITMASK) - 1), std::memory_order_release); // support nested lock
 		}
 
 	private:
