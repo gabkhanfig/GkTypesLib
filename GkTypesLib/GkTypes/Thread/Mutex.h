@@ -71,14 +71,16 @@ namespace gk
 		Mutex& operator = (const Mutex& other) = delete;
 		Mutex& operator = (Mutex&& other) = delete;
 
-		Mutex(const T& data) {
+		Mutex(const T& data)
+			: _data(data)
+		{
 			_lockState.store(0, std::memory_order_release);
-			_data = data;
 		}
 
-		Mutex(T&& data) {
+		Mutex(T&& data)
+			: _data(std::move(data))
+		{
 			_lockState.store(0, std::memory_order_release);
-			_data = std::move(data);
 		}
 
 		~Mutex() = default;
