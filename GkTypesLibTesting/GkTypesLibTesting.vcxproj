@@ -58,6 +58,7 @@
     <ClCompile Include="Tests\MutexTests.cpp" />
     <ClCompile Include="Tests\OptionUnitTests.cpp" />
     <ClCompile Include="Tests\RingQueueTests.cpp" />
+    <ClCompile Include="Tests\RwLockUnitTests.cpp" />
     <ClCompile Include="Tests\StringUnitTests.cpp" />
     <ClCompile Include="Tests\ThreadPoolUnitTests.cpp" />
     <ClCompile Include="Tests\ThreadUnitTests.cpp" />
