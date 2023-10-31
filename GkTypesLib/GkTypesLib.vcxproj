@@ -40,7 +40,9 @@
     <ClInclude Include="GkTypes\String\GlobalString.h" />
     <ClInclude Include="GkTypes\String\Str.h" />
     <ClInclude Include="GkTypes\Thread\Mutex.h" />
+    <ClInclude Include="GkTypes\Thread\RwLock.h" />
     <ClInclude Include="GkTypes\Thread\Thread.h" />
+    <ClInclude Include="GkTypes\Thread\ThreadEnums.h" />
     <ClInclude Include="GkTypes\Thread\ThreadPool.h" />
     <ClInclude Include="GkTypes\Error\Error.h" />
     <ClInclude Include="GkTypes\String\String.h" />
