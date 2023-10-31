@@ -1,4 +1,5 @@
 ﻿#include "../pch.h"
+#include <windows.h>
 #include "../../GkTypesLib/GkTypes/String/String.h"
 #include "../GkTest.h"
 

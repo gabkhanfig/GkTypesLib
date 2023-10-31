@@ -35,7 +35,7 @@ struct gk::Option<ExampleOptionT>
 	void operator = (const ExampleOptionT value) { _value = value; }
 	void operator = (const Option<ExampleOptionT>& other) { _value = other._value; }
 
-	[[nodiscard]] uint32 some() const {
+	[[nodiscard]] size_t some() const {
 		gk_assertm(!none(), "Cannot get optional example option value if its none");
 		return _value.value;
 	}

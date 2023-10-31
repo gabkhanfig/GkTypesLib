@@ -2,7 +2,6 @@
 
 #include "Str.h"
 #include <malloc.h>
-#include <Windows.h>
 #include "../Option/Option.h"
 #include "../CpuFeatures/CpuFeatureDetector.h"
 #include "../Utility.h"

@@ -2,7 +2,6 @@
 
 #include "../BasicTypes.h"
 #include "../Asserts.h"
-#include <Windows.h>
 #include "../Error/Result.h"
 
 // https://arxiv.org/pdf/2010.03090.pdf

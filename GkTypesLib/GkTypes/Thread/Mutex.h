@@ -4,7 +4,6 @@
 #include "../Asserts.h"
 #include <atomic>
 #include <thread>
-#include <windows.h>
 #include "ThreadEnums.h"
 
 namespace gk

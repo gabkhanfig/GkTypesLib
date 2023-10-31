@@ -1,4 +1,5 @@
 #include "../pch.h"
+#include <windows.h>
 #include "../../GkTypesLib/GkTypes/ClassRef/ClassRef.h"
 
 class ClassRefTestClass1 {

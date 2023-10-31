@@ -3,7 +3,6 @@
 #include <thread>
 #include <atomic>
 #include <functional>
-#include <Windows.h>
 #include "../Array/DynamicArray.h"
 #include <condition_variable>
 #include <mutex>
