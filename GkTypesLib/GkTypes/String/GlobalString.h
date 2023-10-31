@@ -3,7 +3,7 @@
 #include "String.h"
 #include "../Array/DynamicArray.h"
 #include "../Hash/Hashmap.h"
-#include "../Thread/Mutex.h"
+#include "../Thread/RwLock.h"
 
 namespace gk 
 {
@@ -20,16 +20,16 @@ namespace gk
 			GlobalStringContainers() : nextId(0) {}
 		};
 
-		static gk::Mutex<GlobalStringContainers> initializeGlobalStringContainers() {
+		static gk::RwLock<GlobalStringContainers> initializeGlobalStringContainers() {
 			GlobalStringContainers containers;
 			containers.ids.insert(""_str, 0);
 			containers.strings.Add(""_str);
 			containers.nextId = 1;
-			return gk::Mutex<GlobalStringContainers>(std::move(containers));
+			return gk::RwLock<GlobalStringContainers>(std::move(containers));
 		}
 
-		forceinline static gk::Mutex<GlobalStringContainers>& getAllGlobalStrings() {
-			static gk::Mutex<GlobalStringContainers> globalStrings = initializeGlobalStringContainers();
+		forceinline static gk::RwLock<GlobalStringContainers>& getAllGlobalStrings() {
+			static gk::RwLock<GlobalStringContainers> globalStrings = initializeGlobalStringContainers();
 			return globalStrings;
 		}
 
@@ -46,7 +46,7 @@ namespace gk
 		template<ThreadSafety safety = ThreadSafety::Safe>
 		static GlobalString create(gk::String inString) {
 			if constexpr (safety == ThreadSafety::Safe) {
-				gk::LockedMutex<GlobalStringContainers> lock = getAllGlobalStrings().lock();
+				gk::LockedWriter<GlobalStringContainers> lock = getAllGlobalStrings().spinWrite();
 				GlobalStringContainers& containers = *lock.get();
 				return createNewEntryIfDoesntExist(std::move(inString), containers);
 			}
@@ -61,7 +61,7 @@ namespace gk
 		static GlobalString createIfExists(const gk::String& inString) {
 			GlobalString gstrOut;
 			if constexpr (safety == ThreadSafety::Safe) {
-				gk::LockedMutex<GlobalStringContainers> lock = getAllGlobalStrings().lock();
+				gk::LockedReader<GlobalStringContainers> lock = getAllGlobalStrings().spinRead();
 				const GlobalStringContainers& containers = *lock.get();
 				return createFromExistingEntryIfExist(inString, containers);
 			}
@@ -84,7 +84,7 @@ namespace gk
 		template<ThreadSafety safety = ThreadSafety::Safe>
 		const gk::String& toString() const {
 			if constexpr (safety == ThreadSafety::Safe) {
-				gk::LockedMutex<GlobalStringContainers> lock = getAllGlobalStrings().lock();
+				gk::LockedReader<GlobalStringContainers> lock = getAllGlobalStrings().spinRead();
 				const GlobalStringContainers& containers = *lock.get();
 				return toStringFromGlobalContainers(containers);
 			}
