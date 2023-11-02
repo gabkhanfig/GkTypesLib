@@ -45,6 +45,17 @@ void nestedLockSpin(gk::Mutex<int>* mutex) {
 	}
 }
 
+struct NoDefaultConstructMutex {
+	int a;
+	int b;
+
+	NoDefaultConstructMutex() = delete;
+	NoDefaultConstructMutex(int inA, int inB) : a(inA), b(inB) {}
+	NoDefaultConstructMutex(const NoDefaultConstructMutex&) = delete;
+	NoDefaultConstructMutex(NoDefaultConstructMutex&&) = delete;
+
+};
+
 namespace UnitTests
 {
 	TEST(Mutex, SingleThreadsAccess) {
@@ -141,5 +152,11 @@ namespace UnitTests
 		t4.join();
 
 		EXPECT_EQ(*mutex.getDataNoLock(), 4000);
+	}
+
+	TEST(Mutex, ConstructWithTypeConstructor) {
+		gk::Mutex<NoDefaultConstructMutex> mutex{5, 9};
+		EXPECT_EQ((*mutex.getDataNoLock()).a, 5);
+		EXPECT_EQ((*mutex.getDataNoLock()).b, 9);
 	}
 }

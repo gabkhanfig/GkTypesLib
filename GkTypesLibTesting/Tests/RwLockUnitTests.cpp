@@ -81,6 +81,18 @@ void spinReadValueConst(const gk::RwLock<int>* rwlock) {
 	EXPECT_EQ((*lock.get()), 100);
 }
 
+
+struct NoDefaultConstructRwLock {
+	int a;
+	int b;
+
+	NoDefaultConstructRwLock() = delete;
+	NoDefaultConstructRwLock(int inA, int inB) : a(inA), b(inB) {}
+	NoDefaultConstructRwLock(const NoDefaultConstructRwLock&) = delete;
+	NoDefaultConstructRwLock(NoDefaultConstructRwLock&&) = delete;
+
+};
+
 namespace UnitTests
 {
 	TEST(RwLock, SingleThreadRead) {
@@ -247,6 +259,10 @@ namespace UnitTests
 		spinReadValueConst(&rwlock);
 	}
 
-
+	TEST(RwLock, ConstructWithTypeConstructor) {
+		gk::RwLock<NoDefaultConstructRwLock> rwlock{5, 9};
+		EXPECT_EQ((*rwlock.getDataNoLock()).a, 5);
+		EXPECT_EQ((*rwlock.getDataNoLock()).b, 9);
+	}
 
 }
