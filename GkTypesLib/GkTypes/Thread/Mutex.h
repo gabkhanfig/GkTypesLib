@@ -56,6 +56,13 @@ namespace gk
 			_lockState.store(0, std::memory_order_release);
 		}
 
+		template<typename ...ConstructorArgs>
+		Mutex(ConstructorArgs... args)
+			: _data(args...)
+		{
+			_lockState.store(0, std::memory_order_release);
+		}
+
 		Mutex(const Mutex& other) = delete;
 		Mutex(Mutex&& other) = delete;
 		Mutex& operator = (const Mutex& other) = delete;

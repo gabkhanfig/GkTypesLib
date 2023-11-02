@@ -74,6 +74,13 @@ namespace gk
 			_lockState.store(IS_NOT_OWNED, std::memory_order_release);
 		}
 
+		template<typename ...ConstructorArgs>
+		RwLock(ConstructorArgs... args)
+			: _data(args...)
+		{
+			_lockState.store(IS_NOT_OWNED, std::memory_order_release);
+		}
+
 		RwLock(const RwLock&) = delete;
 		RwLock(RwLock&&) = delete;
 		RwLock& operator = (const RwLock&) = delete;
