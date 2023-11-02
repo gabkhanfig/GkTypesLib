@@ -13,30 +13,22 @@ namespace gk
 
 	template<typename T>
 	struct LockedReader {
-	private:
-		typedef void(RwLock<T>::* UnlockFunc)() const;
 	public:
 
-		LockedReader(const RwLock<T>* rwlock, UnlockFunc unlockFunc, const T* data) : _rwlock(rwlock), _unlockFunc(unlockFunc), _data(data) {}
+		LockedReader(const RwLock<T>* rwlock) : _rwlock(rwlock) {}
 
 		LockedReader(const LockedReader&) = delete;
 		LockedReader(LockedReader&&) = delete;
 		LockedReader& operator = (const LockedReader&) = delete;
 		LockedReader& operator = (LockedReader&&) = delete;
 
-		~LockedReader() {
-			(_rwlock->*_unlockFunc)();
-		}
+		~LockedReader();
 
-		[[nodiscard]] const T* get() const {
-			return _data;
-		}
+		[[nodiscard]] const T* get() const;
 
 	private:
 
 		const RwLock<T>* _rwlock;
-		UnlockFunc _unlockFunc;
-		const T* _data;
 
 	};
 
@@ -46,26 +38,20 @@ namespace gk
 		typedef void(RwLock<T>::* UnlockFunc)();
 	public:
 
-		LockedWriter(RwLock<T>* rwlock, UnlockFunc unlockFunc, T* data) : _rwlock(rwlock), _unlockFunc(unlockFunc), _data(data) {}
+		LockedWriter(RwLock<T>* rwlock) : _rwlock(rwlock) {}
 
 		LockedWriter(const LockedWriter&) = delete;
 		LockedWriter(LockedWriter&&) = delete; 
 		LockedWriter& operator = (const LockedWriter&) = delete;
 		LockedWriter& operator = (LockedWriter&&) = delete;
 
-		~LockedWriter() {
-			(_rwlock->*_unlockFunc)();
-		}
+		~LockedWriter();
 
-		[[nodiscard]] T* get() {
-			return _data;
-		}
+		[[nodiscard]] T* get();
 
 	private:
 
 		RwLock<T>* _rwlock;
-		UnlockFunc _unlockFunc;
-		T* _data;
 
 	};
 
@@ -76,6 +62,11 @@ namespace gk
 		constexpr static uint64 IS_NOT_OWNED = 0xFFFFFFFF00000000ULL;
 		constexpr static uint64 THREAD_ID_BITMASK = 0xFFFFFFFF00000000ULL;
 		constexpr static uint64 THREAD_LOCK_COUNT_BITMASK = 0xFFFFFFFF;
+
+		template<typename>
+		friend struct LockedReader;
+		template<typename>
+		friend struct LockedWriter;
 
 	public:
 
@@ -112,7 +103,7 @@ namespace gk
 				expected = IS_NOT_OWNED | (expected & THREAD_LOCK_COUNT_BITMASK);
 			}
 
-			return LockedReader(this, &RwLock::unlockRead, &_data);
+			return LockedReader(this);
 		}
 
 		/* Supports recursive locking. Is unlocked by the destructor of LockedReader<T>. 
@@ -125,7 +116,7 @@ namespace gk
 				expected = IS_NOT_OWNED | (expected & THREAD_LOCK_COUNT_BITMASK);
 			}
 
-			return LockedReader(this, &RwLock::unlockRead, &_data);
+			return LockedReader(this);
 		}
 
 		/* Supports recursive locking. Is unlocked by the destructor of LockedWriter<T>. 
@@ -138,7 +129,7 @@ namespace gk
 
 			if (((expected & THREAD_ID_BITMASK) == (thisThreadId) << 32) && (expected & THREAD_LOCK_COUNT_BITMASK) > 0) {
 				_lockState.store(expected + 1, std::memory_order_release); // support nested lock
-				return LockedWriter(this, &RwLock::unlockWrite, &_data);
+				return LockedWriter(this);
 			}
 
 			const uint64 desired = (thisThreadId << 32) | 1; // If thread doesn't own a lock already, this will be the first nested lock.
@@ -148,7 +139,7 @@ namespace gk
 				expected = IS_NOT_OWNED; // Ensure has no active locks, so the 32 lowest bits are zero
 			}
 
-			return LockedWriter(this, &RwLock::unlockWrite, &_data);
+			return LockedWriter(this);
 		}
 
 		/* Supports recursive locking. Is unlocked by the destructor of LockedWriter<T>. 
@@ -161,7 +152,7 @@ namespace gk
 
 			if (((expected & THREAD_ID_BITMASK) == (thisThreadId) << 32) && (expected & THREAD_LOCK_COUNT_BITMASK) > 0) {
 				_lockState.store(expected + 1, std::memory_order_release); // support nested lock
-				return LockedWriter(this, &RwLock::unlockWrite, &_data);
+				return LockedWriter(this);
 			}
 
 			const uint64 desired = (thisThreadId << 32) | 1; // If thread doesn't own a lock already, this will be the first nested lock.
@@ -171,7 +162,7 @@ namespace gk
 				expected = IS_NOT_OWNED; // Ensure has no active locks, so the 32 lowest bits are zero
 			}
 
-			return LockedWriter(this, &RwLock::unlockWrite, &_data);
+			return LockedWriter(this);
 		}
 
 		[[nodiscard]] T* getDataNoLock() {
@@ -224,4 +215,28 @@ namespace gk
 		T _data;
 
 	};
+
+	template<typename T>
+	inline LockedReader<T>::~LockedReader()
+	{
+		_rwlock->unlockRead();
+	}
+
+	template<typename T>
+	inline const T* LockedReader<T>::get() const
+	{
+		return &_rwlock->_data;
+	}
+
+	template<typename T>
+	inline LockedWriter<T>::~LockedWriter()
+	{
+		_rwlock->unlockWrite();
+	}
+
+	template<typename T>
+	inline T* LockedWriter<T>::get()
+	{
+		return &_rwlock->_data;
+	}
 }

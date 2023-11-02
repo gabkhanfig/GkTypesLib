@@ -18,36 +18,24 @@ namespace gk
 	*val = 5;*/
 	template<typename T>
 	struct LockedMutex {
-	private:
-
-		typedef void(Mutex<T>::* UnlockFunc)();
-
 	public:
 
-		LockedMutex(Mutex<T>* mutex, UnlockFunc unlockFunc, T* data) : _mutex(mutex), _unlockFunc(unlockFunc), _data(data) {}
+		LockedMutex(Mutex<T>* mutex) : _mutex(mutex) {}
 
 		LockedMutex(const LockedMutex& other) = delete;
 		LockedMutex(LockedMutex&& other) = delete;
 		LockedMutex& operator = (const LockedMutex& other) = delete;
 		LockedMutex& operator = (LockedMutex&& other) = delete;
 
-		~LockedMutex() {
-			(_mutex->*_unlockFunc)();
-		}
+		~LockedMutex();
 
-		[[nodiscard]] T* get() {
-			return _data;
-		}
+		[[nodiscard]] T* get();
 
-		[[nodiscard]] const T* get() const {
-			return _data;
-		}
+		[[nodiscard]] const T* get() const;
 
 	private:
 
 		Mutex<T>* _mutex;
-		UnlockFunc _unlockFunc;
-		T* _data;
 
 	};
 
@@ -58,6 +46,9 @@ namespace gk
 
 		constexpr static uint64 THREAD_ID_BITMASK = 0xFFFFFFFF00000000ULL;
 		constexpr static uint64 THREAD_LOCK_COUNT_BITMASK = 0xFFFFFFFF;
+
+		template<typename>
+		friend struct LockedMutex;
 
 	public:
 
@@ -91,20 +82,10 @@ namespace gk
 			const uint64 thisThreadId = static_cast<uint64>(*(uint32*)&id);
 
 			uint64 expected = _lockState.load(std::memory_order_acquire);
-			//if (((expected & threadIdBitmask) == (thisThreadId) << 32) && (expected & threadLockedBitmask) > 0) { // already owned and is going to get nested
-			//	const uint64 desired = expected + 1;
-			//	expected = expected & threadIdBitmask; 
-			//	//std::cerr << "incrementing lock count for thread id: " << thisThreadId << " to " << (desired & threadLockedBitmask) << std::endl;
-			//	while (!_lockState.compare_exchange_weak(expected, desired, std::memory_order_release)) {
-			//		_mm_pause();
-			//		expected = (thisThreadId << 32) | (expected & threadLockedBitmask);
-			//	}
-			//	return LockedMutex(this, &Mutex::unlock, &_data);
-			//}
 
 			if (((expected & THREAD_ID_BITMASK) == (thisThreadId) << 32) && (expected & THREAD_LOCK_COUNT_BITMASK) > 0) {
 				_lockState.store(expected + 1, std::memory_order_release); // support nested lock
-				return LockedMutex(this, &Mutex::unlock, &_data);
+				return LockedMutex(this);
 			}
 
 			const uint64 desired = (thisThreadId << 32) | 1; // If thread doesn't own a lock already, this will be the first nested lock.
@@ -114,7 +95,7 @@ namespace gk
 				expected = expected & THREAD_ID_BITMASK; // Ensure has no active locks, so the 32 lowest bits are zero
 			}
 
-			return LockedMutex(this, &Mutex::unlock, &_data);
+			return LockedMutex(this);
 		}
 
 		/* Supports recursive locking. Is unlocked by the destructor of LockedMutex<T>. 
@@ -124,20 +105,10 @@ namespace gk
 			const uint64 thisThreadId = static_cast<uint64>(*(uint32*)&id);
 
 			uint64 expected = _lockState.load(std::memory_order_acquire);
-			//if (((expected & threadIdBitmask) == (thisThreadId) << 32) && (expected & threadLockedBitmask) > 0) { // already owned and is going to get nested
-			//	const uint64 desired = expected + 1;
-			//	expected = expected & threadIdBitmask; 
-			//	//std::cerr << "incrementing lock count for thread id: " << thisThreadId << " to " << (desired & threadLockedBitmask) << std::endl;
-			//	while (!_lockState.compare_exchange_weak(expected, desired, std::memory_order_release)) {
-			//		_mm_pause();
-			//		expected = (thisThreadId << 32) | (expected & threadLockedBitmask);
-			//	}
-			//	return LockedMutex(this, &Mutex::unlock, &_data);
-			//}
 
 			if (((expected & THREAD_ID_BITMASK) == (thisThreadId) << 32) && (expected & THREAD_LOCK_COUNT_BITMASK) > 0) {
 				_lockState.store(expected + 1, std::memory_order_release); // support nested lock
-				return LockedMutex(this, &Mutex::unlock, &_data);
+				return LockedMutex(this);
 			}
 
 			const uint64 desired = (thisThreadId << 32) | 1; // If thread doesn't own a lock already, this will be the first nested lock.
@@ -147,7 +118,7 @@ namespace gk
 				expected = expected & THREAD_ID_BITMASK; // Ensure has no active locks, so the 32 lowest bits are zero
 			}
 
-			return LockedMutex(this, &Mutex::unlock, &_data);
+			return LockedMutex(this);
 		}
 
 		[[nodiscard]] T* getDataNoLock() {
@@ -180,4 +151,23 @@ namespace gk
 		std::atomic<uint64> _lockState;
 		T _data;
 	};
+
+	template<typename T>
+	inline LockedMutex<T>::~LockedMutex()
+	{
+		_mutex->unlock();
+	}
+
+	template<typename T>
+	inline T* LockedMutex<T>::get()
+	{
+		return &_mutex->_data;
+	}
+
+	template<typename T>
+	inline const T* LockedMutex<T>::get() const
+	{
+		return &_mutex->_data;
+	}
 }
+
