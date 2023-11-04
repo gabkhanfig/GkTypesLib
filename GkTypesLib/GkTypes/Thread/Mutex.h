@@ -84,8 +84,7 @@ namespace gk
 
 		~Mutex() = default;
 
-		/* Supports recursive locking. Is unlocked by the destructor of LockedMutex<T>. 
-		Will yield to the operating system to retry locking. */
+		/* Does NOT support recursize locking. Is unlocked by the destructor of LockedMutex<T>. */
 		[[nodiscard]] LockedMutex<T> lock() {
 			AcquireSRWLockExclusive(&_lock);
 			return LockedMutex(this);
