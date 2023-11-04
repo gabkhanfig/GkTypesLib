@@ -2,9 +2,8 @@
 
 #include "../BasicTypes.h"
 #include "../Asserts.h"
-#include <atomic>
-#include <thread>
-#include "ThreadEnums.h"
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 namespace gk
 {
@@ -44,8 +43,8 @@ namespace gk
 	struct Mutex {
 	private:
 
-		constexpr static uint64 THREAD_ID_BITMASK = 0xFFFFFFFF00000000ULL;
-		constexpr static uint64 THREAD_LOCK_COUNT_BITMASK = 0xFFFFFFFF;
+		//constexpr static uint64 THREAD_ID_BITMASK = 0xFFFFFFFF00000000ULL;
+		//constexpr static uint64 THREAD_LOCK_COUNT_BITMASK = 0xFFFFFFFF;
 
 		template<typename>
 		friend struct LockedMutex;
@@ -53,14 +52,15 @@ namespace gk
 	public:
 
 		Mutex() {
-			_lockState.store(0, std::memory_order_release);
+			//_lockState.store(0, std::memory_order_release);
 		}
 
 		template<typename ...ConstructorArgs>
 		Mutex(ConstructorArgs... args)
 			: _data(args...)
 		{
-			_lockState.store(0, std::memory_order_release);
+			//_lockState.store(0, std::memory_order_release);
+			InitializeSRWLock(&_lock);
 		}
 
 		Mutex(const Mutex& other) = delete;
@@ -71,13 +71,15 @@ namespace gk
 		Mutex(const T& data)
 			: _data(data)
 		{
-			_lockState.store(0, std::memory_order_release);
+			//_lockState.store(0, std::memory_order_release);
+			InitializeSRWLock(&_lock);
 		}
 
 		Mutex(T&& data)
 			: _data(std::move(data))
 		{
-			_lockState.store(0, std::memory_order_release);
+			//_lockState.store(0, std::memory_order_release);
+			InitializeSRWLock(&_lock);
 		}
 
 		~Mutex() = default;
@@ -85,47 +87,25 @@ namespace gk
 		/* Supports recursive locking. Is unlocked by the destructor of LockedMutex<T>. 
 		Will yield to the operating system to retry locking. */
 		[[nodiscard]] LockedMutex<T> lock() {
-			const std::thread::id id = std::this_thread::get_id();
-			const uint64 thisThreadId = static_cast<uint64>(*(uint32*)&id);
-
-			uint64 expected = _lockState.load(std::memory_order_acquire);
-
-			if (((expected & THREAD_ID_BITMASK) == (thisThreadId) << 32) && (expected & THREAD_LOCK_COUNT_BITMASK) > 0) {
-				_lockState.store(expected + 1, std::memory_order_release); // support nested lock
-				return LockedMutex(this);
-			}
-
-			const uint64 desired = (thisThreadId << 32) | 1; // If thread doesn't own a lock already, this will be the first nested lock.
-			expected = expected & THREAD_ID_BITMASK;
-			while (!_lockState.compare_exchange_weak(expected, desired, std::memory_order_release)) {
-				std::this_thread::yield();
-				expected = expected & THREAD_ID_BITMASK; // Ensure has no active locks, so the 32 lowest bits are zero
-			}
-
+			AcquireSRWLockExclusive(&_lock);
 			return LockedMutex(this);
-		}
+			//const uint64 thisThreadId = GetCurrentThreadId();
 
-		/* Supports recursive locking. Is unlocked by the destructor of LockedMutex<T>. 
-		Will not yield to the operating system to retry locking. */
-		[[nodiscard]] LockedMutex<T> spinlock() {
-			const std::thread::id id = std::this_thread::get_id();
-			const uint64 thisThreadId = static_cast<uint64>(*(uint32*)&id);
+			//uint64 expected = _lockState.load(std::memory_order_acquire);
 
-			uint64 expected = _lockState.load(std::memory_order_acquire);
+			//if (((expected & THREAD_ID_BITMASK) == (thisThreadId) << 32) && (expected & THREAD_LOCK_COUNT_BITMASK) > 0) {
+			//	_lockState.store(expected + 1); // support nested lock , std::memory_order_release
+			//	return LockedMutex(this);
+			//}
 
-			if (((expected & THREAD_ID_BITMASK) == (thisThreadId) << 32) && (expected & THREAD_LOCK_COUNT_BITMASK) > 0) {
-				_lockState.store(expected + 1, std::memory_order_release); // support nested lock
-				return LockedMutex(this);
-			}
+			//const uint64 desired = (thisThreadId << 32) | 1; // If thread doesn't own a lock already, this will be the first nested lock.
+			//expected = 0;//expected & THREAD_ID_BITMASK;
+			//while (!_lockState.compare_exchange_weak(expected, desired, std::memory_order_release)) {
+			//	std::this_thread::yield();
+			//	expected = 0;//expected & THREAD_ID_BITMASK; // Ensure has no active locks, so the 32 lowest bits are zero
+			//}
 
-			const uint64 desired = (thisThreadId << 32) | 1; // If thread doesn't own a lock already, this will be the first nested lock.
-			expected = expected & THREAD_ID_BITMASK;
-			while (!_lockState.compare_exchange_weak(expected, desired, std::memory_order_release)) {
-				_mm_pause();
-				expected = expected & THREAD_ID_BITMASK; // Ensure has no active locks, so the 32 lowest bits are zero
-			}
-
-			return LockedMutex(this);
+			//return LockedMutex(this);
 		}
 
 		[[nodiscard]] T* getDataNoLock() {
@@ -140,22 +120,29 @@ namespace gk
 
 		/* Is unlocked by the destructor of LockedMutex<T>. For nested locks, it just decrements the lock count. */
 		void unlock() {
-			const uint64 current = _lockState.load(std::memory_order_acquire);
+			ReleaseSRWLockExclusive(&_lock);
 
-			gk_assertm([&]() {
-				const std::thread::id id = std::this_thread::get_id();
-				const uint64 thisThreadId = static_cast<uint64>(*(uint32*)&id);
-				return (current & THREAD_ID_BITMASK) == (thisThreadId << 32);		
-				}(), "Cannot unlock a mutex lock that is not currently owned by the calling thread");
-			gk_assertm((current & THREAD_LOCK_COUNT_BITMASK) > 0, "Cannot unlock a mutex lock that is not locked");
+			//const uint64 current = _lockState.load(std::memory_order_acquire);
 
-			
-			_lockState.store((current & THREAD_ID_BITMASK) | ((current & THREAD_LOCK_COUNT_BITMASK) - 1), std::memory_order_release); // support nested lock
+			//gk_assertm([&]() {
+			//	//const std::thread::id id = std::this_thread::get_id();
+			//	//const uint64 thisThreadId = static_cast<uint64>(*(uint32*)&id);
+			//	const uint64 thisThreadId = GetCurrentThreadId();
+			//	return (current & THREAD_ID_BITMASK) == (thisThreadId << 32);		
+			//	}(), "Cannot unlock a mutex lock that is not currently owned by the calling thread");
+			//gk_assertm((current & THREAD_LOCK_COUNT_BITMASK) > 0, "Cannot unlock a mutex lock that is not locked");
+
+			//if ((current & THREAD_LOCK_COUNT_BITMASK) == 1) {
+			//	_lockState.store(0, std::memory_order_release);
+			//	return;
+			//}
+			//_lockState.store((current & THREAD_ID_BITMASK) | ((current & THREAD_LOCK_COUNT_BITMASK) - 1), std::memory_order_release); // support nested lock
 		}
 
 	private:
 
-		std::atomic<uint64> _lockState;
+		//std::atomic<uint64> _lockState; // faster than std::mutex
+		SRWLOCK _lock;
 		T _data;
 	};
 
