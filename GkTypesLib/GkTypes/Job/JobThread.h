@@ -59,12 +59,6 @@ namespace gk
 			JobData _buffer[QUEUE_CAPACITY];
 		};
 
-		struct JobQueues {
-			JobRingQueue high;
-			JobRingQueue medium;
-			JobRingQueue low;
-		};
-
 		struct ActiveJobs {
 
 			ActiveJobs() :_count(0) {}
@@ -205,33 +199,6 @@ namespace gk
 				runActiveJobs();
 			}
 		}
-
-		/*
-		bool stealJobs(JobThread* other) {
-			std::scoped_lock lck(_mutex);
-			std::scoped_lock lck(other->_mutex);
-
-			if (other->_highPriorityQueue.len() > 0) {
-				for (JobData highJob : other->_highPriorityQueue) {
-					_highPriorityActiveWork[_highActiveJobCount] = std::move(highJob);
-					_highActiveJobCount++;
-				}
-			}
-
-			if (other->_mediumPriorityQueue.len() > 0) {
-				for (JobData highJob : other->_mediumPriorityQueue) {
-					_mediumPriorityActiveWork[_mediumActiveJobCount] = std::move(highJob);
-					_mediumActiveJobCount++;
-				}
-			}
-
-			if (other->_lowPriorityQueue.len() > 0) {
-				for (JobData highJob : other->_lowPriorityQueue) {
-					_lowPriorityActiveWork[_lowActiveJobCount] = std::move(highJob);
-					_lowActiveJobCount++;
-				}
-			}
-		}*/
 
 	private:
 
