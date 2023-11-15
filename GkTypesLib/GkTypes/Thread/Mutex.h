@@ -2,6 +2,7 @@
 
 #include "../BasicTypes.h"
 #include "../Asserts.h"
+#include "../Option/Option.h"
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -22,7 +23,10 @@ namespace gk
 		LockedMutex(Mutex<T>* mutex) : _mutex(mutex) {}
 
 		LockedMutex(const LockedMutex& other) = delete;
-		LockedMutex(LockedMutex&& other) = delete;
+		LockedMutex(LockedMutex&& other) {
+			_mutex = other._mutex;
+			other._mutex = nullptr;
+		}
 		LockedMutex& operator = (const LockedMutex& other) = delete;
 		LockedMutex& operator = (LockedMutex&& other) = delete;
 
@@ -31,6 +35,12 @@ namespace gk
 		[[nodiscard]] T* get();
 
 		[[nodiscard]] const T* get() const;
+
+	private:
+
+		friend struct gk::Option<LockedMutex<T>>;
+
+		LockedMutex() : _mutex(nullptr) {}
 
 	private:
 
@@ -148,7 +158,9 @@ namespace gk
 	template<typename T>
 	inline LockedMutex<T>::~LockedMutex()
 	{
-		_mutex->unlock();
+		if (_mutex) {
+			_mutex->unlock();
+		}	
 	}
 
 	template<typename T>
