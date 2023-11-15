@@ -347,13 +347,13 @@ namespace gk {
 					auto tuple = std::make_tuple(inArgs...);
 					JobContainer out;
 					if constexpr (sizeof(tuple) <= 32) {
-						std::cout << "bind member job container stack\n";
-						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
+						//std::cout << "bind member job container stack\n";
+						//std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
 						new (out.internalBuffer) ObjectFuncImplInPlace(inObject, inFunc, std::move(inFuture), std::move(tuple));
 					}
 					else {
-						std::cout << "bind member job container heap\n";
-						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
+						//std::cout << "bind member job container heap\n";
+						//std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
 						new (out.internalBuffer) ObjectFuncImplOnHeap(inObject, inFunc, std::move(inFuture), std::move(tuple));
 					}				
 					return out;
@@ -364,13 +364,13 @@ namespace gk {
 					auto tuple = std::make_tuple(inArgs...);
 					JobContainer out;
 					if constexpr (sizeof(tuple) <= 32) {
-						std::cout << "bind const member job container stack\n";
-						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
+						//std::cout << "bind const member job container stack\n";
+						//std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
 						new (out.internalBuffer) ConstObjectFuncImplInPlace(inObject, inFunc, std::move(inFuture), std::move(tuple));
 					}
 					else {
-						std::cout << "bind const member job container heap\n";
-						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
+						//std::cout << "bind const member job container heap\n";
+						//std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
 						new (out.internalBuffer) ConstObjectFuncImplOnHeap(inObject, inFunc, std::move(inFuture), std::move(tuple));
 					}				
 					return out;
@@ -381,13 +381,13 @@ namespace gk {
 					auto tuple = std::make_tuple(inArgs...);
 					JobContainer out;
 					if constexpr (sizeof(tuple) <= 40) {
-						std::cout << "bind free job container stack\n";
-						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
+						//std::cout << "bind free job container stack\n";
+						//std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
 						new (out.internalBuffer) FreeFunctionInPlace(inFunc, std::move(inFuture), std::move(tuple));
 					}
 					else {
-						std::cout << "bind free job container heap\n";
-						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
+						//std::cout << "bind free job container heap\n";
+						//std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
 						new (out.internalBuffer) FreeFunctionOnHeap(inFunc, std::move(inFuture), std::move(tuple));
 					}
 				}
