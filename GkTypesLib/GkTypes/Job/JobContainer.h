@@ -14,9 +14,6 @@ namespace gk {
 				template<typename ReturnT>
 				using WithinJobFuture = gk::job::internal::WithinJobFuture<ReturnT>;
 
-				//template<typename... T>
-				//using TupleWithRemovedRefs = std::tuple<typename std::remove_reference<T>::type...>;
-
 				struct BaseFunc {
 					virtual void invoke() = 0;
 					virtual bool isObject(const void* obj) const = 0;
@@ -66,6 +63,133 @@ namespace gk {
 					std::tuple<Args...> args;
 				};
 
+				template<typename ObjT, typename FuncClassT, typename ReturnT, typename... Args>
+				struct ObjectFuncImplOnHeap : public BaseFunc {
+
+					typedef ReturnT(FuncClassT::* MemberFunc)(Args...);
+
+					ObjectFuncImplOnHeap(ObjT* inObject, MemberFunc inFunc, WithinJobFuture<ReturnT>&& inFuture, std::tuple<Args...>&& inArgs)
+						: obj(inObject), func(inFunc), future(std::move(inFuture)), args(new std::tuple<Args...>(std::move(inArgs))) {}
+
+					~ObjectFuncImplOnHeap() = default;
+
+					virtual void invoke() override {
+						callFunc(std::index_sequence_for<Args...>{});
+					}
+
+					virtual bool isObject(const void* inObj) const {
+						return obj == inObj;
+					}
+
+					virtual void destruct() override {
+						this->~ObjectFuncImplOnHeap();
+					}
+
+					template<size_t... Is>
+					inline void callFunc(std::index_sequence<Is...>) {
+						if constexpr (std::is_same<ReturnT, void>::value) {
+							((FuncClassT*)obj->*func)(std::get<Is>(*args)...); // IMPORTANT TO DEREF
+							future.set(true);
+							return;
+						}
+						else {
+							ReturnT temp = ((FuncClassT*)obj->*func)(std::get<Is>(*args)...); // IMPORTANT TO DEREF
+							future.set(std::move(temp));
+							return;
+						}
+					}
+
+					ObjT* obj;
+					MemberFunc func;
+					WithinJobFuture<ReturnT> future;
+					std::tuple<Args...>* args;
+				};
+
+
+				template<typename ObjT, typename FuncClassT, typename ReturnT, typename... Args>
+				struct ConstObjectFuncImplInPlace : public BaseFunc {
+
+					typedef ReturnT(FuncClassT::* MemberFunc)(Args...) const;
+
+					ConstObjectFuncImplInPlace(const ObjT* inObject, MemberFunc inFunc, WithinJobFuture<ReturnT>&& inFuture, std::tuple<Args...>&& inArgs)
+						: obj(inObject), func(inFunc), future(std::move(inFuture)), args(std::move(inArgs)) {}
+
+					~ConstObjectFuncImplInPlace() = default;
+
+					virtual void invoke() override {
+						callFunc(std::index_sequence_for<Args...>{});
+					}
+
+					virtual bool isObject(const void* inObj) const {
+						return obj == inObj;
+					}
+
+					virtual void destruct() override {
+						this->~ObjectFuncImplInPlace();
+					}
+
+					template<size_t... Is>
+					inline void callFunc(std::index_sequence<Is...>) {
+						if constexpr (std::is_same<ReturnT, void>::value) {
+							((const FuncClassT*)obj->*func)(std::get<Is>(args)...);
+							future.set(true);
+							return;
+						}
+						else {
+							ReturnT temp = ((const FuncClassT*)obj->*func)(std::get<Is>(args)...);
+							future.set(std::move(temp));
+							return;
+						}
+					}
+
+					const ObjT* obj;
+					MemberFunc func;
+					WithinJobFuture<ReturnT> future;
+					std::tuple<Args...> args;
+				};
+
+				template<typename ObjT, typename FuncClassT, typename ReturnT, typename... Args>
+				struct ConstObjectFuncImplOnHeap : public BaseFunc {
+
+					typedef ReturnT(FuncClassT::* MemberFunc)(Args...) const;
+
+					ConstObjectFuncImplOnHeap(const ObjT* inObject, MemberFunc inFunc, WithinJobFuture<ReturnT>&& inFuture, std::tuple<Args...>&& inArgs)
+						: obj(inObject), func(inFunc), future(std::move(inFuture)), args(new std::tuple<Args...>(std::move(inArgs))) {}
+
+					~ConstObjectFuncImplOnHeap() = default;
+
+					virtual void invoke() override {
+						callFunc(std::index_sequence_for<Args...>{});
+					}
+
+					virtual bool isObject(const void* inObj) const {
+						return obj == inObj;
+					}
+
+					virtual void destruct() override {
+						this->~ObjectFuncImplOnHeap();
+					}
+
+					template<size_t... Is>
+					inline void callFunc(std::index_sequence<Is...>) {
+						if constexpr (std::is_same<ReturnT, void>::value) {
+							((const FuncClassT*)obj->*func)(std::get<Is>(*args)...); // IMPORTANT TO DEREF
+							future.set(true);
+							return;
+						}
+						else {
+							ReturnT temp = ((const FuncClassT*)obj->*func)(std::get<Is>(*args)...); // IMPORTANT TO DEREF
+							future.set(std::move(temp));
+							return;
+						}
+					}
+
+					const ObjT* obj;
+					MemberFunc func;
+					WithinJobFuture<ReturnT> future;
+					std::tuple<Args...>* args;
+				};
+
 			public:
 
 				JobContainer() : internalBuffer{ 0 } {}
@@ -96,14 +220,43 @@ namespace gk {
 					memset(internalBuffer, 0, sizeof(JobContainer::internalBuffer));
 				}
 
+#pragma region Bind
+
 				template<typename ObjT, typename FuncClassT, typename ReturnT, typename... Args>
 				static JobContainer bindMember(ObjT * inObject, ReturnT(FuncClassT:: * inFunc)(Args...), WithinJobFuture<ReturnT> && inFuture, Args&&... inArgs) {
 					auto tuple = std::make_tuple(inArgs...);
-					static_assert(sizeof(tuple) < 32);
 					JobContainer out;
-					new (out.internalBuffer) ObjectFuncImplInPlace(inObject, inFunc, std::move(inFuture), std::move(tuple));
+					if constexpr (sizeof(tuple) <= 32) {
+						std::cout << "bind member job container stack\n";
+						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
+						new (out.internalBuffer) ObjectFuncImplInPlace(inObject, inFunc, std::move(inFuture), std::move(tuple));
+					}
+					else {
+						std::cout << "bind member job container heap\n";
+						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
+						new (out.internalBuffer) ObjectFuncImplOnHeap(inObject, inFunc, std::move(inFuture), std::move(tuple));
+					}				
 					return out;
 				}
+
+				template<typename ObjT, typename FuncClassT, typename ReturnT, typename... Args>
+				static JobContainer bindConstMember(const ObjT * inObject, ReturnT(FuncClassT:: * inFunc)(Args...) const, WithinJobFuture<ReturnT> && inFuture, Args&&... inArgs) {
+					auto tuple = std::make_tuple(inArgs...);
+					JobContainer out;
+					if constexpr (sizeof(tuple) <= 32) {
+						std::cout << "bind const member job container stack\n";
+						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
+						new (out.internalBuffer) ConstObjectFuncImplInPlace(inObject, inFunc, std::move(inFuture), std::move(tuple));
+					}
+					else {
+						std::cout << "bind const member job container heap\n";
+						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
+						new (out.internalBuffer) ConstObjectFuncImplOnHeap(inObject, inFunc, std::move(inFuture), std::move(tuple));
+					}				
+					return out;
+				}
+
+#pragma endregion
 
 				void invoke() {
 					BaseFunc* asBaseFunc = (BaseFunc*)(internalBuffer);
