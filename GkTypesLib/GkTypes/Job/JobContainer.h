@@ -3,6 +3,7 @@
 #include "../BasicTypes.h"
 #include <type_traits>
 #include "JobFuture.h"
+#include <functional>
 
 namespace gk {
 	namespace job {
@@ -105,7 +106,6 @@ namespace gk {
 					std::tuple<Args...>* args;
 				};
 
-
 				template<typename ObjT, typename FuncClassT, typename ReturnT, typename... Args>
 				struct ConstObjectFuncImplInPlace : public BaseFunc {
 
@@ -190,6 +190,126 @@ namespace gk {
 					std::tuple<Args...>* args;
 				};
 
+				template<typename ReturnT, typename... Args>
+				struct FreeFunctionInPlace : public BaseFunc {
+					typedef ReturnT(*FuncT)(Args...);
+
+					FreeFunctionInPlace(FuncT inFunc, WithinJobFuture<ReturnT>&& inFuture, std::tuple<Args...>&& inArgs)
+						: func(inFunc), future(std::move(inFuture)), args(std::move(inArgs)) {}
+
+					~FreeFunctionInPlace() = default;
+
+					virtual void invoke() override {
+						callFunc(std::index_sequence_for<Args...>{});
+					}
+
+					virtual bool isObject(const void* inObj) const {
+						return false;
+					}
+
+					virtual void destruct() override {
+						this->~ObjectFuncImplInPlace();
+					}
+
+					template<size_t... Is>
+					inline void callFunc(std::index_sequence<Is...>) {
+						if constexpr (std::is_same<ReturnT, void>::value) {
+							func(std::get<Is>(args)...);
+							future.set(true);
+							return;
+						}
+						else {
+							ReturnT temp = func(std::get<Is>(args)...);
+							future.set(std::move(temp));
+							return;
+						}
+					}
+
+					FuncT func;
+					WithinJobFuture<ReturnT> future;
+					std::tuple<Args...> args;
+				};
+
+				template<typename ReturnT, typename... Args>
+				struct FreeFunctionOnHeap : public BaseFunc {
+					typedef ReturnT(*FuncT)(Args...);
+
+					FreeFunctionOnHeap(FuncT inFunc, WithinJobFuture<ReturnT>&& inFuture, std::tuple<Args...>&& inArgs)
+						: func(inFunc), future(std::move(inFuture)), args(new std::tuple<Args...>(std::move(inArgs))) {}
+
+					~FreeFunctionOnHeap() = default;
+
+					virtual void invoke() override {
+						callFunc(std::index_sequence_for<Args...>{});
+					}
+
+					virtual bool isObject(const void* inObj) const {
+						return false;
+					}
+
+					virtual void destruct() override {
+						this->~ObjectFuncImplInPlace();
+					}
+
+					template<size_t... Is>
+					inline void callFunc(std::index_sequence<Is...>) {
+						if constexpr (std::is_same<ReturnT, void>::value) {
+							func(std::get<Is>(*args)...); // IMPORTANT TO DEREF
+							future.set(true);
+							return;
+						}
+						else {
+							ReturnT temp = func(std::get<Is>(*args)...); // IMPORTANT TO DEREF
+							future.set(std::move(temp));
+							return;
+						}
+					}
+
+					FuncT func;
+					WithinJobFuture<ReturnT> future;
+					std::tuple<Args...>* args;
+				};
+
+				template<typename ReturnT>
+				struct StdFunction : public BaseFunc {
+					using FuncT = std::function<ReturnT()>;
+
+					StdFunction(FuncT&& inStdFunction, WithinJobFuture<ReturnT>&& inFuture)
+						: func(std::move(inStdFunction)), future(std::move(inFuture)) {}
+
+					~StdFunction() = default;
+
+					virtual void invoke() override {
+						if constexpr (std::is_same<ReturnT, void>::value) {
+							//func(std::get<Is>(*args)...); // IMPORTANT TO DEREF
+							func();
+							future.set(true);
+							return;
+						}
+						else {
+							//ReturnT temp = func(std::get<Is>(*args)...); // IMPORTANT TO DEREF
+							ReturnT temp = func();
+							future.set(std::move(temp));
+							return;
+						}
+
+
+
+						//callFunc(std::index_sequence_for<Args...>{});
+					}
+
+					virtual bool isObject(const void* inObj) const {
+						return false;
+					}
+
+					virtual void destruct() override {
+						this->~ObjectFuncImplInPlace();
+					}
+
+					FuncT func;
+					WithinJobFuture<ReturnT> future;
+				};
+
 			public:
 
 				JobContainer() : internalBuffer{ 0 } {}
@@ -253,6 +373,29 @@ namespace gk {
 						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
 						new (out.internalBuffer) ConstObjectFuncImplOnHeap(inObject, inFunc, std::move(inFuture), std::move(tuple));
 					}				
+					return out;
+				}
+
+				template<typename ReturnT, typename... Args>
+				static JobContainer bindFreeFunction(ReturnT(*inFunc)(Args...), WithinJobFuture<ReturnT>&& inFuture, std::tuple<Args...>&& inArgs) {
+					auto tuple = std::make_tuple(inArgs...);
+					JobContainer out;
+					if constexpr (sizeof(tuple) <= 40) {
+						std::cout << "bind free job container stack\n";
+						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
+						new (out.internalBuffer) FreeFunctionInPlace(inFunc, std::move(inFuture), std::move(tuple));
+					}
+					else {
+						std::cout << "bind free job container heap\n";
+						std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
+						new (out.internalBuffer) FreeFunctionOnHeap(inFunc, std::move(inFuture), std::move(tuple));
+					}
+				}
+
+				template<typename ReturnT>
+				static JobContainer bindStdFunction(std::function<ReturnT()>&& inFunc, WithinJobFuture<ReturnT>&& inFuture) {
+					JobContainer out; 
+					new (out.internalBuffer) StdFunction(std::move(inFunc), std::move(inFuture));
 					return out;
 				}
 
