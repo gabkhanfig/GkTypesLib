@@ -10,153 +10,169 @@ namespace gk
 {
 	namespace job
 	{
-		template<typename ReturnT>
-		struct JobFutureSharedMutex {
-
-			using DataT = std::conditional_t<std::is_same_v<ReturnT, void>, bool, ReturnT>;
-
-			struct MutexData {
-				bool isReady;
-				DataT actualData;
-
-				MutexData(const DataT& inData)
-					: isReady(false), actualData(inData) {}
-
-				MutexData(DataT&& inData)
-					: isReady(false), actualData(std::move(inData)) {}
-			};
-
-			struct SharedData {
-				std::atomic<uint64> counter;
-				gk::Mutex<MutexData> mutex;
-
-				SharedData(const DataT& inData)
-					: counter(1), mutex(inData) {}
-
-				SharedData(DataT&& inData)
-					: counter(1), mutex(std::move(inData)) {}
-			};
-
-			// only member
-			SharedData* data;
-
-			JobFutureSharedMutex() : data(nullptr) {}
-
-			JobFutureSharedMutex(const JobFutureSharedMutex& other) {
-				data = other.data;
-				if (data == nullptr) return;
-
-				data->counter++;
-			}
-
-			JobFutureSharedMutex(JobFutureSharedMutex&& other) noexcept {
-				data = other.data;
-				other.data = nullptr;
-			}
-
-			~JobFutureSharedMutex() {
-				decrementCounter();
-			}
-
-			JobFutureSharedMutex& operator = (const JobFutureSharedMutex& other) {
-				decrementCounter();
-
-				data = other.data;
-				if (data == nullptr) return;
-
-				data->counter++;
-				return *this;
-			}
-
-			JobFutureSharedMutex& operator = (JobFutureSharedMutex&& other) noexcept {
-				decrementCounter();
-				data = other.data;
-				other.data = nullptr;
-				return *this;
-			}
-
-			static JobFutureSharedMutex makeShared(const DataT& inData) {
-				JobFutureSharedMutex shared;
-				shared.data = new SharedData(inData);
-				return shared;
-			}
-
-			static JobFutureSharedMutex makeShared(DataT&& inData) {
-				JobFutureSharedMutex shared;
-				shared.data = new SharedData(std::move(inData));
-				return shared;
-			}
-
-		private:
-
-			void decrementCounter() {
-				if (data == nullptr) return;
-				data->counter--;
-				if (data->counter == 0) {
-					delete data;
-				}
-			}
-
-		};
-
 		template<typename ReturnT = void>
 		struct JobFuture;
 
-		template<typename ReturnT>
-		struct WithinJobFuture
+		namespace internal
 		{
-			using DataT = std::conditional_t<std::is_same_v<ReturnT, void>, bool, ReturnT>;
+			template<typename ReturnT>
+			struct JobFutureSharedMutex {
 
-			WithinJobFuture(const DataT& inData) {
-				shared = std::move(JobFutureSharedMutex<DataT>::makeShared(inData));
-			}
+				using DataT = std::conditional_t<std::is_same_v<ReturnT, void>, bool, ReturnT>;
 
-			WithinJobFuture(DataT&& inData) {
-				shared = std::move(JobFutureSharedMutex<DataT>::makeShared(std::move(inData)));
-			}
+				struct MutexData {
+					bool isReady;
+					DataT actualData;
 
-			JobFuture<ReturnT> makeUserJobFuture() const;
+					MutexData(const DataT& inData)
+						: isReady(false), actualData(inData) {}
 
-			void set(const DataT& inData) {
-				gk_assertm(shared.data != nullptr, "Cannot set on invalid future. It's possible was moved");
-				const uint64 count = shared.data->counter.load(std::memory_order::acquire);
-				if (count < 2) { // don't update unnecessarily
-					return;
+					MutexData(DataT&& inData)
+						: isReady(false), actualData(std::move(inData)) {}
+				};
+
+				struct SharedData {
+					std::atomic<uint64> counter;
+					gk::Mutex<MutexData> mutex;
+
+					SharedData(const DataT& inData)
+						: counter(1), mutex(inData) {}
+
+					SharedData(DataT&& inData)
+						: counter(1), mutex(std::move(inData)) {}
+
+				};
+
+				// only member
+				SharedData* data;
+
+				JobFutureSharedMutex() : data(nullptr) {}
+
+				JobFutureSharedMutex(const JobFutureSharedMutex& other) {
+					data = other.data;
+					if (data == nullptr) return;
+
+					data->counter++;
 				}
-				auto lock = shared.data->mutex.lock();
-				lock.get()->actualData = inData;
-				lock.get()->isReady = true;
-			}
 
-			void set(DataT&& inData) {
-				gk_assertm(shared.data != nullptr, "Cannot set on invalid future. It's possible was moved");
-				const uint64 count = shared.data->counter.load(std::memory_order::acquire);
-				if (count < 2) { // don't update unnecessarily
-					return;
+				JobFutureSharedMutex(JobFutureSharedMutex&& other) noexcept {
+					data = other.data;
+					other.data = nullptr;
 				}
-				auto lock = shared.data->mutex.lock();
-				lock.get()->actualData = std::move(inData);
-				lock.get()->isReady = true;
-			}
 
-		private:
+				~JobFutureSharedMutex() {
+					decrementCounter();
+				}
 
-			JobFutureSharedMutex<DataT> shared;
-		};
+				JobFutureSharedMutex& operator = (const JobFutureSharedMutex& other) {
+					decrementCounter();
+
+					data = other.data;
+					if (data == nullptr) return *this;
+
+					data->counter++;
+					return *this;
+				}
+
+				JobFutureSharedMutex& operator = (JobFutureSharedMutex&& other) noexcept {
+					decrementCounter();
+					data = other.data;
+					other.data = nullptr;
+					return *this;
+				}
+
+				static JobFutureSharedMutex makeShared(const DataT& inData) {
+					JobFutureSharedMutex shared;
+					shared.data = new SharedData(inData);
+					//std::cout << "counter make shared yuh: " << shared.data->counter << std::endl;
+					return shared;
+				}
+
+				static JobFutureSharedMutex makeShared(DataT&& inData) {
+					JobFutureSharedMutex shared;
+					shared.data = new SharedData(std::move(inData));
+					//std::cout << "counter make shared yuh: " << shared.data->counter << std::endl;
+					return shared;
+				}
+
+			private:
+
+				void decrementCounter() {
+					if (data == nullptr) return;
+					//std::cout << "counter decrement yuh: " <<  data->counter << std::endl;
+					data->counter--;
+					if (data->counter == 0) {
+						//std::cout << "no refs, deleting";
+						delete data;
+					}
+				}
+
+			};
+
+			template<typename ReturnT>
+			struct WithinJobFuture
+			{
+				using DataT = std::conditional_t<std::is_same_v<ReturnT, void>, bool, ReturnT>;
+
+				WithinJobFuture(const DataT& inData) {
+					shared = std::move(JobFutureSharedMutex<DataT>::makeShared(inData));
+				}
+
+				WithinJobFuture(DataT&& inData) noexcept {
+					shared = std::move(JobFutureSharedMutex<DataT>::makeShared(std::move(inData)));
+				}
+
+				WithinJobFuture(const WithinJobFuture& other) = delete;
+				WithinJobFuture(WithinJobFuture&& other) noexcept : shared(std::move(other.shared)) {}
+
+				WithinJobFuture& operator = (const WithinJobFuture& other) = delete;
+				WithinJobFuture& operator = (WithinJobFuture&& other) noexcept { shared = std::move(other.shared); }
+
+				JobFuture<ReturnT> makeUserJobFuture() const;
+
+				void set(const DataT& inData) {
+					gk_assertm(shared.data != nullptr, "Cannot set on invalid future. It's possible was moved");
+					const uint64 count = shared.data->counter.load(std::memory_order::acquire);
+					if (count < 2) { // don't update unnecessarily
+						//std::cout << "future count is less than 2, dont bother\n";
+						return;
+					}
+					auto lock = shared.data->mutex.lock();
+					lock.get()->actualData = inData;
+					lock.get()->isReady = true;
+				}
+
+				void set(DataT&& inData) {
+					gk_assertm(shared.data != nullptr, "Cannot set on invalid future. It's possible was moved");
+					const uint64 count = shared.data->counter.load(std::memory_order::acquire);
+					if (count < 2) { // don't update unnecessarily
+						//std::cout << "future count is less than 2, dont bother\n";
+						return;
+					}
+					auto lock = shared.data->mutex.lock();
+					lock.get()->actualData = std::move(inData);
+					lock.get()->isReady = true;
+				}
+
+			private:
+
+				JobFutureSharedMutex<DataT> shared;
+			};
+		} // namespace internal
 
 		template<typename ReturnT>
 		struct JobFuture 
 		{
 			using DataT = std::conditional_t<std::is_same_v<ReturnT, void>, bool, ReturnT>;
-			friend struct WithinJobFuture<ReturnT>;
+			friend struct internal::WithinJobFuture<ReturnT>;
 
 		public:
 
 			JobFuture(const JobFuture&) = delete;
-			JobFuture(JobFuture&& other) : shared(std::move(other.shared)) {}
+			JobFuture(JobFuture&& other) noexcept : shared(std::move(other.shared)) {}
 
 			JobFuture& operator = (const JobFuture&) = delete;
-			JobFuture& operator = (JobFuture&& other) { shared = std::move(other.shared); }
+			JobFuture& operator = (JobFuture&& other) noexcept { shared = std::move(other.shared); }
 
 			~JobFuture() = default;
 
@@ -175,6 +191,9 @@ namespace gk
 								return std::move(lock.get()->actualData);
 							}
 						}
+						//else {
+						//	std::cout << "is not ready\n";
+						//}
 					}
 					std::this_thread::yield();
 				}
@@ -182,17 +201,17 @@ namespace gk
 
 		private:
 
-			JobFuture(const JobFutureSharedMutex<DataT>& other)
+			JobFuture(const internal::JobFutureSharedMutex<DataT>& other)
 				: shared(other) {} // make a copy
 
 		private:
 
-			JobFutureSharedMutex<DataT> shared;
+			internal::JobFutureSharedMutex<DataT> shared;
 		};
 
 
 		template<typename ReturnT>
-		inline JobFuture<ReturnT> WithinJobFuture<ReturnT>::makeUserJobFuture() const
+		inline JobFuture<ReturnT> internal::WithinJobFuture<ReturnT>::makeUserJobFuture() const
 		{
 			return JobFuture<ReturnT>(this->shared);
 		}
