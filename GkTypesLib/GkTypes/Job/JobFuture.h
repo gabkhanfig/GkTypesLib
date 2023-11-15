@@ -161,8 +161,9 @@ namespace gk
 		} // namespace internal
 
 		template<typename ReturnT>
-		struct JobFuture 
-		{
+		struct JobFuture {
+		private:
+
 			using DataT = std::conditional_t<std::is_same_v<ReturnT, void>, bool, ReturnT>;
 			friend struct internal::WithinJobFuture<ReturnT>;
 
