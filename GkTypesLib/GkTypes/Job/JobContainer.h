@@ -208,7 +208,7 @@ namespace gk {
 					}
 
 					virtual void destruct() override {
-						this->~ObjectFuncImplInPlace();
+						this->~FreeFunctionInPlace();
 					}
 
 					template<size_t... Is>
@@ -248,7 +248,7 @@ namespace gk {
 					}
 
 					virtual void destruct() override {
-						this->~ObjectFuncImplInPlace();
+						this->~FreeFunctionOnHeap();
 					}
 
 					template<size_t... Is>
@@ -303,7 +303,7 @@ namespace gk {
 					}
 
 					virtual void destruct() override {
-						this->~ObjectFuncImplInPlace();
+						this->~StdFunction();
 					}
 
 					FuncT func;
@@ -377,7 +377,7 @@ namespace gk {
 				}
 
 				template<typename ReturnT, typename... Args>
-				static JobContainer bindFreeFunction(ReturnT(*inFunc)(Args...), WithinJobFuture<ReturnT>&& inFuture, std::tuple<Args...>&& inArgs) {
+				static JobContainer bindFreeFunction(ReturnT(*inFunc)(Args...), WithinJobFuture<ReturnT>&& inFuture, Args&&... inArgs) {
 					auto tuple = std::make_tuple(inArgs...);
 					JobContainer out;
 					if constexpr (sizeof(tuple) <= 40) {
@@ -390,6 +390,7 @@ namespace gk {
 						//std::cout << "sizeof(tuple): " << sizeof(tuple) << '\n';
 						new (out.internalBuffer) FreeFunctionOnHeap(inFunc, std::move(inFuture), std::move(tuple));
 					}
+					return out;
 				}
 
 				template<typename ReturnT>
