@@ -22,6 +22,8 @@
     <ClCompile Include="Tests\HashMapTests.cpp" />
     <ClCompile Include="Tests\GlobalStringUnitTests.cpp" />
     <ClCompile Include="Tests\RwLockUnitTests.cpp" />
+    <ClCompile Include="Tests\JobThreadUnitTests.cpp" />
+    <ClCompile Include="Tests\ArrayListUnitTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
