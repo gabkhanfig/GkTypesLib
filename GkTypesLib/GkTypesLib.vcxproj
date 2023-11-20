@@ -31,6 +31,8 @@
     <ClInclude Include="GkTypes\GkTypesLib.h" />
     <ClInclude Include="GkTypes\Hash\Hash.h" />
     <ClInclude Include="GkTypes\Hash\Hashmap.h" />
+    <ClInclude Include="GkTypes\Job\JobContainer.h" />
+    <ClInclude Include="GkTypes\Job\JobFuture.h" />
     <ClInclude Include="GkTypes\Job\JobInfo.h" />
     <ClInclude Include="GkTypes\Job\JobSystem.h" />
     <ClInclude Include="GkTypes\Job\JobThread.h" />

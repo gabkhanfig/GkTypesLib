@@ -105,5 +105,20 @@
     <ClInclude Include="GkTypes\Thread\RwLock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GkTypes\Allocator\Allocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Allocator\HeapAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Array\ArrayList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Job\JobFuture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GkTypes\Job\JobContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
