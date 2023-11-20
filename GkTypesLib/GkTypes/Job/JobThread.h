@@ -1,15 +1,12 @@
 #pragma once
 
 #include "../BasicTypes.h"
-#include "JobInfo.h"
+#include "JobContainer.h"
 #include <thread>
 #include <condition_variable>
 #include <mutex>
 #include <atomic>
-#include "../Array/DynamicArray.h"
 #include "../Thread/Mutex.h"
-
-// https://learn.microsoft.com/en-us/windows/win32/sync/using-condition-variables
 
 namespace gk
 {
@@ -20,7 +17,16 @@ namespace gk
 
 	private:
 
+		template<typename ReturnT>
+		using WithinJobFuture = gk::internal::WithinJobFuture<ReturnT>;
+
+		using JobContainer = gk::internal::JobContainer;
+
+		struct ActiveJobs;
+
 		struct JobRingQueue {
+
+			friend struct ActiveJobs;
 
 			JobRingQueue() : _len(0), _readIndex(0), _writeIndex(0) {}
 
@@ -36,19 +42,11 @@ namespace gk
 				return _len;
 			}
 
-			void push(JobData&& element) {
+			void push(JobContainer&& element) {
 				gk_assertm(!isFull(), "Job ring queue is full");
 				_buffer[_writeIndex] = std::move(element);
 				_writeIndex = (_writeIndex + 1) % QUEUE_CAPACITY;
 				_len++;
-			}
-
-			JobData pop() {
-				gk_assertm(len() > 0, "Job ring queue is empty");
-				const size_t i = _readIndex;
-				_readIndex = (_readIndex + 1) % QUEUE_CAPACITY;
-				_len--;
-				return std::move(_buffer[i]);
 			}
 
 		private:
@@ -56,35 +54,46 @@ namespace gk
 			size_t _len;
 			size_t _readIndex;
 			size_t _writeIndex;
-			JobData _buffer[QUEUE_CAPACITY];
+			JobContainer _buffer[QUEUE_CAPACITY];
 		};
 
 		struct ActiveJobs {
 
 			ActiveJobs() :_count(0) {}
 
-			void push(JobData&& element) {
-				_buffer[_count] = std::move(element);
-				_count++;
+			void collectJobs(JobRingQueue* queue) {
+				size_t count = 0;
+				size_t moveIndex = queue->_readIndex;
+				size_t writeIndex = _count;
+				while (count < queue->_len) {
+					this->_buffer[writeIndex] = std::move(queue->_buffer[moveIndex]);
+					moveIndex = (moveIndex + 1) % QUEUE_CAPACITY;
+					writeIndex++;
+					count++;
+				}
+				this->_count += count;
+				queue->_len = 0;
+				queue->_readIndex = 0;
+				queue->_writeIndex = 0;
 			}
 
-			void execute() {
+			void invokeAllJobs() {
 				for (size_t i = 0; i < _count; i++) {
-					JobData& job = _buffer[i];
-					job.jobFunc.invoke(&job.data);
-					job.~JobData();
+					JobContainer& job = _buffer[i];
+					job.invoke();
+					job.~JobContainer();
 				}
 				_count = 0;
 			}
 
-			size_t count() const {
+			size_t getCount() const {
 				return _count;
 			}
 
 		private:
 			// JobData is 64 byte aligned regardless so it doesn't make sense to use uint32, when there will already be paddings
 			size_t _count; // num of jobs
-			JobData _buffer[QUEUE_CAPACITY];
+			JobContainer _buffer[QUEUE_CAPACITY];
 		};
 
 	public:
@@ -95,118 +104,156 @@ namespace gk
 			_isPendingKill = false;
 			_shouldExecute = false;
 			_isExecuting = false;
+			_queuedJobCount = 0;
 		}
 
 		JobThread(const JobThread& other) = delete;
 		JobThread(JobThread&& other) = delete;
+		JobThread& operator = (const JobThread& other) = delete;
+		JobThread& operator = (JobThread&& other) = delete;
 
 		~JobThread() {
 			wait();
 			_isPendingKill = true;
-			execute();
+			notifyExecute();
 			_thread.join();
 		}
 
-		// Will take ownership of the job
-		void queueJob(JobData&& job) {
-			gk_assertm(job.jobFunc.isBound(), "Queued job does not have a bound function for execution");
-			auto lock = _queue.lock();
-			lock.get()->push(std::move(job));
-			_queuedJobsCount++;
+		/* Member function. */
+		template<typename ObjT, typename FuncClassT, typename ReturnT, typename... Args>
+		JobFuture<ReturnT> runJob(ReturnT(FuncClassT::* inFunc)(Args...), ObjT* inObject, Args&&... inArgs) {
+			WithinJobFuture<ReturnT> inFuture = makeInternalFuture<ReturnT>();
+			JobFuture<ReturnT> outFuture = inFuture.makeUserJobFuture();
+			JobContainer job = JobContainer::bindMember(inObject, inFunc, std::move(inFuture), std::forward<Args>(inArgs)...);
+			queueJob(std::move(job));
+			return outFuture;
 		}
 
-		// Will take ownership of the jobs
-		void queueJobs(gk::darray<JobData>&& jobs) {
-			queueJobs(jobs.Data(), jobs.Size());
+		/* Const member function. */
+		template<typename ObjT, typename FuncClassT, typename ReturnT, typename... Args>
+		JobFuture<ReturnT> runJob(ReturnT(FuncClassT::* inFunc)(Args...) const, const ObjT* inObject, Args&&... inArgs) {
+			WithinJobFuture<ReturnT> inFuture = makeInternalFuture<ReturnT>();
+			JobFuture<ReturnT> outFuture = inFuture.makeUserJobFuture();
+			JobContainer job = JobContainer::bindConstMember(inObject, inFunc, std::move(inFuture), std::forward<Args>(inArgs)...);
+			queueJob(std::move(job));
+			return outFuture;
 		}
 
-		// Will take ownership of the jobs
-		void queueJobs(JobData* arrayStart, const uint32 count) {
-			auto lock = _queue.lock();
-			for (uint32 i = 0; i < count; i++) {
-				JobData& job = arrayStart[i];
-				gk_assertm(job.jobFunc.isBound(), "Queued job does not have a bound function for execution");
-				lock.get()->push(std::move(job));
-			}
-			_queuedJobsCount += count;
+		/* Free function. */
+		template<typename ReturnT, typename... Args>
+		JobFuture<ReturnT> runJob(ReturnT(*inFunc)(Args...), Args&&... inArgs) {
+			WithinJobFuture<ReturnT> inFuture = makeInternalFuture<ReturnT>();
+			JobFuture<ReturnT> outFuture = inFuture.makeUserJobFuture();
+			JobContainer job = JobContainer::bindFreeFunction(inFunc, std::move(inFuture), std::forward<Args>(inArgs)...);
+			queueJob(std::move(job));
+			return outFuture;
 		}
 
-		void execute() {
-			_shouldExecute = true;
-			std::scoped_lock lock(_mutex);
-			_condVar.notify_one();
-			_isExecuting = true;
-		}
-
-		[[nodiscard]] bool isExecuting() const { return _isExecuting; }
-
-		/* Get the total amount of jobs this thread has in queue.l */
-		[[nodiscard]] uint32 queuedJobsCount() const {
-			return _queuedJobsCount;
+		/* Compatibility with std::function, std::bind, etc. */
+		template<typename ReturnT>
+		JobFuture<ReturnT> runJob(std::function<ReturnT()>&& inFunc) {
+			WithinJobFuture<ReturnT> inFuture = makeInternalFuture<ReturnT>();
+			JobFuture<ReturnT> outFuture = inFuture.makeUserJobFuture();
+			JobContainer job = JobContainer::bindStdFunction(inFunc, std::move(inFuture));
+			queueJob(std::move(job));
+			return outFuture;
 		}
 
 		void wait() const {
-			while (_isExecuting) {
+			std::this_thread::yield();
+			while (_isExecuting.load(std::memory_order::acquire) == true) {
 				std::this_thread::yield();
 			}
 		}
 
+		[[nodiscard]] bool isExecuting() const {
+			return _isExecuting.load(std::memory_order::acquire);
+		}
+
+		[[nodiscard]] uint32 queuedJobCount() const {
+			return _queuedJobCount.load(std::memory_order::acquire);
+		}
+
+
 	private:
 
+		void queueJob(JobContainer&& job) {
+			{
+				auto queueLock = _queue.lock();
+				queueLock.get()->push(std::move(job));
+				_queuedJobCount++;
+			}
+			notifyExecute();
+		}
+
+		void notifyExecute() {
+			if (_isExecuting.load(std::memory_order::acquire) == true) {
+				// should already be looping the execution, in which if it has any queued jobs, it will execute them.
+				return;
+			}
+			_shouldExecute.store(true, std::memory_order::release);
+			std::scoped_lock lock(_mutex);
+			_condVar.notify_one();
+			_isExecuting.store(true, std::memory_order::release);
+		}
+
+		template<typename ReturnT>
+		WithinJobFuture<ReturnT> makeInternalFuture() {
+			if constexpr (std::is_same_v<ReturnT, void>) {
+				return WithinJobFuture<ReturnT>(false);
+			}
+			else if constexpr (std::is_arithmetic_v<ReturnT>) {
+				return WithinJobFuture<ReturnT>(0);
+			}
+			else if constexpr (std::is_pointer_v<ReturnT>) {
+				return WithinJobFuture<ReturnT>(nullptr);
+			}
+			else {
+				return WithinJobFuture<ReturnT>(ReturnT());
+			}
+		}
+
 		void threadLoop() {
-			while (_isPendingKill == false) {
+			while (_isPendingKill.load(std::memory_order::acquire) == false) {
+				{
+					size_t count;
+					{
+						count = _queue.lock().get()->len();
+					}
+					if (count > 0) { // go back and run the jobs
+						executeQueuedJobs();
+						continue;
+					}
+				}
+				_isExecuting.store(false, std::memory_order::release);
 				{ // Wait for shouldExecute, in scope.
 					std::unique_lock lck(_mutex);
 					_condVar.wait(lck, [&] {return _shouldExecute.load(); });
 					_shouldExecute = false;
 				}
-				executeJobs();
+				executeQueuedJobs();
 			}
 		}
 
-		void loadAllJobs() {
-			gk::LockedMutex<JobRingQueue> lock = _queue.lock();
+		void executeQueuedJobs() {
+			//std::cout << "executing queued jobs\n";
+			auto activeLock = _activeWork.lock();
 			{
-				loadJobs(lock.get(), _activeWork.lock().get());
+				auto queueLock = _queue.lock();
+				_queuedJobCount.store(0, std::memory_order::release);
+				activeLock.get()->collectJobs(queueLock.get());
+				// queue lock is unlocked here.
 			}
-		}
-
-		void loadJobs(JobRingQueue* queue, ActiveJobs* active) {
-			while (queue->len()) {
-				active->push(std::move(queue->pop()));
-			}
-			_queuedJobsCount = 0;
-		}
-
-		void executeJobs() {
-			loadAllJobs();
-			runActiveJobs();
-			_isExecuting = false;
-		}
-
-		void runActiveJobs() {
-			bool shouldReExecute = false;
-			{
-				gk::LockedMutex<ActiveJobs> activeLock = _activeWork.lock();
-				activeLock.get()->execute();
-				gk::LockedMutex<JobRingQueue> queueLock = _queue.lock();
-				if (queueLock.get()->len() > 0) {
-					loadJobs(queueLock.get(), activeLock.get());
-					shouldReExecute = true;
-				}
-			}
-			if (shouldReExecute) {
-				runActiveJobs();
-			}
+			activeLock.get()->invokeAllJobs();
 		}
 
 	private:
 
-		std::atomic<bool> _shouldExecute;
 		std::atomic<bool> _isExecuting;
+		std::atomic<bool> _shouldExecute;
 		std::atomic<bool> _isPendingKill;
 
-		std::atomic<uint32> _queuedJobsCount;
+		std::atomic<uint32> _queuedJobCount;
 
 		std::mutex _mutex;
 		std::condition_variable _condVar;
@@ -216,33 +263,4 @@ namespace gk
 		gk::Mutex<ActiveJobs> _activeWork;
 
 	};
-
-	struct JobThreadArray
-	{
-		JobThread* arr;
-		uint32 threadCount;
-
-		JobThreadArray() : arr(nullptr), threadCount(0) {}
-
-		struct iterator
-		{
-			iterator(JobThread* data) : _data(data) {}
-
-			iterator& operator++() { _data++; return *this; }
-
-			bool operator !=(const iterator& other) const { return _data != other._data; }
-
-			JobThread* operator*() { return _data; }
-			const JobThread* operator*() const { return _data; }
-
-		private:
-			JobThread* _data;
-		};
-
-		/* Iterator begin. */
-		iterator begin() const { return iterator(arr); }
-
-		/* Iterator end. */
-		iterator end() const { return iterator(arr + threadCount); }
-	};
-}
+} // namespace gk
