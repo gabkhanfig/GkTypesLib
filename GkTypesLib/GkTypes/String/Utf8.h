@@ -19,117 +19,10 @@ namespace gk
 		constexpr Utf8Metadata(uint64 inLength, uint64 inTotalBytes) : length(inLength), totalBytes(inTotalBytes) {}
 	};
 
-	class InvalidUtf8Error : public Error
-	{
-	public:
-
-		InvalidUtf8Error(const char* inCause) : Error(nullptr) {
-			_cause = inCause;
-		}
-
-	private:
-
-		virtual const char* errorName() const {
-			return "Invalid Utf8";
-		}
-
-		virtual const char* description() const {
-			return "The parsed string is not valid utf8";
-		}
-
-		virtual struct String cause() const;
-
-	private:
-
-		const char* _cause;
-
-	};
-
-	template<>
-	struct Result<Utf8Metadata>
-	{
-		Result() = delete;
-
-		constexpr Result(const ResultOk<Utf8Metadata>& _ok) {
-			_error = nullptr;
-			_value = _ok._value;
-		}
-
-		Result(const ResultErr<InvalidUtf8Error>& _err) {
-			gk_assertm(_err._value != nullptr, "Cannot use a null error");
-			_error = _err._value;
-			_value.length = 0;
-			_value.totalBytes = 0;
-		}
-
-		constexpr Result(Result<Utf8Metadata>&& other) noexcept {
-			_error = other._error;
-			_value = other._value;
-			other._error = nullptr; 
-#if GK_CHECK
-			other._value.length = 0;
-			other._value.totalBytes = 0;
-#endif
-		}
-
-		constexpr ~Result() {
-			if (isError()) { delete _error; }
-		}
-
-		constexpr Result& operator = (Result<Utf8Metadata>&& other) noexcept {
-			_error = other._error;
-			_value = other._value;
-			other._error = nullptr;
-#if GK_CHECK
-			other._value.length = 0;
-			other._value.totalBytes = 0;
-#endif
-			return *this;
-		}
-
-		constexpr [[nodiscard]] bool isError() const {
-			return _error != nullptr;
-		}
-
-		constexpr [[nodiscard]] Utf8Metadata ok() {
-			//gk_assertm(!isError(), "Cannot get the value result that is an error\n" << _error->toString());
-			gk_assertm(!isError(), "Cannot get the value result that is an error\n");
-			return _value;
-		}
-
-		constexpr [[nodiscard]] const Utf8Metadata ok() const {
-			//gk_assertm(!isError(), "Cannot get the const value result that is an error\n" << _error->toString());
-			gk_assertm(!isError(), "Cannot get the const value result that is an error\n");
-			return _value;
-		}
-
-		constexpr [[nodiscard]] InvalidUtf8Error* error() {
-			gk_assertm(isError(), "Cannot get the error result that is a valid value");
-			return _error;
-		}
-
-		constexpr [[nodiscard]] const InvalidUtf8Error* error() const {
-			gk_assertm(isError(), "Cannot get the const error result that is a valid value");
-			return _error;
-		}
-
-		constexpr [[nodiscard]] InvalidUtf8Error* errorMove() {
-			gk_assertm(isError(), "Cannot move the error result that is a valid value");
-			InvalidUtf8Error* ptr = _error;
-			_error = nullptr;
-			return ptr;
-		}
-
-	private:
-
-		Utf8Metadata _value;
-		InvalidUtf8Error* _error;
-	};
-
 	namespace utf8
 	{
 		/* Will fail to compile if error in constexpr. */
-		constexpr gk::Result<Utf8Metadata> strlen(const char* str) {
+		constexpr gk::Result<Utf8Metadata, void> strlen(const char* str) {
 			constexpr char asciiBitmask = (char)0b10000000;
 
 			constexpr char utf8_TrailingBytesNotUsedBits = (char)0b00111111;
@@ -188,22 +81,22 @@ namespace gk
 						index++;
 					}
 					else if ((leadingChar & utf8_2ByteBitmask) == utf8_2ByteCodePoint) {
-						if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("Trailing byte of 2 byte utf8 character is not 0b10xxxxxx")); }
+						if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(); }
 						index += 2;
 					}
 					else if ((leadingChar & utf8_3ByteBitmask) == utf8_3ByteCodePoint) {
-						if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("First trailing byte of 3 byte utf8 character is not 0b10xxxxxx")); }
-						if (!(str[index] + 2 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("Second trailing byte of 3 byte utf8 character is not 0b10xxxxxx")); }
+						if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(); }
+						if (!(str[index] + 2 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(); }
 						index += 3;
 					}
 					else if ((leadingChar & utf8_4ByteBitmask) == utf8_4ByteCodePoint) {
-						if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("First trailing byte of 4 byte utf8 character is not 0b10xxxxxx")); }
-						if (!(str[index] + 2 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("Second trailing byte of 3 byte utf8 character is not 0b10xxxxxx")); }
-						if (!(str[index] + 3 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(new InvalidUtf8Error("Third trailing byte of 5 byte utf8 character is not 0b10xxxxxx")); }
+						if (!(str[index] + 1 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(); }
+						if (!(str[index] + 2 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(); }
+						if (!(str[index] + 3 & utf8_TrailingBytesCodePoint)) [[unlikely]] { return ResultErr(); }
 						index += 4;
 					}
 					else [[unlikely]] {
-						return ResultErr(new InvalidUtf8Error("Does not have leading bits specifying one-four byte code points"));
+						return ResultErr();
 					}
 
 					length++;

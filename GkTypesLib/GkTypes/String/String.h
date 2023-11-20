@@ -1718,10 +1718,6 @@ inline gk::String gk::Error::toString() const {
 	return outString;
 }
 
-inline gk::String gk::InvalidUtf8Error::cause() const {
-	return gk::String(gk::Str::fromAscii(_cause));
-}
-
 namespace gk 
 {
 	template<>

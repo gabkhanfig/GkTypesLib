@@ -51,16 +51,16 @@ namespace gk
       return str;
     }
 
-    static constexpr gk::Result<Str, InvalidUtf8Error> fromUtf8(const char* inStr) {
+    static constexpr gk::Result<Str> fromUtf8(const char* inStr) {
       gk::Result<Utf8Metadata> result = gk::utf8::strlen(inStr);
       if (result.isError()) [[unlikely]] {
-        return gk::ResultErr(result.errorMove());
+        return gk::ResultErr();
       }
       Str str;
       str.str = inStr;
       str.len = result.ok().length;
       str.totalBytes = result.ok().totalBytes;
-      return gk::ResultOk(str);
+      return gk::ResultOk<gk::Str>(str);
     }
 
     constexpr Str(const Str& other) : str(other.str), len(other.len), totalBytes(other.totalBytes) {}
