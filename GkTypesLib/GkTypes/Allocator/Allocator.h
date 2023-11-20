@@ -2,124 +2,185 @@
 
 #include "../BasicTypes.h"
 #include "../Asserts.h"
+#include <atomic>
+#include "../Error/Result.h"
 
 namespace gk
 {
-	namespace allocator
-	{
-		struct Layout {
-			size_t size;
-			size_t alignment;
+	struct MemoryLayout {
+		size_t size;
+		size_t alignment;
+	};
+
+	enum class AllocError {
+		OutOfMemory
+	};
+
+	struct Allocator;
+
+	class IAllocator {
+		friend struct Allocator;
+
+		virtual Result<void*, AllocError> mallocImpl(MemoryLayout layout) = 0;
+
+		virtual void freeImpl(void* buffer, MemoryLayout layout) = 0;
+	};
+
+	struct Allocator {
+
+	private:
+		struct AtomcRefCountAllocator {
+			IAllocator* allocator;
+			std::atomic<size_t> refCount;
+
+			AtomcRefCountAllocator(IAllocator* inAllocator)
+				: allocator(inAllocator), refCount(1) {}
+
+			AtomcRefCountAllocator(const AtomcRefCountAllocator&) = delete;
+			AtomcRefCountAllocator(AtomcRefCountAllocator&&) = delete;
+			AtomcRefCountAllocator& operator = (const AtomcRefCountAllocator&) = delete;
+			AtomcRefCountAllocator& operator = (AtomcRefCountAllocator&&) = delete;
+
+			~AtomcRefCountAllocator() {
+				delete allocator;
+			}
 		};
 
-		/* Interface for all runtime allocators. */
-		class Allocator {
-		public:
+	public:
 
-			/* Pointer is guaranteed to be correctly aligned */
-			template<typename T, typename ...ConstructorArgs>
-			T* newObject(ConstructorArgs... args) {
-				Layout layout{ sizeof(T), alignof(T) };
-				T* objectMemory = (T*)mallocImpl(layout);
-				gk_assertm(objectMemory != nullptr, "Allocator failed to malloc");
-				gk_assertm((size_t(objectMemory) % alignof(T)) == 0, "Allocator buffer malloc returned a pointer not aligned to the alignment requirements of the type T");
-				new(objectMemory) T(args...);
-				return objectMemory;
+		Allocator() : _allocatorRef(nullptr) {}
+
+		Allocator(const Allocator& other) {
+			_allocatorRef = other._allocatorRef;
+			if (_allocatorRef == nullptr) return;
+			_allocatorRef->refCount++;
+		}
+
+		Allocator(Allocator&& other) noexcept {
+			_allocatorRef = other._allocatorRef;
+			other._allocatorRef = nullptr;
+		}
+
+		~Allocator() {
+			decrementCounter();
+		}
+
+		Allocator& operator = (const Allocator& other) {
+			decrementCounter();
+			_allocatorRef = other._allocatorRef;
+			if (_allocatorRef == nullptr) return *this;
+			_allocatorRef->refCount++;
+			return *this;
+		}
+
+		Allocator& operator = (Allocator&& other) noexcept {
+			decrementCounter();
+			_allocatorRef = other._allocatorRef;
+			other._allocatorRef = nullptr;
+			return *this;
+		}
+
+		/**
+		* Makes a new instance of an Allocator given a class that implements IAllocator, and some optional arguments for the class's constructor. 
+		* 
+		* @param AllocatorT: Any that implements IAllocator
+		* @param args: Variadic arguments to pass into the child IAllocator constructor
+		*/
+		template<typename AllocatorT, typename ...ConstructorArgs>
+			requires(std::is_base_of_v<IAllocator, AllocatorT>)
+		static Allocator makeShared(ConstructorArgs... args) {
+			IAllocator* allocator = new AllocatorT(args...);
+			AtomcRefCountAllocator* ref = new AtomcRefCountAllocator(allocator);
+			Allocator out;
+			out._allocatorRef = ref;
+			return out;
+		}
+
+		/* Does not call constructor */
+		template<typename T>
+		Result<T*, AllocError> mallocObject() {
+			MemoryLayout layout{ sizeof(T), alignof(T) };
+			T* mem = _allocatorRef->allocator->mallocImpl(layout).ok(); 
+			gk_assertm((size_t(mem) % alignof(T)) == 0, "Allocator mallocObject returned a pointer not aligned to the alignment requirements of the type T");
+			return ResultOk<T*>(mem);
+		}
+
+		/* Does not call constructor */
+		template<typename T>
+		Result<T*, AllocError> mallocAlignedObject(size_t byteAlignment) {
+			MemoryLayout layout{ sizeof(T), byteAlignment };
+			T* mem = _allocatorRef->allocator->mallocImpl(layout).ok();
+			gk_assertm((size_t(mem) % byteAlignment) == 0, "Allocator mallocAlignedObject returned a pointer not aligned to the alignment requirements of the type T");
+			return ResultOk<T*>(mem);
+		}
+
+		/* Does not call constructor */
+		template<typename T>
+		T* mallocBuffer(size_t numElements) {
+			MemoryLayout layout{ sizeof(T) * numElements, alignof(T) };
+			T* mem = _allocatorRef->allocator->mallocImpl(layout).ok();
+			gk_assertm((size_t(mem) % alignof(T)) == 0, "Allocator mallocBuffer returned a pointer not aligned to the alignment requirements of the type T");
+			return ResultOk<T*>(mem);
+		}
+
+		/* Does not call constructor */
+		template<typename T>
+		T* mallocAlignedBuffer(size_t numElements, size_t byteAlignment) {
+			MemoryLayout layout{ sizeof(T) * numElements, byteAlignment };
+			T* mem = _allocatorRef->allocator->mallocImpl(layout).ok();
+			gk_assertm((size_t(mem) % alignof(T)) == 0, "Allocator mallocAlignedBuffer returned a pointer not aligned to the alignment requirements of the type T");
+			return ResultOk<T*>(mem);
+		}
+
+		/* Does not call destructor */
+		template<typename T>
+		void freeObject(T*& object) {
+			gk_assertm(object != nullptr, "Cannot free nullptr");
+			MemoryLayout layout{ sizeof(T), alignof(T) };
+			_allocatorRef->allocator->freeImpl((void*)object, layout);
+			object = nullptr;
+		}
+
+		/* Does not call destructor */
+		template<typename T>
+		void freeAlignedObject(T*& object, size_t byteAlignment) {
+			gk_assertm(object != nullptr, "Cannot free nullptr");
+			MemoryLayout layout{ sizeof(T), byteAlignment };
+			_allocatorRef->allocator->freeImpl((void*)object, layout);
+			object = nullptr;
+		}
+
+		/* Does not call destructor */
+		template<typename T>
+		void freeBuffer(T*& buffer, size_t numElements) {
+			gk_assertm(buffer != nullptr, "Cannot free nullptr");
+			MemoryLayout layout{ sizeof(T) * numElements, alignof(T) };
+			_allocatorRef->allocator->freeImpl((void*)buffer, layout);
+			buffer = nullptr;
+		}
+
+		/* Does not call destructor */
+		template<typename T>
+		void freeAlignedBuffer(T*& buffer, size_t numElements, size_t byteAlignment) {
+			gk_assertm(buffer != nullptr, "Cannot free nullptr");
+			MemoryLayout layout{ sizeof(T) * numElements, byteAlignment };
+			_allocatorRef->allocator->freeImpl((void*)buffer, layout);
+			buffer = nullptr;
+		}
+
+	private:
+
+		void decrementCounter() {
+			if (_allocatorRef == nullptr) return;
+
+			_allocatorRef->refCount--;
+			if (_allocatorRef->refCount.load(std::memory_order::acquire)) {
+				delete _allocatorRef;
 			}
+		}
 
-			template<typename T, typename ...ConstructorArgs>
-			T* newAlignedObject(size_t alignment, ConstructorArgs... args) {
-				gk_assertm(alignof(T) <= alignment, "Cannot do aligned malloc with an alignment smaller than the alignment requirements of the type T");
-				Layout layout{ sizeof(T), alignment };
-				T* objectMemory = (T*)mallocImpl(layout);
-				gk_assertm(objectMemory != nullptr, "Allocator failed to malloc");
-				gk_assertm((size_t(objectMemory) % alignof(T)) == 0, "Allocator buffer malloc returned a pointer not aligned to the alignment requirements of the type T");
-				new(objectMemory) T(args...);
-				return objectMemory;
-			}
+	private:
 
-			/* Pointer is guaranteed to be correctly aligned */
-			template<typename T, typename ...ConstructorArgs>
-			T* newBuffer(size_t numElements, ConstructorArgs... args) {
-				Layout layout{ sizeof(T) * numElements, alignof(T) };
-				T* bufferMemory = (T*)mallocImpl(layout);
-
-				gk_assertm(bufferMemory != nullptr, "Allocator failed to malloc");
-				gk_assertm((size_t(bufferMemory) % alignof(T)) == 0, "Allocator buffer malloc returned a pointer not aligned to the alignment requirements");
-				if constexpr (std::is_arithmetic_v<T> || std::is_pointer_v<T>) {
-					return bufferMemory;
-				}
-				for (size_t i = 0; i < numElements; i++) {
-					new(bufferMemory + i) T(args...); // placement new construct for each instance.
-				}
-				return bufferMemory;
-			}
-
-			template<typename T, typename ...ConstructorArgs>
-			T* newAlignedBuffer(size_t numElements, size_t byteAlignment, ConstructorArgs... args) {
-				gk_assertm(alignof(T) <= byteAlignment, "Cannot do aligned malloc with an alignment smaller than the alignment requirements of the type T");
-				Layout layout{ sizeof(T) * numElements, byteAlignment };
-				T* bufferMemory = (T*)mallocImpl(layout);
-				gk_assertm(bufferMemory != nullptr, "Allocator failed to malloc");
-				gk_assertm((size_t(bufferMemory) % alignof(T)) == 0, "Allocator buffer malloc returned a pointer not aligned to the alignment requirements of the type T");
-				if constexpr (std::is_arithmetic_v<T> || std::is_pointer_v<T>) {
-					return bufferMemory;
-				}
-				for (size_t i = 0; i < numElements; i++) {
-					new(bufferMemory + i) T(args...); // placement new construct for each instance.
-				}
-				return bufferMemory;
-			}
-
-			template<typename T>
-			void freeObject(T* object) {
-				if (object == nullptr) return;
-				Layout layout{ sizeof(T), alignof(T) };
-				object->~T();
-				freeImpl((void*)object, layout);
-			}
-
-			template<typename T>
-			void freeAlignedObject(T* object, size_t byteAlignment) {
-				gk_assertm(alignof(T) <= byteAlignment, "Cannot do aligned malloc with an alignment smaller than the alignment requirements of the type T");
-				if (object == nullptr) return;
-				Layout layout{ sizeof(T), byteAlignment };
-
-				object->~T();
-				freeImpl((void*)object, layout);
-			}
-
-			template<typename T>
-			void freeBuffer(T* buffer, size_t numElements) {
-				gk_assertm((size_t(buffer) % alignof(T)) == 0, "Cannot free buffer that is not aligned to the alignment requirements of the type T");
-				if (buffer == nullptr) return;
-
-				for (size_t i = 0; i < numElements; i++) {
-					buffer[i].~T();
-				}
-				Layout layout{ sizeof(T) * numElements, alignof(T) };
-				freeImpl((void*)buffer, layout);
-			}
-
-			template<typename T>
-			void freeAlignedBuffer(T* buffer, size_t numElements, size_t byteAlignment) {
-				gk_assertm((size_t(buffer) % byteAlignment) == 0, "Cannot free buffer that is not aligned to the alignment requirements of the type T");
-				if (buffer == nullptr) return;
-
-				for (size_t i = 0; i < numElements; i++) {
-					buffer[i].~T();
-				}
-				Layout layout(sizeof(T) * numElements, byteAlignment);
-			}
-
-		private:
-
-			virtual void* mallocImpl(Layout layout) = 0;
-
-			virtual void freeImpl(void* buffer, Layout layout) = 0;
-
-		};
-
-
-	}
+		AtomcRefCountAllocator* _allocatorRef;
+	};
 } // namespace gk

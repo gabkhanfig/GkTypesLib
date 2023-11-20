@@ -4,36 +4,35 @@
 
 namespace gk
 {
-	namespace allocator
-	{
-		class HeapAllocator : public Allocator {
-		private:
-
-			virtual void* mallocImpl(Layout layout) override {
-				std::cout << "heap allocator malloc\n";
-				if (layout.alignment > 8) {
-					return _aligned_malloc(layout.size, layout.alignment);
-				}
-				else {
-					return std::malloc(layout.size);
-				}
+	class HeapAllocator : public IAllocator {
+		virtual Result<void*, AllocError> mallocImpl(MemoryLayout layout) {
+			void* mem;
+			if (layout.alignment > 8) {
+				mem = _aligned_malloc(layout.size, layout.alignment);
 			}
-
-			virtual void freeImpl(void* buffer, Layout layout) override {
-				std::cout << "heap allocator free\n";
-				if (layout.alignment > 8) {
-					return _aligned_free(buffer);
-				}
-				else {
-					return std::free(buffer);
-				}
+			else {
+				mem = std::malloc(layout.size);
 			}
-		};
-
-		static HeapAllocator* globalHeap() {
-			static HeapAllocator* globalHeapAllocator = new HeapAllocator();
-			return globalHeapAllocator;
+			if (mem) {
+				return ResultOk<void*>(mem);
+			}
+			else {
+				return ResultErr<AllocError>(AllocError::OutOfMemory);
+			}
 		}
+
+		virtual void freeImpl(void* buffer, MemoryLayout layout) {
+			if (layout.alignment > 8) {
+				return _aligned_free(buffer);
+			}
+			else {
+				return std::free(buffer);
+			}
+		}
+	};
+
+	static Allocator& globalHeapAllocator() {
+		static Allocator global = Allocator::makeShared<HeapAllocator>();
+		return global;
 	}
-	
 }
