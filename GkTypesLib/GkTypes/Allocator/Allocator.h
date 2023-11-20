@@ -180,6 +180,10 @@ namespace gk
 			buffer = nullptr;
 		}
 
+		constexpr bool operator == (const Allocator& other) const {
+			return _allocatorRef == other._allocatorRef;
+		}
+
 	private:
 
 		constexpr void decrementCounter() {
