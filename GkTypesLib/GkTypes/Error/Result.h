@@ -146,8 +146,21 @@ namespace gk
 			}
 		}
 
-		[[nodiscard]] T expect(const gk::String& message);
-		[[nodiscard]] E expectError(const gk::String& message);
+		/**
+		* Expects an Ok variant and returns it by move. 
+		* If it's an Error variant, prints a custom message and debug breaks.
+		* 
+		* @param message: Custom message to be printed if it's the wrong variant
+		*/
+		[[nodiscard]] T expect(const struct gk::String& message);
+
+		/**
+		* Expects an Error variant and returns it by move, and prints a message if it's not, along with debug breaking.
+		* If it's an Ok variant, prints a custom message and debug breaks.
+		* 
+		* @param message: Custom message to be printed if it's the wrong variant
+		*/
+		[[nodiscard]] E expectError(const struct gk::String& message);
 
 	private:
 
