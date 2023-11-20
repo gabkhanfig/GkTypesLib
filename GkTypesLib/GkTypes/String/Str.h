@@ -57,9 +57,10 @@ namespace gk
         return gk::ResultErr();
       }
       Str str;
+      Utf8Metadata metadata = result.ok();
       str.str = inStr;
-      str.len = result.ok().length;
-      str.totalBytes = result.ok().totalBytes;
+      str.len = metadata.length;
+      str.totalBytes = metadata.totalBytes;
       return gk::ResultOk<gk::Str>(str);
     }
 
