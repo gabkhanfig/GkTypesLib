@@ -48,24 +48,27 @@ namespace gk
 
 	public:
 
-		Allocator() : _allocatorRef(nullptr) {}
+		/**
+		* Allow for other constexpr objects to store an empty allocator.
+		*/
+		constexpr Allocator() : _allocatorRef(nullptr) {}
 
-		Allocator(const Allocator& other) {
+		constexpr Allocator(const Allocator& other) {
 			_allocatorRef = other._allocatorRef;
 			if (_allocatorRef == nullptr) return;
 			_allocatorRef->refCount++;
 		}
 
-		Allocator(Allocator&& other) noexcept {
+		constexpr Allocator(Allocator&& other) noexcept {
 			_allocatorRef = other._allocatorRef;
 			other._allocatorRef = nullptr;
 		}
 
-		~Allocator() {
+		constexpr ~Allocator() {
 			decrementCounter();
 		}
 
-		Allocator& operator = (const Allocator& other) {
+		constexpr Allocator& operator = (const Allocator& other) {
 			decrementCounter();
 			_allocatorRef = other._allocatorRef;
 			if (_allocatorRef == nullptr) return *this;
@@ -73,7 +76,7 @@ namespace gk
 			return *this;
 		}
 
-		Allocator& operator = (Allocator&& other) noexcept {
+		constexpr Allocator& operator = (Allocator&& other) noexcept {
 			decrementCounter();
 			_allocatorRef = other._allocatorRef;
 			other._allocatorRef = nullptr;
@@ -96,11 +99,20 @@ namespace gk
 			return out;
 		}
 
+		/**
+		* Makes a clone of this Allocator, which just increments the ref count to the shared IAllocator object.
+		*
+		* @return A new shared owner of an IAllocator
+		*/
+		constexpr Allocator clone() const {
+			return Allocator(*this);
+		}
+
 		/* Does not call constructor */
 		template<typename T>
 		Result<T*, AllocError> mallocObject() {
 			MemoryLayout layout{ sizeof(T), alignof(T) };
-			T* mem = _allocatorRef->allocator->mallocImpl(layout).ok(); 
+			T* mem = (T*)_allocatorRef->allocator->mallocImpl(layout).ok();
 			gk_assertm((size_t(mem) % alignof(T)) == 0, "Allocator mallocObject returned a pointer not aligned to the alignment requirements of the type T");
 			return ResultOk<T*>(mem);
 		}
@@ -109,25 +121,25 @@ namespace gk
 		template<typename T>
 		Result<T*, AllocError> mallocAlignedObject(size_t byteAlignment) {
 			MemoryLayout layout{ sizeof(T), byteAlignment };
-			T* mem = _allocatorRef->allocator->mallocImpl(layout).ok();
+			T* mem = (T*)_allocatorRef->allocator->mallocImpl(layout).ok();
 			gk_assertm((size_t(mem) % byteAlignment) == 0, "Allocator mallocAlignedObject returned a pointer not aligned to the alignment requirements of the type T");
 			return ResultOk<T*>(mem);
 		}
 
 		/* Does not call constructor */
 		template<typename T>
-		T* mallocBuffer(size_t numElements) {
+		Result<T*, AllocError> mallocBuffer(size_t numElements) {
 			MemoryLayout layout{ sizeof(T) * numElements, alignof(T) };
-			T* mem = _allocatorRef->allocator->mallocImpl(layout).ok();
+			T* mem = (T*)_allocatorRef->allocator->mallocImpl(layout).ok();
 			gk_assertm((size_t(mem) % alignof(T)) == 0, "Allocator mallocBuffer returned a pointer not aligned to the alignment requirements of the type T");
 			return ResultOk<T*>(mem);
 		}
 
 		/* Does not call constructor */
 		template<typename T>
-		T* mallocAlignedBuffer(size_t numElements, size_t byteAlignment) {
+		Result<T*, AllocError> mallocAlignedBuffer(size_t numElements, size_t byteAlignment) {
 			MemoryLayout layout{ sizeof(T) * numElements, byteAlignment };
-			T* mem = _allocatorRef->allocator->mallocImpl(layout).ok();
+			T* mem = (T*)_allocatorRef->allocator->mallocImpl(layout).ok();
 			gk_assertm((size_t(mem) % alignof(T)) == 0, "Allocator mallocAlignedBuffer returned a pointer not aligned to the alignment requirements of the type T");
 			return ResultOk<T*>(mem);
 		}
@@ -170,11 +182,11 @@ namespace gk
 
 	private:
 
-		void decrementCounter() {
+		constexpr void decrementCounter() {
 			if (_allocatorRef == nullptr) return;
 
 			_allocatorRef->refCount--;
-			if (_allocatorRef->refCount.load(std::memory_order::acquire)) {
+			if (_allocatorRef->refCount.load(std::memory_order::acquire) == 0) {
 				delete _allocatorRef;
 			}
 		}
