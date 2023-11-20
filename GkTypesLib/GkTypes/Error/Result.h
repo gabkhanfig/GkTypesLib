@@ -146,6 +146,9 @@ namespace gk
 			}
 		}
 
+		[[nodiscard]] T expect(const gk::String& message);
+		[[nodiscard]] E expectError(const gk::String& message);
+
 	private:
 
 		ResultUnion _union;

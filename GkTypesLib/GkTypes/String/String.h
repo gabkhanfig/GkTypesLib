@@ -1726,3 +1726,44 @@ namespace gk
 	}
 }
 
+#pragma region Result_Expect_Implementation
+
+template<typename T, typename E>
+inline T gk::Result<T, E>::expect(const gk::String& message)
+{
+#if GK_CHECK
+	if (!this->isOk()) {
+		std::cout << "Result is not the Ok variant. Either it is Error, or the Ok variant has already been moved out\n";
+		std::cout << "expected: " << message << '\n';
+		GK_DEBUG_BREAK();
+	}
+#endif
+	_state = internal::ResultState::Invalid;
+	if constexpr (std::is_same_v<T, void>) {
+		return;
+	}
+	else {
+		return std::move(_union.ok);
+	}
+}
+
+template<typename T, typename E>
+inline E gk::Result<T, E>::expectError(const gk::String& message)
+{
+#if GK_CHECK
+	if (!this->isError()) {
+		std::cout << "Result is not the Error variant. Either it is Ok, or the Error variant has already been moved out\n";
+		std::cout << "expected: " << message << '\n';
+		GK_DEBUG_BREAK();
+	}
+#endif
+	_state = internal::ResultState::Invalid;
+	if constexpr (std::is_same_v<E, void>) {
+		return;
+	}
+	else {
+		return std::move(_union.error);
+	}
+}
+
+#pragma endregion
