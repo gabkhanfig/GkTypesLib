@@ -12,7 +12,7 @@ namespace gk {
 		private:
 
 			template<typename ReturnT>
-			using WithinJobFuture = gk::job::internal::WithinJobFuture<ReturnT>;
+			using WithinJobFuture = gk::internal::WithinJobFuture<ReturnT>;
 
 			struct BaseFunc {
 				virtual void invoke() = 0;
@@ -311,7 +311,9 @@ namespace gk {
 
 		public:
 
-			JobContainer() : internalBuffer{ 0 } {}
+			JobContainer() {
+				memset(internalBuffer, 0, sizeof(JobContainer::internalBuffer));
+			}
 
 			JobContainer(const JobContainer&) = delete;
 			JobContainer(JobContainer && other) noexcept {
