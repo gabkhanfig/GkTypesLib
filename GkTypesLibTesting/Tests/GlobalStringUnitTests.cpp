@@ -2,12 +2,24 @@
 #include <Windows.h>
 #include "../../GkTypesLib/GkTypes/String/GlobalString.h"
 #include "../../GkTypesLib/GkTypes/Array/DynamicArray.h"
-#include "../../GkTypesLib/GkTypes/Job/JobInfo.h"
 #include "../../GkTypesLib/GkTypes/Job/JobSystem.h"
 #include "../GkTest.h"
+using gk::JobSystem;
 
-void globalStringMultithreadFunc(gk::JobRunDataBuffer* buf) {
-	gk::GlobalString str = gk::GlobalString::create(gk::String::from(buf->get<int>()));
+//void globalStringMultithreadFunc(gk::JobRunDataBuffer* buf) {
+//	gk::GlobalString str = gk::GlobalString::create(gk::String::from(buf->get<int>()));
+//}
+
+static void multithreadAddGlobalString(int num) {
+	gk::GlobalString str = gk::GlobalString::create(gk::String::from(num));
+	ASSERT_NE(str.toString(), ""_str);
+	EXPECT_EQ(str.toString(), gk::String::from(num));
+}
+
+static void multithreadIfExistsGlobalString(int num) {
+	gk::GlobalString str = gk::GlobalString::createIfExists(gk::String::from(num));
+	ASSERT_NE(str.toString(), ""_str);
+	EXPECT_EQ(str.toString(), gk::String::from(num));
 }
 
 namespace	UnitTests
@@ -43,26 +55,24 @@ namespace	UnitTests
 		EXPECT_EQ(str2.toString(), ""_str);
 	}
 
-	TEST(GlobalString, Multithread) {
-		gk::darray<gk::JobData> jobs;
-		for (int i = 0; i < 500; i++) {
-			gk::JobRunDataBuffer buf;
-			buf.store<int>(i);
-			gk::JobData data;
-			data.jobFunc = globalStringMultithreadFunc;
-			data.data = std::move(buf);
-			jobs.Add(std::move(data));
-		}
-
-		gk::JobSystem::queueJobs(std::move(jobs));
-		gk::JobSystem::executeQueue();
-		gk::JobSystem::wait();
+	TEST(GlobalString, MultithreadCreate) {
+		JobSystem* jobSystem = new JobSystem(8);
 
 		for (int i = 0; i < 500; i++) {
-			gk::GlobalString str = gk::GlobalString::createIfExists(gk::String::from(i));
-			ASSERT_NE(str.toString(), ""_str);
-			EXPECT_EQ(str.toString(), gk::String::from(i));
+			jobSystem->runJob(multithreadAddGlobalString, (int)i);
 		}
+		delete jobSystem;
+	}
+
+	TEST(GlobalString, MultithreadCreateIfExists) {
+		JobSystem* jobSystem = new JobSystem(8);
+		for (int i = 0; i < 500; i++) {
+			gk::GlobalString::create(gk::String::from(i));
+		}
+		for (int i = 0; i < 500; i++) {
+			jobSystem->runJob(multithreadIfExistsGlobalString, (int)i);
+		}
+		delete jobSystem;
 	}
 
 }
