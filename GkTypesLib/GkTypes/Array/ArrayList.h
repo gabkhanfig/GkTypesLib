@@ -5,6 +5,7 @@
 #include "../Option/Option.h"
 #include <type_traits>
 #include "../Error/Result.h"
+#include <immintrin.h>
 
 namespace gk
 {
@@ -17,6 +18,47 @@ namespace gk
 				return gk::globalHeapAllocator()->clone();
 			}
 		}
+
+
+		using Find1ByteInArrayListFunc = gk::Option<size_t>(*)(const int8*, size_t, int8);
+		using Find2ByteInArrayListFunc = gk::Option<size_t>(*)(const int16*, size_t, int16);
+		using Find4ByteInArrayListFunc = gk::Option<size_t>(*)(const int32*, size_t, int32);
+		using Find8ByteInArrayListFunc = gk::Option<size_t>(*)(const int64*, size_t, int64);
+
+		static gk::Option<size_t> avx512Find1ByteInArrayList(const int8* arrayListData, size_t length, int8 toFind) {
+			const __m512i findVec = _mm512_set1_epi8(toFind);
+			const __m512i* arrayListVec = reinterpret_cast<const __m512i*>(arrayListData);
+			const size_t iterationToDo = (length % 64 == 0 ? length : length + (64 - (length % 64))) / 64;
+			for (size_t i = 0; i < iterationToDo; i++) {
+				const uint64 bitmask = _mm512_cmpeq_epi8_mask(findVec, arrayListVec[i]);
+				if (bitmask == 0) {
+					continue;
+				}
+
+				unsigned long index;
+				_BitScanForward64(&index, bitmask);
+				const size_t actualIndex = (i * 64) + index;
+				if (index >= length) {
+					return gk::Option<size_t>(); // out of range
+				}
+				return gk::Option<size_t>(actualIndex);
+			}
+			return gk::Option<size_t>(); // didnt find
+		}
+
+
+
+
+		template<typename T>
+		static gk::Option<size_t> doSimdFind(const T* arrayListData, size_t length, T toFind) {
+			static Find1ByteInArrayListFunc func1Byte = avx512Find1ByteInArrayList;
+			return func1Byte((int8*)arrayListData, length, static_cast<int8>(toFind));
+		}
+
+
+
+
+
 	}
 
 	template<typename T>
@@ -583,7 +625,26 @@ namespace gk
 			reallocate(newCapacity);
 		}
 
-		//constexpr gk::Option<size_t> find(const T& element);
+		/**
+		* Finds the first index of an element in the ArrayList. For data types that supports it, will use SIMD to find.
+		* The index will be returned if it exists, or None if it doesn't.
+		* 
+		* @param element: Element to check if in the ArrayList.
+		* @return The found index, or None
+		*/
+		constexpr gk::Option<size_t> find(const T& element) const {
+			if (std::is_constant_evaluated() || !IS_T_SIMD) { // constexpr and/or NOT simd
+				for (size_t i = 0; i < _length; i++) {
+					if (_data[i] == element) {
+						return gk::Option<size_t>(i);
+					}
+				}
+				return gk::Option<size_t>();
+			}
+			std::cout << "doing simd find\n";
+			return internal::doSimdFind(_data, _length, element);
+		}
+
 		//constexpr T remove(size_t index);
 		//constexpr T swapRemove(size_t index);
 		//constexpr void insert(size_t index, const T& element);

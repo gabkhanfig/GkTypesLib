@@ -93,9 +93,6 @@
     <ClInclude Include="GkTypes\Job\JobThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GkTypes\Job\JobInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GkTypes\Thread\Mutex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
