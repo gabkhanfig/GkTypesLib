@@ -641,7 +641,7 @@ namespace gk
 				}
 				return gk::Option<size_t>();
 			}
-			std::cout << "doing simd find\n";
+
 			return internal::doSimdFind(_data, _length, element);
 		}
 
