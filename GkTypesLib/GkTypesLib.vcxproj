@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GkTypes\Allocator\Allocator.h" />
+    <ClInclude Include="GkTypes\Allocator\HeapAllocator.h" />
+    <ClInclude Include="GkTypes\Array\ArrayList.h" />
     <ClInclude Include="GkTypes\Array\DynamicArray.h" />
     <ClInclude Include="GkTypes\Asserts.h" />
     <ClInclude Include="GkTypes\BasicTypes.h" />
@@ -33,7 +36,6 @@
     <ClInclude Include="GkTypes\Hash\Hashmap.h" />
     <ClInclude Include="GkTypes\Job\JobContainer.h" />
     <ClInclude Include="GkTypes\Job\JobFuture.h" />
-    <ClInclude Include="GkTypes\Job\JobInfo.h" />
     <ClInclude Include="GkTypes\Job\JobSystem.h" />
     <ClInclude Include="GkTypes\Job\JobThread.h" />
     <ClInclude Include="GkTypes\Option\Option.h" />
