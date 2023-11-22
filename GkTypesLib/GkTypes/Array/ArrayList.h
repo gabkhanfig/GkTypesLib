@@ -144,18 +144,28 @@ namespace gk
 #pragma region Construct_With_Allocator
 
 		/**
+		* Create a new ArrayList given an allocator to be cloned.
+		* 
+		* @param inAllocator: Allocator to clone
 		*/
 		static ArrayList init(const Allocator& inAllocator) {
 			return ArrayList::init(inAllocator.clone());
 		}
 
 		/**
+		* Create a new ArrayList given an allocator to take ownership of.
+		* 
+		* @param inAllocator: Allocator to own
 		*/
 		static ArrayList init(Allocator&& inAllocator) {
 			return ArrayList(std::move(inAllocator));
 		}
 
 		/**
+		* Creates a new ArrayList given an allocator to be cloned, and another ArrayList to copy elements.
+		* 
+		* @param inAllocator: Allocator to clone
+		* @param other: other ArrayList to copy from
 		*/
 		static ArrayList init(const Allocator& inAllocator, const ArrayList& other) 
 		requires(std::is_copy_assignable_v<T>) {
@@ -163,6 +173,10 @@ namespace gk
 		}
 
 		/**
+		* Creates a new ArrayList given an allocator to take ownership of, and another ArrayList to copy elements.
+		* 
+		* @param inAllocator: Allocator to own
+		* @param other: other ArrayList to copy from
 		*/
 		static ArrayList init(Allocator&& inAllocator, const ArrayList& other) 
 		requires(std::is_copy_assignable_v<T>) {
@@ -171,19 +185,24 @@ namespace gk
 			if (out._length == 0) {
 				out._data = nullptr;
 				out._capacity = 0;
-				return;
+				return out;
 			}
 
 			size_t requiredCapacity = out._length;
 			out._data = mallocArrayListBuffer(&requiredCapacity, out._allocator);
 			out._capacity = requiredCapacity;
 			for (size_t i = 0; i < out._length; i++) {
-				out._data[i] = other._data[i];
+				//out._data[i] = other._data[i];
+				new (out._data + i) T(other._data[i]);
 			}
 			return out;
 		}
 
 		/**
+		* Creates a new ArrayList given an allocator to be cloned, and an initializer list to copy elements.
+		* 
+		* @param inAllocator: Allocator to clone
+		* @param initializerList: Elements to copy
 		*/
 		static ArrayList init(const Allocator& inAllocator, const std::initializer_list<T>& initializerList) 
 		requires(std::is_copy_assignable_v<T>) {
@@ -191,6 +210,10 @@ namespace gk
 		}
 
 		/**
+		* Creates a new ArrayList given an allocator to take ownership of, and an initializer list to copy elements.
+		* 
+		* @param inAllocator: Allocator to own
+		* @param initializerList: Elements to copy
 		*/
 		static ArrayList init(Allocator&& inAllocator, const std::initializer_list<T>& initializerList)
 		requires(std::is_copy_assignable_v<T>) {
@@ -199,7 +222,7 @@ namespace gk
 			if (out._length == 0) {
 				out._data = nullptr;
 				out._capacity = 0;
-				return;
+				return out;
 			}
 
 			size_t requiredCapacity = out._length;
@@ -208,13 +231,20 @@ namespace gk
 
 			size_t i = 0;
 			for (const auto& elem : initializerList) {
-				out._data[i] = elem;
+				//out._data[i] = elem;
+				new (out._data + i) T(elem);
 				i++;
 			}
 			return out;
 		}
 
 		/**
+		* Creates a new ArrayList given an allocator to be cloned, 
+		* a pointer to some data, and a number of elements to copy from the pointer.
+		* 
+		* @param inAllocator: Allocator to clone
+		* @param ptr: Start of buffer of elements to copy
+		* @param elementsToCopy: Number to copy. Accessing beyond the bounds of `ptr` is undefined behaviour.
 		*/
 		static ArrayList init(const Allocator& inAllocator, const T* ptr, size_t elementsToCopy)
 		requires(std::is_copy_assignable_v<T>) {
@@ -222,6 +252,12 @@ namespace gk
 		}
 
 		/**
+		* Creates a new ArrayList given an allocator to take ownership of, 
+		* a pointer to some data, and a number of elements to copy from the pointer.
+		* 
+		* @param inAllocator: Allocator to own
+		* @param ptr: Start of buffer of elements to copy
+		* @param elementsToCopy: Number to copy. Accessing beyond the bounds of `ptr` is undefined behaviour.
 		*/
 		static ArrayList init(Allocator&& inAllocator, const T* ptr, size_t elementsToCopy)
 		requires(std::is_copy_assignable_v<T>) {
@@ -231,14 +267,15 @@ namespace gk
 			if (out._length == 0) {
 				out._data = nullptr;
 				out._capacity = 0;
-				return;
+				return out;
 			}
 
 			size_t requiredCapacity = out._length;
 			out._data = mallocArrayListBuffer(&requiredCapacity, out._allocator);
 			out._capacity = requiredCapacity;
 			for (size_t i = 0; i < elementsToCopy; i++) {
-				out._data[i] = ptr[i];
+				//out._data[i] = ptr[i];
+				new (out._data + i) T(ptr[i]);
 			}
 
 			return out;
@@ -249,110 +286,173 @@ namespace gk
 #pragma region Construct_With_Allocator_And_Capacity
 
 		/**
+		* Create a new ArrayList given an allocator to be cloned, and a pre reserved minimum capacity.
+		* The capacity of the new ArrayList will be greater than or equal to `minCapacity`.
+		*
+		* @param inAllocator: Allocator to clone
+		* @param minCapacity: Minimum allocation size
 		*/
-		static ArrayList withCapacity(const Allocator& inAllocator, size_t inCapacity) {
-			return ArrayList::withCapacity(inAllocator.clone(), inCapacity);
+		static ArrayList withCapacity(const Allocator& inAllocator, size_t minCapacity) {
+			return ArrayList::withCapacity(inAllocator.clone(), minCapacity);
 		}
 		
 		/**
+		* Create a new ArrayList given an allocator to take ownership of, and a pre reserved minimum capacity.
+		* The capacity of the new ArrayList will be greater than or equal to `minCapacity`.
+		*
+		* @param inAllocator: Allocator to to take ownership of
+		* @param minCapacity: Minimum allocation size
 		*/
-		static ArrayList withCapacity(Allocator&& inAllocator, size_t inCapacity) {
+		static ArrayList withCapacity(Allocator&& inAllocator, size_t minCapacity) {
 			ArrayList out = ArrayList(std::move(inAllocator));
-			if (inCapacity == 0) [[unlikely]] {
+			if (minCapacity == 0) [[unlikely]] {
 				return out;
 			}
 
-			out._data = mallocArrayListBuffer(&inCapacity, out._allocator);
-			out._capacity = inCapacity;
+			out._data = mallocArrayListBuffer(&minCapacity, out._allocator);
+			out._capacity = minCapacity;
 			return out;
 		}
 
 		/**
+		* Create a new ArrayList given an allocator to be cloned, a pre reserved minimum capacity,
+		* and another ArrayList to copy elements.
+		* The capacity of the new ArrayList will be greater than or equal to the max value between 
+		* `minCapacity` and `other.len()`.
+		*
+		* @param inAllocator: Allocator to clone
+		* @param minCapacity: Minimum allocation size
+		* @param other: other ArrayList to copy from
 		*/
-		static ArrayList withCapacity(const Allocator& inAllocator, size_t inCapacity, const ArrayList& other)
+		static ArrayList withCapacity(const Allocator& inAllocator, size_t minCapacity, const ArrayList& other)
 		requires(std::is_copy_assignable_v<T>) {
-			return ArrayList::withCapacity(inAllocator, inCapacity, other);
+			return ArrayList::withCapacity(inAllocator, minCapacity, other);
 		}
 
 		/**
+		* Create a new ArrayList given an allocator to take ownership of, a pre reserved minimum capacity,
+		* and another ArrayList to copy elements.
+		* The capacity of the new ArrayList will be greater than or equal to the max value between
+		* `minCapacity` and `other.len()`.
+		*
+		* @param inAllocator: Allocator to take ownership of
+		* @param minCapacity: Minimum allocation size
+		* @param other: other ArrayList to copy from
 		*/
-		static ArrayList withCapacity(Allocator&& inAllocator, size_t inCapacity, const ArrayList& other)
+		static ArrayList withCapacity(Allocator&& inAllocator, size_t minCapacity, const ArrayList& other)
 		requires(std::is_copy_assignable_v<T>) {
 			ArrayList out = ArrayList(std::move(inAllocator));
 			out._length = other._length;
 
-			if (out._length == 0 && inCapacity == 0) [[unlikely]] {
+			if (out._length == 0 && minCapacity == 0) [[unlikely]] {
 				out._data = nullptr;
 				out._capacity = 0;
-				return;
+				return out;
 			}
 
-			size_t requiredCapacity = out._length > inCapacity ? out._length : inCapacity;
+			size_t requiredCapacity = out._length > minCapacity ? out._length : minCapacity;
 			out._data = mallocArrayListBuffer(&requiredCapacity, out._allocator);
 			out._capacity = requiredCapacity;
 			for (size_t i = 0; i < out._length; i++) {
-				out._data[i] = other._data[i];
+				//out._data[i] = other._data[i];
+				new (out._data + i) T(other._data[i]);
 			}
 			return out;
 		}
 
 		/**
+		* Create a new ArrayList given an allocator to be cloned, a pre reserved minimum capacity,
+		* and an initializer list to copy elements.
+		* The capacity of the new ArrayList will be greater than or equal to the max value between
+		* `minCapacity` and `initializerList.size()`.
+		*
+		* @param inAllocator: Allocator to clone
+		* @param minCapacity: Minimum allocation size
+		* @param initializerList: Elements to copy
 		*/
-		static ArrayList withCapacity(const Allocator& inAllocator, size_t inCapacity, const std::initializer_list<T>& initializerList)
+		static ArrayList withCapacity(const Allocator& inAllocator, size_t minCapacity, const std::initializer_list<T>& initializerList)
 		requires(std::is_copy_assignable_v<T>) {
-			return ArrayList::withCapacity(inAllocator, inCapacity, initializerList);
+			return ArrayList::withCapacity(inAllocator, minCapacity, initializerList);
 		}
 
 		/**
+		* Create a new ArrayList given an allocator to take ownership of, a pre reserved minimum capacity,
+		* and an initializer list to copy elements.
+		* The capacity of the new ArrayList will be greater than or equal to the max value between
+		* `minCapacity` and `initializerList.size()`.
+		*
+		* @param inAllocator: Allocator to take ownership of
+		* @param minCapacity: Minimum allocation size
+		* @param initializerList: Elements to copy
 		*/
-		static ArrayList withCapacity(Allocator&& inAllocator, size_t inCapacity, const std::initializer_list<T>& initializerList)
+		static ArrayList withCapacity(Allocator&& inAllocator, size_t minCapacity, const std::initializer_list<T>& initializerList)
 		requires(std::is_copy_assignable_v<T>) {
 			ArrayList out = ArrayList(std::move(inAllocator));
 			out._length = initializerList.size();
 
-			if (out._length == 0 && inCapacity == 0) [[unlikely]] {
+			if (out._length == 0 && minCapacity == 0) [[unlikely]] {
 				out._data = nullptr;
 				out._capacity = 0;
-				return;
+				return out;
 			}
 
-			size_t requiredCapacity = out._length > inCapacity ? out._length : inCapacity;
+			size_t requiredCapacity = out._length > minCapacity ? out._length : minCapacity;
 			out._data = mallocArrayListBuffer(&requiredCapacity, out._allocator);
 			out._capacity = requiredCapacity;
 
 			size_t i = 0;
 			for (const auto& elem : initializerList) {
-				out._data[i] = elem;
+				//out._data[i] = elem;
+				new (out._data + i) T(elem);
 				i++;
 			}
 			return out;
 		}
 
 		/**
+		* Create a new ArrayList given an allocator to be cloned, a pre reserved minimum capacity,
+		* a pointer to some data, and a number of elements to copy from the pointer.
+		* The capacity of the new ArrayList will be greater than or equal to the max value between
+		* `minCapacity` and `elementsToCopy`.
+		*
+		* @param inAllocator: Allocator to clone
+		* @param minCapacity: Minimum allocation size
+		* @param ptr: Start of buffer of elements to copy
+		* @param elementsToCopy: Number to copy. Accessing beyond the bounds of `ptr` is undefined behaviour.
 		*/
-		static ArrayList withCapacity(const Allocator& inAllocator, size_t inCapacity, const T* ptr, size_t elementsToCopy)
+		static ArrayList withCapacity(const Allocator& inAllocator, size_t minCapacity, const T* ptr, size_t elementsToCopy)
 		requires(std::is_copy_assignable_v<T>) {
-			return ArrayList::withCapacity(inAllocator, inCapacity, ptr, elementsToCopy);
+			return ArrayList::withCapacity(inAllocator, minCapacity, ptr, elementsToCopy);
 		}
 
 		/**
+		* Create a new ArrayList given an allocator to take ownership of, a pre reserved minimum capacity,
+		* a pointer to some data, and a number of elements to copy from the pointer.
+		* The capacity of the new ArrayList will be greater than or equal to the max value between
+		* `minCapacity` and `elementsToCopy`.
+		*
+		* @param inAllocator: Allocator to clone
+		* @param minCapacity: Minimum allocation size
+		* @param ptr: Start of buffer of elements to copy
+		* @param elementsToCopy: Number to copy. Accessing beyond the bounds of `ptr` is undefined behaviour.
 		*/
-		static ArrayList withCapacity(Allocator&& inAllocator, size_t inCapacity, const T* ptr, size_t elementsToCopy)
+		static ArrayList withCapacity(Allocator&& inAllocator, size_t minCapacity, const T* ptr, size_t elementsToCopy)
 		requires(std::is_copy_assignable_v<T>) {
 			ArrayList out = ArrayList(std::move(inAllocator));
 			out._length = elementsToCopy;
 
-			if (out._length == 0 && inCapacity == 0) [[unlikely]] {
+			if (out._length == 0 && minCapacity == 0) [[unlikely]] {
 				out._data = nullptr;
 				out._capacity = 0;
-				return;
+				return out;
 			}
 
-			size_t requiredCapacity = out._length > inCapacity ? out._length : inCapacity;
+			size_t requiredCapacity = out._length > minCapacity ? out._length : minCapacity;
 			out._data = mallocArrayListBuffer(&requiredCapacity, out._allocator);
 			out._capacity = requiredCapacity;
 			for (size_t i = 0; i < elementsToCopy; i++) {
-				out._data[i] = ptr[i];
+				//out._data[i] = ptr[i];
+				new (out._data + i) T(ptr[i]);
 			}
 
 			return out;
@@ -391,7 +491,7 @@ namespace gk
 		* Get a mutable reference to an element in the array at a specified index.
 		* Will assert if index is out of range.
 		* 
-		* @param index: The element to get. Must be less than len().
+		* @param index: The element to get. Asserts that is less than len().
 		*/
 		[[nodiscard]] constexpr T& operator [] (size_t index) {
 			gk_assertm(index < _length, "Index out of bounds! Attempted to access index " << index << " from ArrayList of length " << _length);
@@ -402,7 +502,7 @@ namespace gk
 		* Get an immutable reference to an element in the array at a specified index.
 		* Will assert if index is out of range.
 		*
-		* @param index: The element to get. Must be less than len().
+		* @param index: The element to get. Asserts that is less than len().
 		*/
 		[[nodiscard]] constexpr const T& operator [] (size_t index) const {
 			gk_assertm(index < _length, "Index out of bounds! Attempted to access index " << index << " from ArrayList of length " << _length);
@@ -411,21 +511,44 @@ namespace gk
 
 #pragma endregion
 
-		constexpr void push(const T& element) {
+		/**
+		* Pushes a copy of `element` onto the end of the ArrayList, increasing the length by 1.
+		* May reallocate if there isn't enough capacity already. Requires that T is copyable.
+		* 
+		* @param element: Element to be copied to the end of the ArrayList buffer.
+		*/
+		constexpr void push(const T& element) 
+		requires(std::is_copy_assignable_v<T>) {
 			if (_length == _capacity) {
 				reallocate((_capacity + 1) * 2);
 			}
-
-			_data[_length] = element;
+			
+			if (std::is_constant_evaluated()) {
+				_data[_length] = element;
+			}
+			else {
+				new (_data + _length) T(element);
+			}
 			_length++;
 		}
 
+		/**
+		* Moves `element` onto the end of the ArrayList, increasing the length by 1.
+		* May reallocate if there isn't enough capacity already.
+		* 
+		* @param element: Element to be moved to the end of the ArrayList buffer.
+		*/
 		constexpr void push(T&& element) {
 			if (_length == _capacity) {
 				reallocate((_capacity + 1) * 2);
 			}
 
-			_data[_length] = std::move(element);
+			if (std::is_constant_evaluated()) {
+				_data[_length] = std::move(element);
+			}
+			else {
+				new (_data + _length) T(std::move(element));
+			}
 			_length++;
 		}
 
@@ -508,7 +631,8 @@ namespace gk
 					*requiredCapacity = *requiredCapacity + (numPerSimd - remainder);
 				}
 				outBuffer = allocatorToUse.mallocAlignedBuffer<T>(*requiredCapacity, SIMD_T_MALLOC_ALIGN).ok();
-				memset(outBuffer, 0, (*requiredCapacity) * sizeof(T));
+				// Likely dont need to memset cause no constructor tomfoolery
+				//memset(outBuffer, 0, (*requiredCapacity) * sizeof(T));
 				return outBuffer;
 			}
 
@@ -536,8 +660,12 @@ namespace gk
 
 			for (size_t i = 0; i < currentLength; i++) {
 				// TODO see if assignment is better.
-				//newData[i] = std::move(_data[i]);
-				new (newData + i) T(std::move(_data[i]));
+				if (std::is_constant_evaluated()) {
+					newData[i] = std::move(_data[i]);
+				}
+				else {
+					new (newData + i) T(std::move(_data[i]));
+				}
 			}
 			if (_data != nullptr) {
 				freeArrayListBuffer(_data, _capacity, _allocator);
