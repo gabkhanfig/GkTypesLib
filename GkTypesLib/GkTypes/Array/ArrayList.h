@@ -429,8 +429,37 @@ namespace gk
 			_length++;
 		}
 
-		//constexpr void reserve(size_t additional);
-		//constexpr void reserveExact(size_t additional);
+		/**
+		* Reserves additional capacity in the ArrayList. The new capacity will be greater than or equal to `len()` + `additional`.
+		* May allocate more to avoid frequent reallocation, or any SIMD requirements.
+		* Use `reserveExact()` if you know extra allocation won't happen.
+		* 
+		* @param additional: Minimum amount to increase the capacity by
+		*/
+		void reserve(size_t additional) {
+			const size_t addedLength = _length + additional;
+			if (addedLength <= _capacity || addedLength == 0) return;
+
+			const size_t standardCapacityIncrease = (_capacity + 1) * 2;
+			size_t newCapacity = addedLength < standardCapacityIncrease ? standardCapacityIncrease : addedLength;
+			
+			reallocate(newCapacity);
+		}
+
+		/**
+		* Reserves additional capacity in the ArrayList. The new capacity will be greater than or equal to `len()` + `additional`.
+		* Will allocate the smallest amount possible to satisfy the reserve, and potential SIMD requirements.
+		* Use `reserve()` if more allocations will happen.
+		* 
+		* @param additional: Minimum amount to increase the capacity by
+		*/
+		constexpr void reserveExact(size_t additional) {
+			const size_t newCapacity = _length + additional;
+			if (newCapacity <= _capacity || newCapacity == 0) return;
+
+			reallocate(newCapacity);
+		}
+
 		//constexpr gk::Option<size_t> find(const T& element);
 		//constexpr T remove(size_t index);
 		//constexpr T swapRemove(size_t index);
