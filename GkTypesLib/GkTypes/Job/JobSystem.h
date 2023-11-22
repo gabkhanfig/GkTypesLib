@@ -3,171 +3,103 @@
 #include "../BasicTypes.h"
 #include "../Event/Event.h"
 #include "../Array/DynamicArray.h"
-#include "JobInfo.h"
 #include "JobThread.h"
 
 namespace gk
 {
-	class JobSystem
+	struct JobSystem
 	{
 	public:
 
-		/* Initializes the job system with the specified number of threads as a static globally accessible system in the program.
-		See gk::systemThreadCount. For using as much as the system as possible, gk::systemThreadCount() - 1 is ideal. */
-		static void init(const uint32 threadsNum) {
-			gk_assertm(threadsNum >= 2, "Job system requires 2 or more threads");
-			gk_assertm(jobThreads.arr == nullptr, "Cannot initialize job system when it has been already");
-			jobThreads.arr = new JobThread[threadsNum];
-			jobThreads.threadCount = threadsNum;
-			std::cout << "[gk::JobSystem] Initialized with " << threadsNum << " job threads\n";
+		JobSystem(uint32 inThreadCount)
+			: _threadCount(inThreadCount), _currentOptimalThread(0)
+		{
+			gk_assertm(inThreadCount >= 2, "JobSystem thread count must be greater than or equal to 2. Tried to do with " << inThreadCount);
+			_threads = new JobThread[inThreadCount];
 		}
 
-		/* Finishes all jobs and de-initializes the job system, and frees all used resources. */
-		static void deinit() {
-			gk_assertm(jobThreads.arr != nullptr, "Cannot de-initialized job system when it hasn't been initialized");
-			executeQueue();
-			delete[] jobThreads.arr;
-			jobThreads.arr = nullptr;
-			jobThreads.threadCount = 0;
-			std::cout << "[gk::JobSystem] Deinitialized\n";
+		JobSystem(const JobSystem&) = delete;
+		JobSystem(JobSystem&&) = delete;
+		JobSystem& operator = (const JobSystem&) = delete;
+		JobSystem& operator = (JobSystem&&) = delete;
+
+		~JobSystem() {
+			wait();
+			delete[] _threads;
 		}
 
-		/* Queues a job on the optimal thread WITHOUT executing. Job must be passed in by move. */
-		static void queueJob(JobData&& job) {
-			JobThread* thread = getOptimalThreadForExecution();
-			thread->queueJob(std::move(job));
+		/* Member function. */
+		template<typename ObjT, typename FuncClassT, typename ReturnT, typename... Args>
+		JobFuture<ReturnT> runJob(ReturnT(FuncClassT::* inFunc)(Args...), ObjT* inObject, Args&&... inArgs) {
+			JobThread* jobThread = getOptimalThreadForExecution();
+			return jobThread->runJob(inFunc, inObject, std::forward<Args>(inArgs)...);
 		}
 
-		/* Queues jobs across optimal threads WITHOUT executing. Jobs must be passed in by move. */
-		static void queueJobs(gk::darray<JobData>&& jobs) {
-			queueJobs(jobs.Data(), jobs.Size());
+		/* Const member function. */
+		template<typename ObjT, typename FuncClassT, typename ReturnT, typename... Args>
+		JobFuture<ReturnT> runJob(ReturnT(FuncClassT::* inFunc)(Args...) const, const ObjT* inObject, Args&&... inArgs) {
+			JobThread* jobThread = getOptimalThreadForExecution();
+			return jobThread->runJob(inFunc, inObject, std::forward<Args>(inArgs)...);
 		}
 
-		/* Queues jobs across optimal threads WITHOUT executing. Will invalidate the contents of the array by moving them. */
-		static void queueJobs(JobData* arrayStart, const uint32 count) {
-			if (count == 0) return;
-			gk::darray<JobThread*> threads = getOptimalThreadsForExecution();
-			gk_assertm(threads.Size() > 0, "Must have at least one thread to queue jobs onto");
-
-			const uint32 threadCount = threads.Size();
-			const uint32 jobsPerThread = count / threadCount;
-			const uint32 remainder = count % (jobsPerThread * threadCount);
-
-			JobData* jobs = arrayStart;
-			for (uint32 i = 0; i < threadCount; i++) {
-				const bool isWithinRemainder = i < remainder;
-				const uint32 numJobsForThread = isWithinRemainder ? jobsPerThread + 1 : jobsPerThread;
-				gk_assertm((jobs + numJobsForThread) <= (arrayStart + count), "Attempted to access jobs outside of array bounds");
-
-				JobThread* jobThread = threads[i];
-				jobThread->queueJobs(jobs, numJobsForThread);
-				jobs += numJobsForThread;
-			}
+		/* Free function. */
+		template<typename ReturnT, typename... Args>
+		JobFuture<ReturnT> runJob(ReturnT(*inFunc)(Args...), Args&&... inArgs) {
+			JobThread* jobThread = getOptimalThreadForExecution();
+			return jobThread->runJob(inFunc, std::forward<Args>(inArgs)...);
 		}
 
-		/* Queues a job on the optimal thread and executes it. Job must be passed in by move. */
-		static void runJob(JobData&& job) {
-			JobThread* thread = getOptimalThreadForExecution();
-			thread->queueJob(std::move(job));
-			thread->execute();
+		/* Compatibility with std::function, std::bind, etc. */
+		template<typename ReturnT>
+		JobFuture<ReturnT> runJob(std::function<ReturnT()>&& inFunc) {
+			JobThread* jobThread = getOptimalThreadForExecution();
+			return jobThread->runJob(std::move(inFunc));
 		}
 
-		/* Queues jobs on the optimal threads and executes them. Jobs must be passed in by move. */
-		static void runJobs(gk::darray<JobData>&& jobs) {
-			runJobs(jobs.Data(), jobs.Size());
-		}
-
-		/* Queues jobs across optimal threads and executes them. Will invalidate the contents of the array by moving them. */
-		static void runJobs(JobData* arrayStart, const uint32 count) {
-			if (count == 0) return;
-			gk::darray<JobThread*> threads = getOptimalThreadsForExecution();
-			gk_assertm(threads.Size() > 0, "Must have at least one thread to queue jobs onto");
-
-			const uint32 threadCount = threads.Size();
-			const uint32 jobsPerThread = count / threadCount;
-			const uint32 remainder = count % (jobsPerThread * threadCount);
-
-			JobData* jobs = arrayStart;
-			for (uint32 i = 0; i < threadCount; i++) {
-				const bool isWithinRemainder = i < remainder;
-				const uint32 numJobsForThread = isWithinRemainder ? jobsPerThread + 1 : jobsPerThread;
-				gk_assertm((jobs + numJobsForThread) <= (arrayStart + count), "Attempted to access jobs outside of array bounds");
-
-				JobThread* jobThread = threads[i];
-				jobThread->queueJobs(jobs, numJobsForThread);
-				jobThread->execute();
-				jobs += numJobsForThread;
-			}
-		}
-
-		/* Forces execution of any job threads that have jobs in their queues. */
-		static void executeQueue() {
-			for (JobThread* jobThread : jobThreads) {
-				if (jobThread->queuedJobsCount() > 0 && !jobThread->isExecuting()) {
-					jobThread->execute();
-				}
-			}
-		}
-
-		/* Simply waits for the job system to finish executing. */
-		static void wait() {
+		void wait() const {
 			std::this_thread::yield();
-			for (JobThread* jobThread : jobThreads) {
-				jobThread->wait();
+			for (uint32 i = 0; i < _threadCount; i++) {
+				_threads[i].wait();
 			}
 		}
 
 	private:
 
-		static JobThread* getOptimalThreadForExecution() {
-			JobThread* optimal = nullptr;
+		/* Will atomically change the _currentOptimalThread member to be the one
+		after the selected optimal thread. */
+		JobThread* getOptimalThreadForExecution() {
+			const uint32 oldCurrentOptimal = _currentOptimalThread.load(std::memory_order::acquire);
+
 			uint32 minimumQueueLoad = MAXUINT32;
 			bool isOptimalExecuting = true;
+			uint32 currentOptimal = oldCurrentOptimal;
 
-			for (JobThread* jobThread : jobThreads) {
-				const bool isNotExecuting = !jobThread->isExecuting();
-				const uint32 queueLoad = jobThread->queuedJobsCount();
-				if (isNotExecuting && queueLoad == 0) {
-					return jobThread;
+			for (uint32 i = 0; i < _threadCount; i++) {
+				const uint32 checkIndex = (oldCurrentOptimal + i) % _threadCount;
+				const bool isNotExecuting = !_threads[checkIndex].isExecuting();
+				const uint32 queueLoad = _threads[checkIndex].queuedJobCount();
+
+				if (isNotExecuting && queueLoad == 0) { // thread is idle and should execute
+					_currentOptimalThread.store((checkIndex + 1) % _threadCount);
+					return &_threads[checkIndex];
 				}
-				// It can be assumed that from here, either the thread is busy or it has a non-zero queue load
-				if (isNotExecuting) {
-					if (minimumQueueLoad > queueLoad) {
-						optimal = jobThread;
-						minimumQueueLoad = queueLoad;
-						isOptimalExecuting = false;
-						continue;
-					}
-				}
-				if (minimumQueueLoad > queueLoad && isOptimalExecuting) { // prioritize jobs that are not executing currently
-					optimal = jobThread;
+				// if thread has stuff in queue, it should be already executing.
+				if (minimumQueueLoad > queueLoad) {
+					currentOptimal = checkIndex;
 					minimumQueueLoad = queueLoad;
 				}
 			}
-			return optimal;
-		}
-
-		/* Returns all threads that aren't currently executing, or if there are none, all of them. */
-		static gk::darray<JobThread*> getOptimalThreadsForExecution() {
-			gk::darray<JobThread*> optimal;
-			optimal.Reserve(jobThreads.threadCount);
-
-			for (JobThread* jobThread : jobThreads) {
-				if (!jobThread->isExecuting()) {
-					optimal.Add(jobThread);
-				}
-			}
-			if (optimal.Size() == 0) {
-				for (JobThread* jobThread : jobThreads) {
-					optimal.Add(jobThread);
-				}
-			}
-			return optimal;
+			// next iteration, start checking on the thread after this one.
+			_currentOptimalThread.store((currentOptimal + 1) % _threadCount);
+			return &_threads[currentOptimal];
 		}
 
 	private:
 
-		inline static JobThreadArray jobThreads;
-
+		JobThread* _threads;
+		// naturally cannot be modified. In order to change thread counts, the old object MUST be destroyed and replaced.
+		const uint32 _threadCount;
+		std::atomic<uint32> _currentOptimalThread;
 	};
-}
+
+} // namespace gk
