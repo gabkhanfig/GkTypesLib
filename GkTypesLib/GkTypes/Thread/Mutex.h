@@ -95,7 +95,11 @@ namespace gk
 			return LockedMutex(this);
 		}
 
-			//return LockedMutex(this);
+		[[nodiscard]] gk::Option<LockedMutex<T>> tryLock() {
+			if (!TryAcquireSRWLockExclusive(&_lock)) {
+				return gk::Option<LockedMutex<T>>();
+			}
+			return gk::Option<LockedMutex<T>>(this);
 		}
 
 		[[nodiscard]] T* getDataNoLock() {
