@@ -215,4 +215,76 @@ namespace UnitTests
 		comptimeAssertEq(a[6], "are");
 		comptimeAssertEq(a[7], "you");
 	});
+
+	TEST(ArrayList, Reserve) {
+		ArrayList<int> a;
+		a.push(0);
+		a.reserve(100);
+		EXPECT_TRUE(a.capacity() >= 100);
+		EXPECT_EQ(a.len(), 1);
+		EXPECT_EQ(a[0], 0);
+	}
+
+	TEST(ArrayList, ReserveFromEmpty) {
+		ArrayList<int> a;
+		a.reserve(100);
+		EXPECT_TRUE(a.capacity() >= 100);
+		EXPECT_EQ(a.len(), 0);
+	}
+
+	TEST(ArrayList, ReserveZero) {
+		ArrayList<int> a;
+		a.push(0);
+		a.reserve(0);
+		EXPECT_TRUE(a.capacity() > 0);
+		EXPECT_EQ(a.len(), 1);
+		EXPECT_EQ(a[0], 0);
+	}
+
+	TEST(ArrayList, ReserveTiny) {
+		ArrayList<int> a;
+		for (int i = 0; i < 10; i++) {
+			a.push(i);
+		}
+		a.reserve(1);
+		EXPECT_TRUE(a.capacity() >= 10);
+		EXPECT_EQ(a.len(), 10);
+		EXPECT_EQ(a[0], 0);
+	}
+
+	TEST(ArrayList, ReserveExact) {
+		ArrayList<int> a;
+		a.push(0);
+		a.reserveExact(100);
+		EXPECT_TRUE(a.capacity() >= 100);
+		EXPECT_EQ(a.len(), 1);
+		EXPECT_EQ(a[0], 0);
+	}
+
+	TEST(ArrayList, ReserveExactFromEmpty) {
+		ArrayList<int> a;
+		a.reserveExact(100);
+		EXPECT_TRUE(a.capacity() >= 100);
+		EXPECT_EQ(a.len(), 0);
+	}
+
+	TEST(ArrayList, ReserveZeroExact) {
+		ArrayList<int> a;
+		a.push(0);
+		a.reserveExact(0);
+		EXPECT_TRUE(a.capacity() > 0);
+		EXPECT_EQ(a.len(), 1);
+		EXPECT_EQ(a[0], 0);
+	}
+
+	TEST(ArrayList, ReserveTinyExact) {
+		ArrayList<int> a;
+		for (int i = 0; i < 10; i++) {
+			a.push(i);
+		}
+		a.reserveExact(1);
+		EXPECT_TRUE(a.capacity() >= 10);
+		EXPECT_EQ(a.len(), 10);
+		EXPECT_EQ(a[0], 0);
+	}
 }

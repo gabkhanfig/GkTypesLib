@@ -576,7 +576,7 @@ namespace gk
 		* 
 		* @param additional: Minimum amount to increase the capacity by
 		*/
-		constexpr void reserveExact(size_t additional) {
+		void reserveExact(size_t additional) {
 			const size_t newCapacity = _length + additional;
 			if (newCapacity <= _capacity || newCapacity == 0) return;
 
