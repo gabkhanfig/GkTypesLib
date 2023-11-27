@@ -1,70 +1,163 @@
 # Gk Types Library
-## A header only library of C++ data types
+### CMake library of Useful Containers and Systems for Video Games
 
-**Unit Testing** is implemented to ensure accurate behavior.
+Library of C++ data types for games on Windows. Requires 64 bit processors, and AVX-2 support minimum.
+
+Examples of type usage can be seen from the corresponding .cpp files. For any types that use SIMD, 
+512 bit or 256 bit extensions usage is automatically determined at runtime given the CPU's featureset.
+
+Uses [doctest](https://github.com/doctest/doctest) for unit testing, and modified doctest checks for asserts.
+Runtime asserts are disabled in Release.
 
 <h3>Currently added types:</h3>
 
-- [Dynamic Array](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Array/DynamicArray.h)
-- [Class Reference Dependency Injection](https://github.com/gabkhanfig/GkTypesLib/tree/master/GkTypesLib/GkTypes/ClassRef)
-- [String](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/String/String.h)
-- [Global String](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/String/GlobalString.h)
-- [Bitset](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Bitset/Bitset.h)
-- [Thread](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Thread/Thread.h)
-- [Thread Pool](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Thread/ThreadPool.h)
+- [Allocators](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/allocator/allocator.h)
+- [Array List](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/array/array_list.h)
+- [String](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/string/string.h)
+- [Str](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/string/str.h)
+- [Global String](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/string/global_string.h)
+- [Hash Map](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/hash/hashmap.h)
+- [Option](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/option/option.h)
+- [Result](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/error/result.h)
+- [Fptr](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/function/function_ptr.h)
+- [Callback](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/function/callback.h)
+- [Mutex](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/sync/mutex.h)
+- [RwLock](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/sync/rw_lock.h)
+- [Job Future](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/job/job_future.h)
+- [Job Thread](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/job/job_thread.h)
+- [Job System](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/job/job_system.h)
+- [Ring Queue](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/queue/ring_queue.h)
 
 <h2>
 
-[Dynamic Array](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Array/DynamicArray.h)
+[Allocators](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/allocator/allocator.h)
 
 </h2>
 
-A **constexpr** valid replacement to std::vector using a smaller footprint of only 16 bytes. Supports elements by casting to allow fast conversions between different dynamic array T types. This type is also [**unit tested**](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLibTests/Source/ConstexprTests/DynamicArrayTests.cpp).
+Custom allocator objects for highly controlled memory allocation strategies.
 
 <h2>
 
-[Class Reference Dependency Injection](https://github.com/gabkhanfig/GkTypesLib/tree/master/GkTypesLib/GkTypes/ClassRef)
+[Array List](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/array/array_list.h)
 
 </h2>
 
-An object that can instantiate other objects at runtime, while also not requiring the template itself to be stored. This allows convinient storage and usage.
+A constexpr replacement to std::vector, supporting custom runtime allocators, and SIMD element finding.
 
 <h2>
 
-[String](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/String/String.h)
+[String](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/string/string.h)
 
 </h2>
 
-A **constexpr** valid replacement to std::string. This string implemention is using both the [**Small String Optimization**](https://blogs.msmvps.com/gdicanio/2016/11/17/the-small-string-optimization/), along with const data segment optimizations. By checking for const char*'s that are held within the [application's data segment](https://en.wikipedia.org/wiki/Data_segment), unnecessary copies can be avoided, and string equality can be done substantially faster doing pointer equality, along with normal character checking if necessary. This string also has a dedicated hash function.
+A utf8 constexpr replacement to std::string, supporting an in-place [**SSO**](https://blogs.msmvps.com/gdicanio/2016/11/17/the-small-string-optimization/) buffer
+of 31 bytes. Uses SIMD for extremely fast comparisons and finding.
 
 <h2>
 
-[Global String](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/String/GlobalString.h)
+[Str](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/string/str.h)
 
 </h2>
 
-A global mapped string class, which only internally stores the mapped string pointer in each instance. This allows for a smaller memory footprint and fast comparisons for strings that are used a lot. It uses the previously mentioned string type as well, which brings its optimizations to the table. This is an implementation of Unreal Engine's [FName](https://docs.unrealengine.com/4.27/en-US/ProgrammingAndScripting/ProgrammingWithCPP/UnrealArchitecture/StringHandling/FName/).
+Utf8 compatible string slice, supporting compile time utf8 parsing optimizations.
 
 <h2>
 
-[Bitset](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Bitset/Bitset.h)
+[Global String](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/string/global_string.h)
 
 </h2>
 
-A **constexpr** valid replacement to std::bitset that has a smaller memory footprint for small bitsets. Rather than a default smallest size of 4 bytes, this bitset has a smallest default of 1 byte, and then scaling up to 2, 4, and 8 as necessary depending on template parameters. This bitset is also [**unit tested**](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLibTests/Source/ConstexprTests/BitsetTests.cpp).
+Thread safe string compression into 4 byte integer unique ids, that last for the entire program duration.
 
 <h2>
 
-[Thread](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Thread/Thread.h)
+[Hash Map](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/hash/hashmap.h)
 
 </h2>
 
-A wrapper around std::thread to handle binding and asyncrhonously executing tasks, while not deleting the thread after execution. This is done by having the thread loop and sleep for 1ms to consume effectively no cpu resources.
+A replacement to std::unordered_map that's vastly more optimized, using better caching strategies, SIMD hash finding, and custom allocator support.
+It's inspired by this [talk](https://youtube.com/watch?v=ncHmEUmJZf4&), and extended further.
 
 <h2>
 
-[Thread Pool](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Thread/ThreadPool.h)
+[Option](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/option/option.h)
 
 </h2>
 
-A bunch of [threads](https://github.com/gabkhanfig/GkTypesLib/blob/master/GkTypesLib/GkTypes/Thread/Thread.h) grouped together to batch execute tasks, along with the primary thread, without deleting any of the threads after the batch execution. This keeps the overhead of instantiating threads to be a one time occurrence.
+Rust's [option](https://doc.rust-lang.org/std/option/enum.Option.html) type implemented in c++.
+
+<h2>
+
+[Result](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/error/result.h)
+
+</h2>
+
+Rust's [result](https://doc.rust-lang.org/std/result/#:~:text=Module%20std%3A%3Aresult&text=Error%20handling%20with%20the%20Result,and%20containing%20an%20error%20value.) type implenented in c++.
+
+<h2>
+
+[Fptr](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/function/function_ptr.h)
+
+</h2>
+
+Simple way to express function pointers for free functions.
+
+<h2>
+
+[Callback](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/function/callback.h)
+
+</h2>
+
+Allow binding specific objects with corresponding member functions, or free functions, to be called with arguments any amount of times later.
+
+<h2>
+
+[Mutex](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/sync/mutex.h)
+
+</h2>
+
+High performance rust style [mutex](https://doc.rust-lang.org/std/sync/struct.Mutex.html) designed
+to stop developers forgetting to unlock their mutexes.
+
+<h2>
+
+[RwLock](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/sync/rw_lock.h)
+
+</h2>
+
+High performance rust style [rwlock](https://doc.rust-lang.org/std/sync/struct.RwLock.html) designed
+to stop developers forgetting to unlock their rwlocks.
+
+<h2>
+
+[Job Future](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/job/job_future.h)
+
+</h2>
+
+Future to wait on asynchronous jobs created from either job threads, or job systems. See below.
+
+<h2>
+
+[Job Thread](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/job/job_thread.h)
+
+</h2>
+
+Thread wrapper to handle running asynchronous jobs, optimized to allocate as little memory as possible.
+It's fully thread safe.
+
+<h2>
+
+[Job System](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/job/job_system.h)
+
+</h2>
+
+Dispatches jobs across threads, doing automatic load balancing.
+It's fully thread safe.
+
+<h2>
+
+[Ring Queue](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/queue/ring_queue.h)
+
+</h2>
+
+A fixed size [circular buffer](https://en.wikipedia.org/wiki/Circular_buffer) that does not do extra memory allocation. 
