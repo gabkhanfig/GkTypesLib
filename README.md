@@ -9,7 +9,7 @@ Examples of type usage can be seen from the corresponding .cpp files. For any ty
 Uses [doctest](https://github.com/doctest/doctest) for unit testing, and modified doctest checks for asserts.
 Runtime asserts are disabled in Release.
 
-<h3>Currently added types:</h3>
+<h3>Currently Added Containers and Systems:</h3>
 
 - [Allocators](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/allocator/allocator.h)
 - [Array List](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/array/array_list.h)
