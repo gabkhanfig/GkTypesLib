@@ -1,0 +1,5 @@
+// Hint files help the Visual Studio IDE interpret Visual C++ identifiers
+// such as names of functions and macros.
+// For more information see https://go.microsoft.com/fwlink/?linkid=865984
+#define comptime_test_case
+#define comptime_test_case(test_case_name, test_name, test_block) consteval bool CompTimeTest_##test_case_name##_##test_name()##{ test_block return true; } static_assert(CompTimeTest_##test_case_name##_##test_name##());
