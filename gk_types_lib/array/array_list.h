@@ -6,7 +6,6 @@
 #include "../option/option.h"
 #include <type_traits>
 #include "../error/result.h"
-#include <immintrin.h>
 
 namespace gk
 {
@@ -18,39 +17,28 @@ namespace gk
 			else {
 				return gk::globalHeapAllocator()->clone();
 			}
+
 		}
 
-
-		using Find1ByteInArrayListFunc = gk::Option<size_t>(*)(const i8*, size_t, i8);
-		using Find2ByteInArrayListFunc = gk::Option<size_t>(*)(const i16*, size_t, i16);
-		using Find4ByteInArrayListFunc = gk::Option<size_t>(*)(const i32*, size_t, i32);
-		using Find8ByteInArrayListFunc = gk::Option<size_t>(*)(const i64*, size_t, i64);
-
-		static gk::Option<size_t> avx512Find1ByteInArrayList(const i8* arrayListData, size_t length, i8 toFind) {
-			const __m512i findVec = _mm512_set1_epi8(toFind);
-			const __m512i* arrayListVec = reinterpret_cast<const __m512i*>(arrayListData);
-			const size_t iterationToDo = (length % 64 == 0 ? length : length + (64 - (length % 64))) / 64;
-			for (size_t i = 0; i < iterationToDo; i++) {
-				const u64 bitmask = _mm512_cmpeq_epi8_mask(findVec, arrayListVec[i]);
-				if (bitmask == 0) {
-					continue;
-				}
-
-				unsigned long index;
-				_BitScanForward64(&index, bitmask);
-				const size_t actualIndex = (i * 64) + index;
-				if (index >= length) {
-					return gk::Option<size_t>(); // out of range
-				}
-				return gk::Option<size_t>(actualIndex);
-			}
-			return gk::Option<size_t>(); // didnt find
-		}
+		Option<usize> doSimdArrayElementFind1Byte(const i8* arrayListData, usize length, i8 toFind);
+		Option<usize> doSimdArrayElementFind2Byte(const i16* arrayListData, usize length, i16 toFind);
+		Option<usize> doSimdArrayElementFind4Byte(const i32* arrayListData, usize length, i32 toFind);
+		Option<usize> doSimdArrayElementFind8Byte(const i64* arrayListData, usize length, i64 toFind);
 
 		template<typename T>
-		static gk::Option<size_t> doSimdFind(const T* arrayListData, size_t length, T toFind) {
-			static Find1ByteInArrayListFunc func1Byte = avx512Find1ByteInArrayList;
-			return func1Byte((i8*)arrayListData, length, static_cast<i8>(toFind));
+		forceinline static gk::Option<size_t> doSimdArrayElementFind(const T* arrayListData, size_t length, T toFind) {
+			if constexpr (sizeof(T) == 1) {
+				return doSimdArrayElementFind1Byte(reinterpret_cast<const i8*>(arrayListData), length, static_cast<i8>(toFind));
+			}
+			else if constexpr (sizeof(T) == 2) {
+				return doSimdArrayElementFind2Byte(reinterpret_cast<const i16*>(arrayListData), length, static_cast<i16>(toFind));
+			}
+			else if constexpr (sizeof(T) == 4) {
+				return doSimdArrayElementFind4Byte(reinterpret_cast<const i32*>(arrayListData), length, static_cast<i32>(toFind));
+			}
+			else {
+				return doSimdArrayElementFind8Byte(reinterpret_cast<const i64*>(arrayListData), length, static_cast<i64>(toFind));
+			}
 		}
 
 	}
@@ -60,7 +48,7 @@ namespace gk
 	{
 	private:
 
-		constexpr static bool IS_T_SIMD = (std::is_arithmetic_v<T> || std::is_pointer_v<T>);
+		constexpr static bool IS_T_SIMD = (std::is_arithmetic_v<T> || std::is_pointer_v<T> || std::is_enum_v<T>);
 		constexpr static size_t SIMD_T_MALLOC_ALIGN = 64;
 
 	private:
@@ -636,7 +624,7 @@ namespace gk
 				return gk::Option<size_t>();
 			}
 
-			return internal::doSimdFind(_data, _length, element);
+			return internal::doSimdArrayElementFind(_data, _length, element);
 		}
 
 		//constexpr T remove(size_t index);
