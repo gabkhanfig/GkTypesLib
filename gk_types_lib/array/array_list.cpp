@@ -35,7 +35,29 @@ static gk::Option<usize> avx512Find1ByteInArrayList(const i8* arrayListData, usi
 		if (_BitScanForward64(&index, bitmask) == 0) {
 			continue;
 		}
-		const usize actualIndex = (i * 64) + index;
+		const usize actualIndex = (i * NUM_PER_VEC) + index;
+		if (index >= length) {
+			return gk::Option<usize>(); // out of range
+		}
+		return gk::Option<usize>(actualIndex);
+	}
+	return gk::Option<usize>(); // didnt find
+}
+
+static gk::Option<usize> avx2Find1ByteInArrayList(const i8* arrayListData, usize length, i8 toFind) {
+	constexpr usize NUM_PER_VEC = 32;
+
+	const __m256i findVec = _mm256_set1_epi8(toFind);
+	const __m256i* arrayListVec = reinterpret_cast<const __m256i*>(arrayListData);
+	const usize iterationToDo = (length % NUM_PER_VEC == 0 ? length : length + (NUM_PER_VEC - (length % NUM_PER_VEC))) / NUM_PER_VEC;
+	for (usize i = 0; i < iterationToDo; i++) {
+		const u64 bitmask = _mm256_cmpeq_epi8_mask(findVec, arrayListVec[i]);
+
+		unsigned long index;
+		if (_BitScanForward(&index, bitmask) == 0) {
+			continue;
+		}
+		const usize actualIndex = (i * NUM_PER_VEC) + index;
 		if (index >= length) {
 			return gk::Option<usize>(); // out of range
 		}
@@ -52,6 +74,28 @@ static gk::Option<usize> avx512Find2ByteInArrayList(const i16* arrayListData, us
 	const usize iterationToDo = (length % NUM_PER_VEC == 0 ? length : length + (NUM_PER_VEC - (length % NUM_PER_VEC))) / NUM_PER_VEC;
 	for (usize i = 0; i < iterationToDo; i++) {
 		const u32 bitmask = _mm512_cmpeq_epi16_mask(findVec, arrayListVec[i]);
+
+		unsigned long index;
+		if (_BitScanForward(&index, bitmask) == 0) {
+			continue;
+		}
+		const usize actualIndex = (i * NUM_PER_VEC) + index;
+		if (index >= length) {
+			return gk::Option<usize>(); // out of range
+		}
+		return gk::Option<usize>(actualIndex);
+	}
+	return gk::Option<usize>(); // didnt find
+}
+
+static gk::Option<usize> avx2Find2ByteInArrayList(const i16* arrayListData, usize length, i16 toFind) {
+	constexpr usize NUM_PER_VEC = 16;
+
+	const __m256i findVec = _mm256_set1_epi16(toFind);
+	const __m256i* arrayListVec = reinterpret_cast<const __m256i*>(arrayListData);
+	const usize iterationToDo = (length % NUM_PER_VEC == 0 ? length : length + (NUM_PER_VEC - (length % NUM_PER_VEC))) / NUM_PER_VEC;
+	for (usize i = 0; i < iterationToDo; i++) {
+		const u64 bitmask = _mm256_cmpeq_epi16_mask(findVec, arrayListVec[i]);
 
 		unsigned long index;
 		if (_BitScanForward(&index, bitmask) == 0) {
@@ -88,6 +132,28 @@ static gk::Option<usize> avx512Find4ByteInArrayList(const i32* arrayListData, us
 	return gk::Option<usize>(); // didnt find
 }
 
+static gk::Option<usize> avx2Find4ByteInArrayList(const i32* arrayListData, usize length, i32 toFind) {
+	constexpr usize NUM_PER_VEC = 8;
+
+	const __m256i findVec = _mm256_set1_epi32(toFind);
+	const __m256i* arrayListVec = reinterpret_cast<const __m256i*>(arrayListData);
+	const usize iterationToDo = (length % NUM_PER_VEC == 0 ? length : length + (NUM_PER_VEC - (length % NUM_PER_VEC))) / NUM_PER_VEC;
+	for (usize i = 0; i < iterationToDo; i++) {
+		const u64 bitmask = _mm256_cmpeq_epi32_mask(findVec, arrayListVec[i]);
+
+		unsigned long index;
+		if (_BitScanForward(&index, bitmask) == 0) {
+			continue;
+		}
+		const usize actualIndex = (i * NUM_PER_VEC) + index;
+		if (index >= length) {
+			return gk::Option<usize>(); // out of range
+		}
+		return gk::Option<usize>(actualIndex);
+	}
+	return gk::Option<usize>(); // didnt find
+}
+
 static gk::Option<usize> avx512Find8ByteInArrayList(const i64* arrayListData, usize length, i64 toFind) {
 	constexpr usize NUM_PER_VEC = 8;
 
@@ -110,6 +176,27 @@ static gk::Option<usize> avx512Find8ByteInArrayList(const i64* arrayListData, us
 	return gk::Option<usize>(); // didnt find
 }
 
+static gk::Option<usize> avx2Find8ByteInArrayList(const i64* arrayListData, usize length, i64 toFind) {
+	constexpr usize NUM_PER_VEC = 4;
+
+	const __m256i findVec = _mm256_set1_epi64x(toFind);
+	const __m256i* arrayListVec = reinterpret_cast<const __m256i*>(arrayListData);
+	const usize iterationToDo = (length % NUM_PER_VEC == 0 ? length : length + (NUM_PER_VEC - (length % NUM_PER_VEC))) / NUM_PER_VEC;
+	for (usize i = 0; i < iterationToDo; i++) {
+		const u64 bitmask = _mm256_cmpeq_epi64_mask(findVec, arrayListVec[i]);
+
+		unsigned long index;
+		if (_BitScanForward(&index, bitmask) == 0) {
+			continue;
+		}
+		const usize actualIndex = (i * NUM_PER_VEC) + index;
+		if (index >= length) {
+			return gk::Option<usize>(); // out of range
+		}
+		return gk::Option<usize>(actualIndex);
+	}
+	return gk::Option<usize>(); // didnt find
+}
 
 Option<usize> gk::internal::doSimdArrayElementFind1Byte(const i8* arrayListData, usize length, i8 toFind)
 {
@@ -118,7 +205,7 @@ Option<usize> gk::internal::doSimdArrayElementFind1Byte(const i8* arrayListData,
 			return avx512Find1ByteInArrayList;
 		}
 		else if (gk::x86::isAvx2Supported()) {
-			return avx512Find1ByteInArrayList; // CHANGE THIS
+			return avx2Find1ByteInArrayList; // CHANGE THIS
 		}
 		else {
 			abort();
@@ -135,7 +222,7 @@ Option<usize> gk::internal::doSimdArrayElementFind2Byte(const i16* arrayListData
 			return avx512Find2ByteInArrayList;
 		}
 		else if (gk::x86::isAvx2Supported()) {
-			return avx512Find2ByteInArrayList; // CHANGE THIS
+			return avx2Find2ByteInArrayList; // CHANGE THIS
 		}
 		else {
 			abort();
@@ -152,7 +239,7 @@ Option<usize> gk::internal::doSimdArrayElementFind4Byte(const i32* arrayListData
 			return avx512Find4ByteInArrayList;
 		}
 		else if (gk::x86::isAvx2Supported()) {
-			return avx512Find4ByteInArrayList; // CHANGE THIS
+			return avx2Find4ByteInArrayList; // CHANGE THIS
 		}
 		else {
 			abort();
@@ -169,7 +256,7 @@ Option<usize> gk::internal::doSimdArrayElementFind8Byte(const i64* arrayListData
 			return avx512Find8ByteInArrayList;
 		}
 		else if (gk::x86::isAvx2Supported()) {
-			return avx512Find8ByteInArrayList; // CHANGE THIS
+			return avx2Find8ByteInArrayList; // CHANGE THIS
 		}
 		else {
 			abort();
