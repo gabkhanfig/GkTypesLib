@@ -1320,7 +1320,15 @@ namespace gk
 		}
 
 		constexpr forceinline void setSsoLen(const u64 inLen) {
-			check_message(inLen <= MAX_SSO_LEN, "sso length cannot exceed the maximum of ", MAX_SSO_LEN);
+			//if (std::is_constant_evaluated()) {
+			//	if (inLen > MAX_SSO_LEN) throw;
+			//}
+			//else if constexpr (gk::RUNTIME_ASSERTS_ON) {
+			//	if (inLen > MAX_SSO_LEN) {
+			//		std::cout << "inLen must be less than or equal to MAX_SSO_LEN. inLen: " << inLen << ", MAX_SSO_LEN: " << MAX_SSO_LEN;
+			//		gk::internal::debugBreak();
+			//	}
+			//}
 			_flag = static_cast<char>(inLen);
 		}
 
