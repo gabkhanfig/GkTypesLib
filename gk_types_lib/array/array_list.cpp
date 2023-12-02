@@ -5,6 +5,8 @@
 #pragma intrinsic(_BitScanForward64)
 #pragma intrinsic(_BitScanForward)
 
+constexpr bool SHOULD_LOG_ARRAYLIST_DYNAMICALLY_LOADED_FUNCTIONS = false;
+
 template<typename T>
 using Option = gk::Option<T>;
 using gk::usize;
@@ -202,12 +204,19 @@ Option<usize> gk::internal::doSimdArrayElementFind1Byte(const i8* arrayListData,
 {
 	static Find1ByteInArrayListFunc func = []() {
 		if (gk::x86::isAvx512Supported()) {
+			if (SHOULD_LOG_ARRAYLIST_DYNAMICALLY_LOADED_FUNCTIONS) {
+				std::cout << "[gk::ArrayList function loader]: Using AVX-512 1 byte find\n";
+			}
 			return avx512Find1ByteInArrayList;
 		}
 		else if (gk::x86::isAvx2Supported()) {
+			if (SHOULD_LOG_ARRAYLIST_DYNAMICALLY_LOADED_FUNCTIONS) {
+				std::cout << "[gk::ArrayList function loader]: Using AVX-2 1 byte find\n";
+			}
 			return avx2Find1ByteInArrayList; // CHANGE THIS
 		}
 		else {
+			std::cout << "[gk::HashMap function loader]: ERROR\nCannot load array list 1 byte find function if AVX-512 or AVX-2 aren't supported\n";
 			abort();
 		}
 	}();
@@ -219,12 +228,19 @@ Option<usize> gk::internal::doSimdArrayElementFind2Byte(const i16* arrayListData
 {
 	static Find2ByteInArrayListFunc func = []() {
 		if (gk::x86::isAvx512Supported()) {
+			if (SHOULD_LOG_ARRAYLIST_DYNAMICALLY_LOADED_FUNCTIONS) {
+				std::cout << "[gk::ArrayList function loader]: Using AVX-512 2 byte find\n";
+			}
 			return avx512Find2ByteInArrayList;
 		}
 		else if (gk::x86::isAvx2Supported()) {
+			if (SHOULD_LOG_ARRAYLIST_DYNAMICALLY_LOADED_FUNCTIONS) {
+				std::cout << "[gk::ArrayList function loader]: Using AVX-2 2 byte find\n";
+			}
 			return avx2Find2ByteInArrayList; // CHANGE THIS
 		}
 		else {
+			std::cout << "[gk::HashMap function loader]: ERROR\nCannot load array list 2 byte find function if AVX-512 or AVX-2 aren't supported\n";
 			abort();
 		}
 	}();
@@ -236,12 +252,19 @@ Option<usize> gk::internal::doSimdArrayElementFind4Byte(const i32* arrayListData
 {
 	static Find4ByteInArrayListFunc func = []() {
 		if (gk::x86::isAvx512Supported()) {
+			if (SHOULD_LOG_ARRAYLIST_DYNAMICALLY_LOADED_FUNCTIONS) {
+				std::cout << "[gk::ArrayList function loader]: Using AVX-512 4 byte find\n";
+			}
 			return avx512Find4ByteInArrayList;
 		}
 		else if (gk::x86::isAvx2Supported()) {
+			if (SHOULD_LOG_ARRAYLIST_DYNAMICALLY_LOADED_FUNCTIONS) {
+				std::cout << "[gk::ArrayList function loader]: Using AVX-2 4 byte find\n";
+			}
 			return avx2Find4ByteInArrayList; // CHANGE THIS
 		}
 		else {
+			std::cout << "[gk::HashMap function loader]: ERROR\nCannot load array list 4 byte find function if AVX-512 or AVX-2 aren't supported\n";
 			abort();
 		}
 	}();
@@ -253,12 +276,19 @@ Option<usize> gk::internal::doSimdArrayElementFind8Byte(const i64* arrayListData
 {
 	static Find8ByteInArrayListFunc func = []() {
 		if (gk::x86::isAvx512Supported()) {
+			if (SHOULD_LOG_ARRAYLIST_DYNAMICALLY_LOADED_FUNCTIONS) {
+				std::cout << "[gk::ArrayList function loader]: Using AVX-512 8 byte find\n";
+			}
 			return avx512Find8ByteInArrayList;
 		}
 		else if (gk::x86::isAvx2Supported()) {
+			if (SHOULD_LOG_ARRAYLIST_DYNAMICALLY_LOADED_FUNCTIONS) {
+				std::cout << "[gk::ArrayList function loader]: Using AVX-2 8 byte find\n";
+			}
 			return avx2Find8ByteInArrayList; // CHANGE THIS
 		}
 		else {
+			std::cout << "[gk::HashMap function loader]: ERROR\nCannot load array list 8 byte find function if AVX-512 or AVX-2 aren't supported\n";
 			abort();
 		}
 	}();
