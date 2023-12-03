@@ -152,7 +152,7 @@ namespace gk
 		* 
 		* @return An optional guard around shared, exclusive, read/write data access. Will be None is access is blocked.
 		*/
-		[[nodiscard]] Option<LockedWriter<T>> tryWrite() const {
+		[[nodiscard]] Option<LockedWriter<T>> tryWrite() {
 			if (!TryAcquireSRWLockExclusive(&_lock)) {
 				return Option<LockedWriter<T>>();
 			}
