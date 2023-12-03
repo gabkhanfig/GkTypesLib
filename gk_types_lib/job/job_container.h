@@ -7,7 +7,7 @@
 
 namespace gk {
 	namespace internal {
-		struct ALIGN_AS(64) JobContainer {
+		struct alignas(64) JobContainer {
 
 		private:
 

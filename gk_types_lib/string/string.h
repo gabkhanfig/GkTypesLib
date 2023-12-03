@@ -7,7 +7,7 @@
 
 namespace gk
 {
-	struct ALIGN_AS(8) String
+	struct alignas(8) String
 	{
 	private:
 
@@ -1159,21 +1159,23 @@ namespace gk
 		/* Find the index of a specified substring in the cstr array. */
 		constexpr Option<usize> find(const Str& str) const {
 			const u64 length = len();
-			if(str.len > length) return Option<usize>(); // If the substring is larger than this string, it cannot possibly contain it.
-			if (str.len == length) {
+			if (str.len > length) {
+				return Option<usize>(); // If the substring is larger than this string, it cannot possibly contain it.
+			}
+			else if (str.len == length) {
 				if (*this == str) { // If the substring is the same as this string, the found index is just the start of the string.
 					return Option<usize>(0);
 				}
 				Option<usize>();
 			}
-			if (str.len == 1 && str.totalBytes == 2) {
+			else if (str.len == 1 && str.totalBytes == 2) {
 				return find(str.str[0]);
-			}
-
+			}	
+			
 			const char firstChar = str.str[0];
 			if (true) { // TODO constant evaluated
 				const char* thisStr = cstr();
-				const u64 bytesToCheck = (isSso() ? 30 : _rep._heap._bytesOfBufferUsed) - (str.totalBytes - 1);
+				const u64 bytesToCheck = (isSso() ? 30 : _rep._heap._bytesOfBufferUsed) - (str.totalBytes - 1) + 1; // this should never be out of bounds
 				for (u64 i = 0; i < bytesToCheck; i++) {
 					if (thisStr[i] == firstChar) {
 						const char* thisCompareStart = thisStr + i;
@@ -1255,17 +1257,18 @@ namespace gk
 				check_message(startIndexInclusive < endIndexExclusive, "Substring start index must be less than end index. start index is ", startIndexInclusive, " and end index is ", usedBytes());
 			}
 
-			String outStr;
+			String outStr = String();
 
 			const u64 substrUsedBytes = endIndexExclusive - startIndexInclusive;
 			u64 capacity = substrUsedBytes + 1; // include null terminator
 			if (capacity <= MAX_SSO_UTF8_BYTES) {
 				const char* copyStart = cstr() + startIndexInclusive;
 				copyChars(outStr._rep._sso._chars, copyStart, substrUsedBytes);
-				const u64 substrLength = gk::utf8::strlen(outStr._rep._sso._chars).ok().length;
+				outStr.setSsoUsedBytes(substrUsedBytes); // i have NO idea why, but putting this before the strlen works with 30 byte strings in constexpr
 
+				const u64 substrLength = gk::utf8::strlen(outStr._rep._sso._chars).ok().length;
 				outStr.setSsoLen(substrLength);
-				outStr.setSsoUsedBytes(substrUsedBytes);
+
 				return outStr;
 			}
 

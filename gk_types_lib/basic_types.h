@@ -35,14 +35,10 @@ static_assert(sizeof(gk::u64) == 8);
 
 #ifdef _MSC_VER
 
-/* Aligns data types on windows. */
-#define ALIGN_AS(alignment) __declspec(align(alignment))
 #define forceinline __forceinline
 
 #else
 
-/* Aligns data types on linux / mac. */
-#define ALIGN_AS alignas(alignment)
 #define forceinline __attribute__((always_inline))
 
 #endif

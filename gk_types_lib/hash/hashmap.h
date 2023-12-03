@@ -86,7 +86,7 @@ namespace gk
 		/**
 		* Holds the keys and values, and uses SIMD to look up.
 		*/
-		struct ALIGN_AS(64) Group
+		struct alignas(64) Group
 		{
 			static constexpr usize ELEMENTS_PER_GROUP = 64;
 
