@@ -53,7 +53,7 @@ static gk::Option<usize> avx2Find1ByteInArrayList(const i8* arrayListData, usize
 	const __m256i* arrayListVec = reinterpret_cast<const __m256i*>(arrayListData);
 	const usize iterationToDo = (length % NUM_PER_VEC == 0 ? length : length + (NUM_PER_VEC - (length % NUM_PER_VEC))) / NUM_PER_VEC;
 	for (usize i = 0; i < iterationToDo; i++) {
-		const u64 bitmask = _mm256_cmpeq_epi8_mask(findVec, arrayListVec[i]);
+		const u32 bitmask = _mm256_cmpeq_epi8_mask(findVec, arrayListVec[i]);
 
 		unsigned long index;
 		if (_BitScanForward(&index, bitmask) == 0) {
@@ -97,7 +97,7 @@ static gk::Option<usize> avx2Find2ByteInArrayList(const i16* arrayListData, usiz
 	const __m256i* arrayListVec = reinterpret_cast<const __m256i*>(arrayListData);
 	const usize iterationToDo = (length % NUM_PER_VEC == 0 ? length : length + (NUM_PER_VEC - (length % NUM_PER_VEC))) / NUM_PER_VEC;
 	for (usize i = 0; i < iterationToDo; i++) {
-		const u64 bitmask = _mm256_cmpeq_epi16_mask(findVec, arrayListVec[i]);
+		const u32 bitmask = _mm256_cmpeq_epi16_mask(findVec, arrayListVec[i]);
 
 		unsigned long index;
 		if (_BitScanForward(&index, bitmask) == 0) {
@@ -141,7 +141,7 @@ static gk::Option<usize> avx2Find4ByteInArrayList(const i32* arrayListData, usiz
 	const __m256i* arrayListVec = reinterpret_cast<const __m256i*>(arrayListData);
 	const usize iterationToDo = (length % NUM_PER_VEC == 0 ? length : length + (NUM_PER_VEC - (length % NUM_PER_VEC))) / NUM_PER_VEC;
 	for (usize i = 0; i < iterationToDo; i++) {
-		const u64 bitmask = _mm256_cmpeq_epi32_mask(findVec, arrayListVec[i]);
+		const u32 bitmask = _mm256_cmpeq_epi32_mask(findVec, arrayListVec[i]);
 
 		unsigned long index;
 		if (_BitScanForward(&index, bitmask) == 0) {
@@ -185,7 +185,7 @@ static gk::Option<usize> avx2Find8ByteInArrayList(const i64* arrayListData, usiz
 	const __m256i* arrayListVec = reinterpret_cast<const __m256i*>(arrayListData);
 	const usize iterationToDo = (length % NUM_PER_VEC == 0 ? length : length + (NUM_PER_VEC - (length % NUM_PER_VEC))) / NUM_PER_VEC;
 	for (usize i = 0; i < iterationToDo; i++) {
-		const u64 bitmask = _mm256_cmpeq_epi64_mask(findVec, arrayListVec[i]);
+		const u32 bitmask = _mm256_cmpeq_epi64_mask(findVec, arrayListVec[i]);
 
 		unsigned long index;
 		if (_BitScanForward(&index, bitmask) == 0) {
