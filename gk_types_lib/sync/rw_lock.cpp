@@ -151,5 +151,25 @@ test_case("ConstRead") {
 	readValueConst(&rwlock);
 }
 
+test_case("TryRead") {
+	gk::RwLock<int> rwlock = 100;
+	auto lock = rwlock.tryRead();
+	check(lock.isSome());
+	check_eq(*lock.some().get(), 100);
+}
+
+test_case("TryWriteAndRead") {
+	gk::RwLock<int> rwlock = 100;
+	auto write = rwlock.tryWrite();
+	check(write.isSome());
+	*write.some().get() = 100;
+
+	auto read = rwlock.tryRead();
+	check(read.isSome());
+	check_eq(*read.some().get(), 100);
+}
+
+
+
 
 #endif
