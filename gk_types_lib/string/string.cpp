@@ -274,11 +274,11 @@ test_case("ConstructStrSmall") {
 
 comptime_test_case(String, ConstructStrSmall, {
 		gk::String a = "hi"_str;
-		comptimeAssertEq(a.len(), 2);
-		comptimeAssertEq(a.usedBytes(), 2);
-		comptimeAssertEq(a.cstr()[0], 'h');
-		comptimeAssertEq(a.cstr()[1], 'i');
-		comptimeAssertEq(a.cstr()[2], '\0');
+		check_eq(a.len(), 2);
+		check_eq(a.usedBytes(), 2);
+		check_eq(a.cstr()[0], 'h');
+		check_eq(a.cstr()[1], 'i');
+		check_eq(a.cstr()[2], '\0');
 });
 
 test_case("ConstructStrSmallUtf8") {
@@ -293,12 +293,12 @@ test_case("ConstructStrSmallUtf8") {
 
 comptime_test_case(String, ConstructStrSmallUtf8, {
 		gk::String a = "aÜ"_str;
-		comptimeAssertEq(a.len(), 2);
-		comptimeAssertEq(a.usedBytes(), 3);
-		comptimeAssertEq(a.cstr()[0], 'a');
-		comptimeAssertEq(a.cstr()[1], "Ü"[0]);
-		comptimeAssertEq(a.cstr()[2], "Ü"[1]);
-		comptimeAssertEq(a.cstr()[4], '\0');
+		check_eq(a.len(), 2);
+		check_eq(a.usedBytes(), 3);
+		check_eq(a.cstr()[0], 'a');
+		check_eq(a.cstr()[1], "Ü"[0]);
+		check_eq(a.cstr()[2], "Ü"[1]);
+		check_eq(a.cstr()[4], '\0');
 	});
 
 test_case("ConstructStrLarge") {
@@ -311,10 +311,10 @@ test_case("ConstructStrLarge") {
 
 comptime_test_case(String, ConstructStrLarge, {
 		gk::String a = "asdglkjahsldkjahsldkjahsldkjahsdlkajshd"_str;
-		comptimeAssertEq(a.len(), 39);
-		comptimeAssertEq(a.usedBytes(), 39);
-		comptimeAssertEq(a.cstr()[0], 'a');
-		comptimeAssertEq(a.cstr()[39], '\0');
+		check_eq(a.len(), 39);
+		check_eq(a.usedBytes(), 39);
+		check_eq(a.cstr()[0], 'a');
+		check_eq(a.cstr()[39], '\0');
 	});
 
 test_case("ConstructStrLargeUtf8") {
@@ -329,12 +329,12 @@ test_case("ConstructStrLargeUtf8") {
 
 comptime_test_case(String, ConstructStrLargeUtf8, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträ"_str;
-		comptimeAssertEq(a.len(), 29);
-		comptimeAssertEq(a.usedBytes(), 37);
-		comptimeAssertEq(a.cstr()[0], "Ü"[0]);
-		comptimeAssertEq(a.cstr()[1], "Ü"[1]);
+		check_eq(a.len(), 29);
+		check_eq(a.usedBytes(), 37);
+		check_eq(a.cstr()[0], "Ü"[0]);
+		check_eq(a.cstr()[1], "Ü"[1]);
 		comptimeAssertNe(a.cstr()[36], '\0');
-		comptimeAssertEq(a.cstr()[37], '\0');
+		check_eq(a.cstr()[37], '\0');
 	});
 
 #pragma endregion
@@ -350,7 +350,7 @@ test_case("CopyDefaultConstruct") {
 comptime_test_case(String, CopyDefaultConstruct, {
 		gk::String a;
 		gk::String b = a;
-		comptimeAssertEq(b.len(), 0);
+		check_eq(b.len(), 0);
 	});
 
 test_case("CopyConstructOneCharacter") {
@@ -364,9 +364,9 @@ test_case("CopyConstructOneCharacter") {
 comptime_test_case(String, CopyConstructOneCharacter, {
 		gk::String a = 'c';
 		gk::String b = a;
-		comptimeAssertEq(b.len(), 1);
-		comptimeAssertEq(b.cstr()[0], 'c');
-		comptimeAssertEq(b.cstr()[1], '\0');
+		check_eq(b.len(), 1);
+		check_eq(b.cstr()[0], 'c');
+		check_eq(b.cstr()[1], '\0');
 	});
 
 test_case("CopyConstructStrSmall") {
@@ -382,11 +382,11 @@ test_case("CopyConstructStrSmall") {
 comptime_test_case(String, CopyConstructStrSmall, {
 		gk::String a = "hi"_str;
 		gk::String b = a;
-		comptimeAssertEq(b.len(), 2);
-		comptimeAssertEq(b.usedBytes(), 2);
-		comptimeAssertEq(b.cstr()[0], 'h');
-		comptimeAssertEq(b.cstr()[1], 'i');
-		comptimeAssertEq(b.cstr()[2], '\0');
+		check_eq(b.len(), 2);
+		check_eq(b.usedBytes(), 2);
+		check_eq(b.cstr()[0], 'h');
+		check_eq(b.cstr()[1], 'i');
+		check_eq(b.cstr()[2], '\0');
 	});
 
 test_case("CopyConstructStrSmallUtf8") {
@@ -403,12 +403,12 @@ test_case("CopyConstructStrSmallUtf8") {
 comptime_test_case(String, CopyConstructStrSmallUtf8, {
 		gk::String a = "aÜ"_str;
 		gk::String b = a;
-		comptimeAssertEq(b.len(), 2);
-		comptimeAssertEq(b.usedBytes(), 3);
-		comptimeAssertEq(b.cstr()[0], 'a');
-		comptimeAssertEq(b.cstr()[1], "Ü"[0]);
-		comptimeAssertEq(b.cstr()[2], "Ü"[1]);
-		comptimeAssertEq(b.cstr()[4], '\0');
+		check_eq(b.len(), 2);
+		check_eq(b.usedBytes(), 3);
+		check_eq(b.cstr()[0], 'a');
+		check_eq(b.cstr()[1], "Ü"[0]);
+		check_eq(b.cstr()[2], "Ü"[1]);
+		check_eq(b.cstr()[4], '\0');
 	});
 
 test_case("CopyConstructStrLarge") {
@@ -423,10 +423,10 @@ test_case("CopyConstructStrLarge") {
 comptime_test_case(String, CopyConstructStrLarge, {
 		gk::String a = "asdglkjahsldkjahsldkjahsldkjahsdlkajshd"_str;
 		gk::String b = a;
-		comptimeAssertEq(b.len(), 39);
-		comptimeAssertEq(b.usedBytes(), 39);
-		comptimeAssertEq(b.cstr()[0], 'a');
-		comptimeAssertEq(b.cstr()[39], '\0');
+		check_eq(b.len(), 39);
+		check_eq(b.usedBytes(), 39);
+		check_eq(b.cstr()[0], 'a');
+		check_eq(b.cstr()[39], '\0');
 	});
 
 test_case("CopyConstructStrLargeUtf8") {
@@ -443,12 +443,12 @@ test_case("CopyConstructStrLargeUtf8") {
 comptime_test_case(String, CopyConstructStrLargeUtf8, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträ"_str;
 		gk::String b = a;
-		comptimeAssertEq(b.len(), 29);
-		comptimeAssertEq(b.usedBytes(), 37);
-		comptimeAssertEq(b.cstr()[0], "Ü"[0]);
-		comptimeAssertEq(b.cstr()[1], "Ü"[1]);
+		check_eq(b.len(), 29);
+		check_eq(b.usedBytes(), 37);
+		check_eq(b.cstr()[0], "Ü"[0]);
+		check_eq(b.cstr()[1], "Ü"[1]);
 		comptimeAssertNe(b.cstr()[36], '\0');
-		comptimeAssertEq(b.cstr()[37], '\0');
+		check_eq(b.cstr()[37], '\0');
 	});
 
 #pragma endregion
@@ -464,7 +464,7 @@ test_case("MoveDefaultConstruct") {
 comptime_test_case(String, MoveDefaultConstruct, {
 		gk::String a;
 		gk::String b = a;
-		comptimeAssertEq(b.len(), 0);
+		check_eq(b.len(), 0);
 	});
 
 test_case("MoveConstructOneCharacter") {
@@ -478,9 +478,9 @@ test_case("MoveConstructOneCharacter") {
 comptime_test_case(String, MoveConstructOneCharacter, {
 		gk::String a = 'c';
 		gk::String b = a;
-		comptimeAssertEq(b.len(), 1);
-		comptimeAssertEq(b.cstr()[0], 'c');
-		comptimeAssertEq(b.cstr()[1], '\0');
+		check_eq(b.len(), 1);
+		check_eq(b.cstr()[0], 'c');
+		check_eq(b.cstr()[1], '\0');
 	});
 
 test_case("MoveConstructStrSmall") {
@@ -496,11 +496,11 @@ test_case("MoveConstructStrSmall") {
 comptime_test_case(String, MoveConstructStrSmall, {
 		gk::String a = "hi"_str;
 		gk::String b = a;
-		comptimeAssertEq(b.len(), 2);
-		comptimeAssertEq(b.usedBytes(), 2);
-		comptimeAssertEq(b.cstr()[0], 'h');
-		comptimeAssertEq(b.cstr()[1], 'i');
-		comptimeAssertEq(b.cstr()[2], '\0');
+		check_eq(b.len(), 2);
+		check_eq(b.usedBytes(), 2);
+		check_eq(b.cstr()[0], 'h');
+		check_eq(b.cstr()[1], 'i');
+		check_eq(b.cstr()[2], '\0');
 	});
 
 test_case("MoveConstructStrSmallUtf8") {
@@ -517,12 +517,12 @@ test_case("MoveConstructStrSmallUtf8") {
 comptime_test_case(String, MoveConstructStrSmallUtf8, {
 		gk::String a = "aÜ"_str;
 		gk::String b = a;
-		comptimeAssertEq(b.len(), 2);
-		comptimeAssertEq(b.usedBytes(), 3);
-		comptimeAssertEq(b.cstr()[0], 'a');
-		comptimeAssertEq(b.cstr()[1], "Ü"[0]);
-		comptimeAssertEq(b.cstr()[2], "Ü"[1]);
-		comptimeAssertEq(b.cstr()[4], '\0');
+		check_eq(b.len(), 2);
+		check_eq(b.usedBytes(), 3);
+		check_eq(b.cstr()[0], 'a');
+		check_eq(b.cstr()[1], "Ü"[0]);
+		check_eq(b.cstr()[2], "Ü"[1]);
+		check_eq(b.cstr()[4], '\0');
 	});
 
 test_case("MoveConstructStrLarge") {
@@ -537,10 +537,10 @@ test_case("MoveConstructStrLarge") {
 comptime_test_case(String, MoveConstructStrLarge, {
 		gk::String a = "asdglkjahsldkjahsldkjahsldkjahsdlkajshd"_str;
 		gk::String b = a;
-		comptimeAssertEq(b.len(), 39);
-		comptimeAssertEq(b.usedBytes(), 39);
-		comptimeAssertEq(b.cstr()[0], 'a');
-		comptimeAssertEq(b.cstr()[39], '\0');
+		check_eq(b.len(), 39);
+		check_eq(b.usedBytes(), 39);
+		check_eq(b.cstr()[0], 'a');
+		check_eq(b.cstr()[39], '\0');
 	});
 
 test_case("MoveConstructStrLargeUtf8") {
@@ -557,12 +557,12 @@ test_case("MoveConstructStrLargeUtf8") {
 comptime_test_case(String, MoveConstructStrLargeUtf8, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträ"_str;
 		gk::String b = a;
-		comptimeAssertEq(b.len(), 29);
-		comptimeAssertEq(b.usedBytes(), 37);
-		comptimeAssertEq(b.cstr()[0], "Ü"[0]);
-		comptimeAssertEq(b.cstr()[1], "Ü"[1]);
+		check_eq(b.len(), 29);
+		check_eq(b.usedBytes(), 37);
+		check_eq(b.cstr()[0], "Ü"[0]);
+		check_eq(b.cstr()[1], "Ü"[1]);
 		comptimeAssertNe(b.cstr()[36], '\0');
-		comptimeAssertEq(b.cstr()[37], '\0');
+		check_eq(b.cstr()[37], '\0');
 	});
 
 #pragma endregion
@@ -580,9 +580,9 @@ test_case("AssignFromChar") {
 comptime_test_case(String, AssignFromChar, {
 		gk::String a = "ahosiduyapisudypaiusdypaiusdypaiusydpaiusd"_str;
 		a = 'c';
-		comptimeAssertEq(a.len(), 1);
-		comptimeAssertEq(a.cstr()[0], 'c');
-		comptimeAssertEq(a.cstr()[1], '\0');
+		check_eq(a.len(), 1);
+		check_eq(a.cstr()[0], 'c');
+		check_eq(a.cstr()[1], '\0');
 	});
 
 test_case("AssignFromCharNullBytesSanityCheck") {
@@ -598,10 +598,10 @@ test_case("AssignFromCharNullBytesSanityCheck") {
 comptime_test_case(String, AssignFromCharNullBytesSanityCheck, {
 		gk::String a = "ha"_str;
 		a = 'c';
-		comptimeAssertEq(a.len(), 1);
-		comptimeAssertEq(a.cstr()[0], 'c');
+		check_eq(a.len(), 1);
+		check_eq(a.cstr()[0], 'c');
 		for (int i = 1; i < 30; i++) {
-			comptimeAssertEq(a.cstr()[i], '\0');
+			check_eq(a.cstr()[i], '\0');
 		}
 	});
 
@@ -622,11 +622,11 @@ test_case("AssignFromSmallStr") {
 comptime_test_case(String, AssignFromSmallStr, {
 		gk::String a = "haaiusydp8iauysdoliuaqyweoiuqywepoiuaqyspediausd"_str;
 		a = "ca"_str;
-		comptimeAssertEq(a.len(), 2);
-		comptimeAssertEq(a.usedBytes(), 2);
-		comptimeAssertEq(a.cstr()[0], 'c');
-		comptimeAssertEq(a.cstr()[1], 'a');
-		comptimeAssertEq(a.cstr()[2], '\0');
+		check_eq(a.len(), 2);
+		check_eq(a.usedBytes(), 2);
+		check_eq(a.cstr()[0], 'c');
+		check_eq(a.cstr()[1], 'a');
+		check_eq(a.cstr()[2], '\0');
 	});
 
 test_case("AssignFromLargeStr") {
@@ -642,11 +642,11 @@ test_case("AssignFromLargeStr") {
 comptime_test_case(String, AssignFromLargeStr, {
 		gk::String a = "hagsldihaglsdhalsiudhasduia;sikjdhlakjsdhl;akjsdh;akjsdh;akjshdoiuaysdo8q76wye08uyatsd"_str;
 		a = "aijshdliajshdlkajshdlkjashdlkajshdlaasd"_str;
-		comptimeAssertEq(a.len(), 39);
-		comptimeAssertEq(a.usedBytes(), 39);
-		comptimeAssertEq(a.cstr()[0], 'a');
-		comptimeAssertEq(a.cstr()[38], 'd');
-		comptimeAssertEq(a.cstr()[39], '\0');
+		check_eq(a.len(), 39);
+		check_eq(a.usedBytes(), 39);
+		check_eq(a.cstr()[0], 'a');
+		check_eq(a.cstr()[38], 'd');
+		check_eq(a.cstr()[39], '\0');
 	});
 
 test_case("AssignFromStrNullBytesSanityCheck") {
@@ -664,12 +664,12 @@ test_case("AssignFromStrNullBytesSanityCheck") {
 comptime_test_case(String, AssignFromStrNullBytesSanityCheck, {
 		gk::String a = "hbb"_str;
 		a = "ca"_str;
-		comptimeAssertEq(a.len(), 2);
-		comptimeAssertEq(a.usedBytes(), 2);
-		comptimeAssertEq(a.cstr()[0], 'c');
-		comptimeAssertEq(a.cstr()[1], 'a');
+		check_eq(a.len(), 2);
+		check_eq(a.usedBytes(), 2);
+		check_eq(a.cstr()[0], 'c');
+		check_eq(a.cstr()[1], 'a');
 		for (int i = 2; i < 30; i++) {
-			comptimeAssertEq(a.cstr()[i], '\0');
+			check_eq(a.cstr()[i], '\0');
 		}
 	});
 
@@ -686,7 +686,7 @@ comptime_test_case(String, AssignFromStrReuseAllocation, {
 		const char* oldBuffer = a.cstr();
 		a = "shsldkjahsldkjahlsdkjhp398ury08970897-98"_str;
 		const char* newBuffer = a.cstr();
-		comptimeAssertEq(oldBuffer, newBuffer);
+		check_eq(oldBuffer, newBuffer);
 	});
 
 #pragma endregion
@@ -707,11 +707,11 @@ comptime_test_case(String, AssignFromSmallCopy, {
 		gk::String a = "haaiusydp8iauysdoliuaqyweoiuqywepoiuaqyspediausd"_str;
 		gk::String b = "ca"_str;
 		a = b;
-		comptimeAssertEq(a.len(), 2);
-		comptimeAssertEq(a.usedBytes(), 2);
-		comptimeAssertEq(a.cstr()[0], 'c');
-		comptimeAssertEq(a.cstr()[1], 'a');
-		comptimeAssertEq(a.cstr()[2], '\0');
+		check_eq(a.len(), 2);
+		check_eq(a.usedBytes(), 2);
+		check_eq(a.cstr()[0], 'c');
+		check_eq(a.cstr()[1], 'a');
+		check_eq(a.cstr()[2], '\0');
 	});
 
 test_case("AssignFromLargeCopy") {
@@ -729,11 +729,11 @@ comptime_test_case(String, AssignFromLargeCopy, {
 		gk::String a = "hagsldihaglsdhalsiudhasduia;sikjdhlakjsdhl;akjsdh;akjsdh;akjshdoiuaysdo8q76wye08uyatsd"_str;
 		gk::String b = "aijshdliajshdlkajshdlkjashdlkajshdlaasd"_str;
 		a = b;
-		comptimeAssertEq(a.len(), 39);
-		comptimeAssertEq(a.usedBytes(), 39);
-		comptimeAssertEq(a.cstr()[0], 'a');
-		comptimeAssertEq(a.cstr()[38], 'd');
-		comptimeAssertEq(a.cstr()[39], '\0');
+		check_eq(a.len(), 39);
+		check_eq(a.usedBytes(), 39);
+		check_eq(a.cstr()[0], 'a');
+		check_eq(a.cstr()[38], 'd');
+		check_eq(a.cstr()[39], '\0');
 	});
 
 test_case("AssignFromCopyNullBytesSanityCheck") {
@@ -753,12 +753,12 @@ comptime_test_case(String, AssignFromCopyNullBytesSanityCheck, {
 		gk::String a = "hbb"_str;
 		gk::String b = "ca"_str;
 		a = b;
-		comptimeAssertEq(a.len(), 2);
-		comptimeAssertEq(a.usedBytes(), 2);
-		comptimeAssertEq(a.cstr()[0], 'c');
-		comptimeAssertEq(a.cstr()[1], 'a');
+		check_eq(a.len(), 2);
+		check_eq(a.usedBytes(), 2);
+		check_eq(a.cstr()[0], 'c');
+		check_eq(a.cstr()[1], 'a');
 		for (int i = 2; i < 30; i++) {
-			comptimeAssertEq(a.cstr()[i], '\0');
+			check_eq(a.cstr()[i], '\0');
 		}
 	});
 
@@ -777,7 +777,7 @@ comptime_test_case(String, AssignFromCopyReuseAllocation, {
 		gk::String b = "shsldkjahsldkjahlsdkjhp398ury08970897-98"_str;
 		a = b;
 		const char* newBuffer = a.cstr();
-		comptimeAssertEq(oldBuffer, newBuffer);
+		check_eq(oldBuffer, newBuffer);
 	});
 
 #pragma endregion
@@ -799,11 +799,11 @@ comptime_test_case(String, AssignFromSmallMove, {
 		gk::String a = "haaiusydp8iauysdoliuaqyweoiuqywepoiuaqyspediausd"_str;
 		gk::String b = "ca"_str;
 		a = std::move(b);
-		comptimeAssertEq(a.len(), 2);
-		comptimeAssertEq(a.usedBytes(), 2);
-		comptimeAssertEq(a.cstr()[0], 'c');
-		comptimeAssertEq(a.cstr()[1], 'a');
-		comptimeAssertEq(a.cstr()[2], '\0');
+		check_eq(a.len(), 2);
+		check_eq(a.usedBytes(), 2);
+		check_eq(a.cstr()[0], 'c');
+		check_eq(a.cstr()[1], 'a');
+		check_eq(a.cstr()[2], '\0');
 	});
 
 test_case("AssignFromLargeMove") {
@@ -821,11 +821,11 @@ comptime_test_case(String, AssignFromLargeMove, {
 		gk::String a = "hagsldihaglsdhalsiudhasduia;sikjdhlakjsdhl;akjsdh;akjsdh;akjshdoiuaysdo8q76wye08uyatsd"_str;
 		gk::String b = "aijshdliajshdlkajshdlkjashdlkajshdlaasd"_str;
 		a = std::move(b);
-		comptimeAssertEq(a.len(), 39);
-		comptimeAssertEq(a.usedBytes(), 39);
-		comptimeAssertEq(a.cstr()[0], 'a');
-		comptimeAssertEq(a.cstr()[38], 'd');
-		comptimeAssertEq(a.cstr()[39], '\0');
+		check_eq(a.len(), 39);
+		check_eq(a.usedBytes(), 39);
+		check_eq(a.cstr()[0], 'a');
+		check_eq(a.cstr()[38], 'd');
+		check_eq(a.cstr()[39], '\0');
 	});
 
 test_case("AssignFromMoveNullBytesSanityCheck") {
@@ -845,12 +845,12 @@ comptime_test_case(String, AssignFromMoveNullBytesSanityCheck, {
 		gk::String a = "hbb"_str;
 		gk::String b = "ca"_str;
 		a = std::move(b);
-		comptimeAssertEq(a.len(), 2);
-		comptimeAssertEq(a.usedBytes(), 2);
-		comptimeAssertEq(a.cstr()[0], 'c');
-		comptimeAssertEq(a.cstr()[1], 'a');
+		check_eq(a.len(), 2);
+		check_eq(a.usedBytes(), 2);
+		check_eq(a.cstr()[0], 'c');
+		check_eq(a.cstr()[1], 'a');
 		for (int i = 2; i < 30; i++) {
-			comptimeAssertEq(a.cstr()[i], '\0');
+			check_eq(a.cstr()[i], '\0');
 		}
 	});
 
@@ -865,7 +865,7 @@ test_case("EqualChar") {
 
 comptime_test_case(String, EqualChar, {
 		gk::String a = 'c';
-		comptimeAssertEq(a, 'c');
+		check_eq(a, 'c');
 	});
 
 test_case("NotEqualChar") {
@@ -909,7 +909,7 @@ test_case("EqualSmallStr") {
 
 comptime_test_case(String, EqualSmallStr, {
 		gk::String a = "hi"_str;
-		comptimeAssertEq(a, "hi"_str);
+		check_eq(a, "hi"_str);
 	});
 
 test_case("EqualSsoMaxStr") {
@@ -919,7 +919,7 @@ test_case("EqualSsoMaxStr") {
 
 comptime_test_case(String, EqualSsoMaxStr, {
 		gk::String a = "ashdlakjshdlkajshdlkjasdasdddg"_str;
-		comptimeAssertEq(a, "ashdlakjshdlkajshdlkjasdasdddg"_str);
+		check_eq(a, "ashdlakjshdlkajshdlkjasdasdddg"_str);
 	});
 
 test_case("EqualLargeStr") {
@@ -929,7 +929,7 @@ test_case("EqualLargeStr") {
 
 comptime_test_case(String, EqualLargeStr, {
 		gk::String a = "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str;
-		comptimeAssertEq(a, "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str);
+		check_eq(a, "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str);
 	});
 
 test_case("EqualUtf8SmallStr") {
@@ -939,7 +939,7 @@ test_case("EqualUtf8SmallStr") {
 
 comptime_test_case(String, EqualUtf8SmallStr, {
 		gk::String a = "ßen"_str;
-		comptimeAssertEq(a, "ßen"_str);
+		check_eq(a, "ßen"_str);
 	});
 
 test_case("EqualUtf8LargeStr") {
@@ -949,7 +949,7 @@ test_case("EqualUtf8LargeStr") {
 
 comptime_test_case(String, EqualUtf8LargeStr, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträ"_str;
-		comptimeAssertEq(a, "ÜbergrößenträgerÜbergrößenträ"_str);
+		check_eq(a, "ÜbergrößenträgerÜbergrößenträ"_str);
 	});
 
 test_case("NotEqualSmallStr") {
@@ -1013,7 +1013,7 @@ test_case("EqualCharOtherString") {
 
 comptime_test_case(String, EqualCharOtherString, {
 		gk::String a = 'c';
-		comptimeAssertEq(a, gk::String('c'));
+		check_eq(a, gk::String('c'));
 	});
 
 test_case("EqualSmallOtherString") {
@@ -1023,7 +1023,7 @@ test_case("EqualSmallOtherString") {
 
 comptime_test_case(String, EqualSmallOtherString, {
 		gk::String a = "hi"_str;
-		comptimeAssertEq(a, gk::String("hi"_str));
+		check_eq(a, gk::String("hi"_str));
 	});
 
 test_case("EqualSsoMaxOtherString") {
@@ -1033,7 +1033,7 @@ test_case("EqualSsoMaxOtherString") {
 
 comptime_test_case(String, EqualSsoMaxOtherString, {
 		gk::String a = "ashdlakjshdlkajshdlkjasdasdddg"_str;
-		comptimeAssertEq(a, gk::String("ashdlakjshdlkajshdlkjasdasdddg"_str));
+		check_eq(a, gk::String("ashdlakjshdlkajshdlkjasdasdddg"_str));
 	});
 
 test_case("EqualLargeOtherString") {
@@ -1043,7 +1043,7 @@ test_case("EqualLargeOtherString") {
 
 comptime_test_case(String, EqualLargeOtherString, {
 		gk::String a = "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str;
-		comptimeAssertEq(a, gk::String("ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str));
+		check_eq(a, gk::String("ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str));
 	});
 
 test_case("EqualUtf8SmallOtherString") {
@@ -1053,7 +1053,7 @@ test_case("EqualUtf8SmallOtherString") {
 
 comptime_test_case(String, EqualUtf8SmallOtherString, {
 		gk::String a = "ßen"_str;
-		comptimeAssertEq(a, gk::String("ßen"_str));
+		check_eq(a, gk::String("ßen"_str));
 	});
 
 test_case("EqualUtf8LargeOtherString") {
@@ -1063,7 +1063,7 @@ test_case("EqualUtf8LargeOtherString") {
 
 comptime_test_case(String, EqualUtf8LargeOtherString, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträ"_str;
-		comptimeAssertEq(a, gk::String("ÜbergrößenträgerÜbergrößenträ"_str));
+		check_eq(a, gk::String("ÜbergrößenträgerÜbergrößenträ"_str));
 	});
 
 test_case("NotEqualSmallStrOtherString") {
@@ -1130,8 +1130,8 @@ test_case("EmptyStringAppendChar") {
 comptime_test_case(String, EmptyStringAppendChar, {
 		gk::String a;
 		a.append('c');
-		comptimeAssertEq(a, 'c');
-		comptimeAssertEq(a, gk::String('c'));
+		check_eq(a, 'c');
+		check_eq(a, gk::String('c'));
 	});
 
 test_case("SmallStringAppendChar") {
@@ -1144,8 +1144,8 @@ test_case("SmallStringAppendChar") {
 comptime_test_case(String, SmallStringAppendChar, {
 		gk::String a = "hello"_str;
 		a.append('!');
-		comptimeAssertEq(a, "hello!"_str);
-		comptimeAssertEq(a, gk::String("hello!"_str));
+		check_eq(a, "hello!"_str);
+		check_eq(a, gk::String("hello!"_str));
 	});
 
 test_case("SmallStringAppendCharMakeHeap") {
@@ -1158,8 +1158,8 @@ test_case("SmallStringAppendCharMakeHeap") {
 comptime_test_case(String, SmallStringAppendCharMakeHeap, {
 		gk::String a = "ahlskdjhalskjdhlaskjdhlakjsgga"_str;
 		a.append('!');
-		comptimeAssertEq(a, "ahlskdjhalskjdhlaskjdhlakjsgga!"_str);
-		comptimeAssertEq(a, gk::String("ahlskdjhalskjdhlaskjdhlakjsgga!"_str));
+		check_eq(a, "ahlskdjhalskjdhlaskjdhlakjsgga!"_str);
+		check_eq(a, gk::String("ahlskdjhalskjdhlaskjdhlakjsgga!"_str));
 	});
 
 test_case("LargeStringAppendChar") {
@@ -1172,8 +1172,8 @@ test_case("LargeStringAppendChar") {
 comptime_test_case(String, LargeStringAppendChar, {
 		gk::String a = "1672038761203876102873601287630187263018723601872630187263018723"_str;
 		a.append('a');
-		comptimeAssertEq(a, "1672038761203876102873601287630187263018723601872630187263018723a"_str);
-		comptimeAssertEq(a, gk::String("1672038761203876102873601287630187263018723601872630187263018723a"_str));
+		check_eq(a, "1672038761203876102873601287630187263018723601872630187263018723a"_str);
+		check_eq(a, gk::String("1672038761203876102873601287630187263018723601872630187263018723a"_str));
 	});
 
 test_case("SmallUtf8AppendChar") {
@@ -1186,8 +1186,8 @@ test_case("SmallUtf8AppendChar") {
 comptime_test_case(String, SmallUtf8AppendChar, {
 		gk::String a = "ßeb"_str;
 		a.append('?');
-		comptimeAssertEq(a, "ßeb?"_str);
-		comptimeAssertEq(a, gk::String("ßeb?"_str));
+		check_eq(a, "ßeb?"_str);
+		check_eq(a, gk::String("ßeb?"_str));
 	});
 
 test_case("SmallUtf8AppendCharMakeHeap") {
@@ -1200,8 +1200,8 @@ test_case("SmallUtf8AppendCharMakeHeap") {
 comptime_test_case(String, SmallUtf8AppendCharMakeHeap, {
 		gk::String a = "ÜbergrößenträgerÜbergröa"_str;
 		a.append('l');
-		comptimeAssertEq(a, "ÜbergrößenträgerÜbergröal"_str);
-		comptimeAssertEq(a, gk::String("ÜbergrößenträgerÜbergröal"_str));
+		check_eq(a, "ÜbergrößenträgerÜbergröal"_str);
+		check_eq(a, gk::String("ÜbergrößenträgerÜbergröal"_str));
 	});
 
 test_case("AppendCharHeapReallocate") {
@@ -1214,8 +1214,8 @@ test_case("AppendCharHeapReallocate") {
 comptime_test_case(String, AppendCharHeapReallocate, {
 		gk::String a = "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl"_str;
 		a.append('5');
-		comptimeAssertEq(a, "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl5"_str);
-		comptimeAssertEq(a, gk::String("askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl5"_str));
+		check_eq(a, "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl5"_str);
+		check_eq(a, gk::String("askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl5"_str));
 	});
 
 #pragma endregion
@@ -1232,8 +1232,8 @@ test_case("EmptyStringAppendStr") {
 comptime_test_case(String, EmptyStringAppendStr, {
 		gk::String a;
 		a.append("cc"_str);
-		comptimeAssertEq(a, "cc"_str);
-		comptimeAssertEq(a, gk::String("cc"_str));
+		check_eq(a, "cc"_str);
+		check_eq(a, gk::String("cc"_str));
 	});
 
 test_case("SmallStringAppendStr") {
@@ -1246,8 +1246,8 @@ test_case("SmallStringAppendStr") {
 comptime_test_case(String, SmallStringAppendStr, {
 		gk::String a = "hello"_str;
 		a.append("!!"_str);
-		comptimeAssertEq(a, "hello!!"_str);
-		comptimeAssertEq(a, gk::String("hello!!"_str));
+		check_eq(a, "hello!!"_str);
+		check_eq(a, gk::String("hello!!"_str));
 	});
 
 test_case("SmallStringAppendStrMakeHeap") {
@@ -1260,8 +1260,8 @@ test_case("SmallStringAppendStrMakeHeap") {
 comptime_test_case(String, SmallStringAppendStrMakeHeap, {
 		gk::String a = "ahlskdjhalskjdhlaskjdhlakjsgga"_str;
 		a.append("!!"_str);
-		comptimeAssertEq(a, "ahlskdjhalskjdhlaskjdhlakjsgga!!"_str);
-		comptimeAssertEq(a, gk::String("ahlskdjhalskjdhlaskjdhlakjsgga!!"_str));
+		check_eq(a, "ahlskdjhalskjdhlaskjdhlakjsgga!!"_str);
+		check_eq(a, gk::String("ahlskdjhalskjdhlaskjdhlakjsgga!!"_str));
 	});
 
 test_case("LargeStringAppendStr") {
@@ -1274,8 +1274,8 @@ test_case("LargeStringAppendStr") {
 comptime_test_case(String, LargeStringAppendStr, {
 		gk::String a = "1672038761203876102873601287630187263018723601872630187263018723"_str;
 		a.append("aa"_str);
-		comptimeAssertEq(a, "1672038761203876102873601287630187263018723601872630187263018723aa"_str);
-		comptimeAssertEq(a, gk::String("1672038761203876102873601287630187263018723601872630187263018723aa"_str));
+		check_eq(a, "1672038761203876102873601287630187263018723601872630187263018723aa"_str);
+		check_eq(a, gk::String("1672038761203876102873601287630187263018723601872630187263018723aa"_str));
 	});
 
 test_case("SmallUtf8AppendStr") {
@@ -1288,8 +1288,8 @@ test_case("SmallUtf8AppendStr") {
 comptime_test_case(String, SmallUtf8AppendStr, {
 		gk::String a = "ßeb"_str;
 		a.append("??"_str);
-		comptimeAssertEq(a, "ßeb??"_str);
-		comptimeAssertEq(a, gk::String("ßeb??"_str));
+		check_eq(a, "ßeb??"_str);
+		check_eq(a, gk::String("ßeb??"_str));
 	});
 
 test_case("SmallUtf8AppendStrMakeHeap") {
@@ -1302,8 +1302,8 @@ test_case("SmallUtf8AppendStrMakeHeap") {
 comptime_test_case(String, SmallUtf8AppendStrMakeHeap, {
 		gk::String a = "ÜbergrößenträgerÜbergröa"_str;
 		a.append("ll"_str);
-		comptimeAssertEq(a, "ÜbergrößenträgerÜbergröall"_str);
-		comptimeAssertEq(a, gk::String("ÜbergrößenträgerÜbergröall"_str));
+		check_eq(a, "ÜbergrößenträgerÜbergröall"_str);
+		check_eq(a, gk::String("ÜbergrößenträgerÜbergröall"_str));
 	});
 
 test_case("AppendStrHeapReallocate") {
@@ -1316,8 +1316,8 @@ test_case("AppendStrHeapReallocate") {
 comptime_test_case(String, AppendStrHeapReallocate, {
 		gk::String a = "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl"_str;
 		a.append("55"_str);
-		comptimeAssertEq(a, "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl55"_str);
-		comptimeAssertEq(a, gk::String("askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl55"_str));
+		check_eq(a, "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl55"_str);
+		check_eq(a, gk::String("askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl55"_str));
 	});
 
 #pragma endregion
@@ -1334,8 +1334,8 @@ test_case("EmptyStringAppendOtherString") {
 comptime_test_case(String, EmptyStringAppendOtherString, {
 		gk::String a;
 		a.append(gk::String("cc"_str));
-		comptimeAssertEq(a, "cc"_str);
-		comptimeAssertEq(a, gk::String("cc"_str));
+		check_eq(a, "cc"_str);
+		check_eq(a, gk::String("cc"_str));
 	});
 
 test_case("SmallStringAppendOtherString") {
@@ -1348,8 +1348,8 @@ test_case("SmallStringAppendOtherString") {
 comptime_test_case(String, SmallStringAppendOtherString, {
 		gk::String a = "hello"_str;
 		a.append(gk::String("!!"_str));
-		comptimeAssertEq(a, "hello!!"_str);
-		comptimeAssertEq(a, gk::String("hello!!"_str));
+		check_eq(a, "hello!!"_str);
+		check_eq(a, gk::String("hello!!"_str));
 	});
 
 test_case("SmallStringAppendOtherStringMakeHeap") {
@@ -1362,8 +1362,8 @@ test_case("SmallStringAppendOtherStringMakeHeap") {
 comptime_test_case(String, SmallStringAppendOtherStringMakeHeap, {
 		gk::String a = "ahlskdjhalskjdhlaskjdhlakjsgga"_str;
 		a.append(gk::String("!!"_str));
-		comptimeAssertEq(a, "ahlskdjhalskjdhlaskjdhlakjsgga!!"_str);
-		comptimeAssertEq(a, gk::String("ahlskdjhalskjdhlaskjdhlakjsgga!!"_str));
+		check_eq(a, "ahlskdjhalskjdhlaskjdhlakjsgga!!"_str);
+		check_eq(a, gk::String("ahlskdjhalskjdhlaskjdhlakjsgga!!"_str));
 	});
 
 test_case("LargeStringAppendOtherString") {
@@ -1376,8 +1376,8 @@ test_case("LargeStringAppendOtherString") {
 comptime_test_case(String, LargeStringAppendOtherString, {
 		gk::String a = "1672038761203876102873601287630187263018723601872630187263018723"_str;
 		a.append(gk::String("aa"_str));
-		comptimeAssertEq(a, "1672038761203876102873601287630187263018723601872630187263018723aa"_str);
-		comptimeAssertEq(a, gk::String("1672038761203876102873601287630187263018723601872630187263018723aa"_str));
+		check_eq(a, "1672038761203876102873601287630187263018723601872630187263018723aa"_str);
+		check_eq(a, gk::String("1672038761203876102873601287630187263018723601872630187263018723aa"_str));
 	});
 
 test_case("SmallUtf8AppendOtherString") {
@@ -1390,8 +1390,8 @@ test_case("SmallUtf8AppendOtherString") {
 comptime_test_case(String, SmallUtf8AppendOtherString, {
 		gk::String a = "ßeb"_str;
 		a.append(gk::String("??"_str));
-		comptimeAssertEq(a, "ßeb??"_str);
-		comptimeAssertEq(a, gk::String("ßeb??"_str));
+		check_eq(a, "ßeb??"_str);
+		check_eq(a, gk::String("ßeb??"_str));
 	});
 
 test_case("SmallUtf8AppendOtherStringMakeHeap") {
@@ -1404,8 +1404,8 @@ test_case("SmallUtf8AppendOtherStringMakeHeap") {
 comptime_test_case(String, SmallUtf8AppendOtherStringMakeHeap, {
 		gk::String a = "ÜbergrößenträgerÜbergröa"_str;
 		a.append(gk::String("ll"_str));
-		comptimeAssertEq(a, "ÜbergrößenträgerÜbergröall"_str);
-		comptimeAssertEq(a, gk::String("ÜbergrößenträgerÜbergröall"_str));
+		check_eq(a, "ÜbergrößenträgerÜbergröall"_str);
+		check_eq(a, gk::String("ÜbergrößenträgerÜbergröall"_str));
 	});
 
 test_case("AppendOtherStringHeapReallocate") {
@@ -1418,8 +1418,8 @@ test_case("AppendOtherStringHeapReallocate") {
 comptime_test_case(String, AppendOtherStringHeapReallocate, {
 	gk::String a = "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl"_str;
 	a.append(gk::String("55"_str));
-	comptimeAssertEq(a, "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl55"_str);
-	comptimeAssertEq(a, gk::String("askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl55"_str));
+	check_eq(a, "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl55"_str);
+	check_eq(a, gk::String("askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl55"_str));
 	});
 
 #pragma endregion
@@ -1436,8 +1436,8 @@ test_case("ConcatEmptyAndChar") {
 comptime_test_case(String, ConcatEmptyAndChar, {
 		const gk::String a;
 		gk::String b = a + 'c';
-		comptimeAssertEq(b, 'c');
-		comptimeAssertEq(b, gk::String('c'));
+		check_eq(b, 'c');
+		check_eq(b, gk::String('c'));
 	});
 
 test_case("ConcatCharStringAndChar") {
@@ -1450,8 +1450,8 @@ test_case("ConcatCharStringAndChar") {
 comptime_test_case(String, ConcatCharStringAndChar, {
 		const gk::String a = 'c';
 		gk::String b = a + 'c';
-		comptimeAssertEq(b, "cc"_str);
-		comptimeAssertEq(b, gk::String("cc"_str));
+		check_eq(b, "cc"_str);
+		check_eq(b, gk::String("cc"_str));
 	});
 
 test_case("ConcatSmallStringAndCharToHeap") {
@@ -1464,8 +1464,8 @@ test_case("ConcatSmallStringAndCharToHeap") {
 comptime_test_case(String, ConcatSmallStringAndCharToHeap, {
 		const gk::String a = "aslasdasddkjahldkjahsldkjahsda"_str;
 		gk::String b = a + 'c';
-		comptimeAssertEq(b, "aslasdasddkjahldkjahsldkjahsdac"_str);
-		comptimeAssertEq(b, gk::String("aslasdasddkjahldkjahsldkjahsdac"_str));
+		check_eq(b, "aslasdasddkjahldkjahsldkjahsdac"_str);
+		check_eq(b, gk::String("aslasdasddkjahldkjahsldkjahsdac"_str));
 	});
 
 test_case("ConcatHeapStringAndCharToHeap") {
@@ -1478,8 +1478,8 @@ test_case("ConcatHeapStringAndCharToHeap") {
 comptime_test_case(String, ConcatHeapStringAndCharToHeap, {
 		const gk::String a = "aslasdasddkjahl55dkjahsldkjahsda"_str;
 		gk::String b = a + 'c';
-		comptimeAssertEq(b, "aslasdasddkjahl55dkjahsldkjahsdac"_str);
-		comptimeAssertEq(b, gk::String("aslasdasddkjahl55dkjahsldkjahsdac"_str));
+		check_eq(b, "aslasdasddkjahl55dkjahsldkjahsdac"_str);
+		check_eq(b, gk::String("aslasdasddkjahl55dkjahsldkjahsdac"_str));
 	});
 
 test_case("ConcatSmallUtf8AndChar") {
@@ -1492,8 +1492,8 @@ test_case("ConcatSmallUtf8AndChar") {
 comptime_test_case(String, ConcatSmallUtf8AndChar, {
 		const gk::String a = "Übergrößenträger"_str;
 		gk::String b = a + 'c';
-		comptimeAssertEq(b, "Übergrößenträgerc"_str);
-		comptimeAssertEq(b, gk::String("Übergrößenträgerc"_str));
+		check_eq(b, "Übergrößenträgerc"_str);
+		check_eq(b, gk::String("Übergrößenträgerc"_str));
 	});
 
 test_case("ConcatSmallUtf8AndCharToHeap") {
@@ -1506,8 +1506,8 @@ test_case("ConcatSmallUtf8AndCharToHeap") {
 comptime_test_case(String, ConcatSmallUtf8AndCharToHeap, {
 		const gk::String a = "Übergrößenträgerasjhdgashh"_str;
 		gk::String b = a + 'c';
-		comptimeAssertEq(b, "Übergrößenträgerasjhdgashhc"_str);
-		comptimeAssertEq(b, gk::String("Übergrößenträgerasjhdgashhc"_str));
+		check_eq(b, "Übergrößenträgerasjhdgashhc"_str);
+		check_eq(b, gk::String("Übergrößenträgerasjhdgashhc"_str));
 	});
 
 test_case("ConcatHeapUtf8AndChar") {
@@ -1520,8 +1520,8 @@ test_case("ConcatHeapUtf8AndChar") {
 comptime_test_case(String, ConcatHeapUtf8AndChar, {
 		const gk::String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		gk::String b = a + 'c';
-		comptimeAssertEq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerc"_str);
-		comptimeAssertEq(b, gk::String("ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerc"_str));
+		check_eq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerc"_str);
+		check_eq(b, gk::String("ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerc"_str));
 	});
 
 #pragma endregion
@@ -1538,8 +1538,8 @@ test_case("InvertConcatEmptyAndChar") {
 comptime_test_case(String, InvertConcatEmptyAndChar, {
 		const gk::String a;
 		gk::String b = 'c' + a;
-		comptimeAssertEq(b, 'c');
-		comptimeAssertEq(b, gk::String('c'));
+		check_eq(b, 'c');
+		check_eq(b, gk::String('c'));
 	});
 
 test_case("InvertConcatCharStringAndChar") {
@@ -1552,8 +1552,8 @@ test_case("InvertConcatCharStringAndChar") {
 comptime_test_case(String, InvertConcatCharStringAndChar, {
 		const gk::String a = 'c';
 		gk::String b = 'c' + a;
-		comptimeAssertEq(b, "cc"_str);
-		comptimeAssertEq(b, gk::String("cc"_str));
+		check_eq(b, "cc"_str);
+		check_eq(b, gk::String("cc"_str));
 	});
 
 test_case("InvertConcatSmallStringAndCharToHeap") {
@@ -1566,8 +1566,8 @@ test_case("InvertConcatSmallStringAndCharToHeap") {
 comptime_test_case(String, InvertConcatSmallStringAndCharToHeap, {
 		const gk::String a = "aslasdasddkjahldkjahsldkjahsda"_str;
 		gk::String b = 'c' + a;
-		comptimeAssertEq(b, "caslasdasddkjahldkjahsldkjahsda"_str);
-		comptimeAssertEq(b, gk::String("caslasdasddkjahldkjahsldkjahsda"_str));
+		check_eq(b, "caslasdasddkjahldkjahsldkjahsda"_str);
+		check_eq(b, gk::String("caslasdasddkjahldkjahsldkjahsda"_str));
 	});
 
 test_case("InvertConcatHeapStringAndCharToHeap") {
@@ -1580,8 +1580,8 @@ test_case("InvertConcatHeapStringAndCharToHeap") {
 comptime_test_case(String, InvertConcatHeapStringAndCharToHeap, {
 		const gk::String a = "aslasdasddkjahl55dkjahsldkjahsda"_str;
 		gk::String b = 'c' + a;
-		comptimeAssertEq(b, "caslasdasddkjahl55dkjahsldkjahsda"_str);
-		comptimeAssertEq(b, gk::String("caslasdasddkjahl55dkjahsldkjahsda"_str));
+		check_eq(b, "caslasdasddkjahl55dkjahsldkjahsda"_str);
+		check_eq(b, gk::String("caslasdasddkjahl55dkjahsldkjahsda"_str));
 	});
 
 test_case("InvertConcatSmallUtf8AndChar") {
@@ -1594,8 +1594,8 @@ test_case("InvertConcatSmallUtf8AndChar") {
 comptime_test_case(String, InvertConcatSmallUtf8AndChar, {
 		const gk::String a = "Übergrößenträger"_str;
 		gk::String b = 'c' + a;
-		comptimeAssertEq(b, "cÜbergrößenträger"_str);
-		comptimeAssertEq(b, gk::String("cÜbergrößenträger"_str));
+		check_eq(b, "cÜbergrößenträger"_str);
+		check_eq(b, gk::String("cÜbergrößenträger"_str));
 	});
 
 test_case("InvertConcatSmallUtf8AndCharToHeap") {
@@ -1608,8 +1608,8 @@ test_case("InvertConcatSmallUtf8AndCharToHeap") {
 comptime_test_case(String, InvertConcatSmallUtf8AndCharToHeap, {
 		const gk::String a = "Übergrößenträgerasjhdgashh"_str;
 		gk::String b = 'c' + a;
-		comptimeAssertEq(b, "cÜbergrößenträgerasjhdgashh"_str);
-		comptimeAssertEq(b, gk::String("cÜbergrößenträgerasjhdgashh"_str));
+		check_eq(b, "cÜbergrößenträgerasjhdgashh"_str);
+		check_eq(b, gk::String("cÜbergrößenträgerasjhdgashh"_str));
 	});
 
 test_case("InvertConcatHeapUtf8AndChar") {
@@ -1622,8 +1622,8 @@ test_case("InvertConcatHeapUtf8AndChar") {
 comptime_test_case(String, InvertConcatHeapUtf8AndChar, {
 		const gk::String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		gk::String b = 'c' + a;
-		comptimeAssertEq(b, "cÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str);
-		comptimeAssertEq(b, gk::String("cÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str));
+		check_eq(b, "cÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str);
+		check_eq(b, gk::String("cÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str));
 	});
 
 #pragma endregion
@@ -1640,8 +1640,8 @@ test_case("ConcatEmptyAndStr") {
 comptime_test_case(String, ConcatEmptyAndStr, {
 		const gk::String a;
 		gk::String b = a + "cc"_str;
-		comptimeAssertEq(b, "cc"_str);
-		comptimeAssertEq(b, gk::String("cc"_str));
+		check_eq(b, "cc"_str);
+		check_eq(b, gk::String("cc"_str));
 	});
 
 test_case("ConcatCharStringAndStr") {
@@ -1654,8 +1654,8 @@ test_case("ConcatCharStringAndStr") {
 comptime_test_case(String, ConcatCharStringAndStr, {
 		const gk::String a = 'c';
 		gk::String b = a + "cc"_str;
-		comptimeAssertEq(b, "ccc"_str);
-		comptimeAssertEq(b, gk::String("ccc"_str));
+		check_eq(b, "ccc"_str);
+		check_eq(b, gk::String("ccc"_str));
 	});
 
 test_case("ConcatSmallStringAndStrToHeap") {
@@ -1668,8 +1668,8 @@ test_case("ConcatSmallStringAndStrToHeap") {
 comptime_test_case(String, ConcatSmallStringAndStrToHeap, {
 		const gk::String a = "aslasdasddkjahldkjahsldkjahsda"_str;
 		gk::String b = a + "cc"_str;
-		comptimeAssertEq(b, "aslasdasddkjahldkjahsldkjahsdacc"_str);
-		comptimeAssertEq(b, gk::String("aslasdasddkjahldkjahsldkjahsdacc"_str));
+		check_eq(b, "aslasdasddkjahldkjahsldkjahsdacc"_str);
+		check_eq(b, gk::String("aslasdasddkjahldkjahsldkjahsdacc"_str));
 	});
 
 test_case("ConcatHeapStringAndStrToHeap") {
@@ -1682,8 +1682,8 @@ test_case("ConcatHeapStringAndStrToHeap") {
 comptime_test_case(String, ConcatHeapStringAndStrToHeap, {
 		const gk::String a = "aslasdasddkjahl55dkjahsldkjahsda"_str;
 		gk::String b = a + "cc"_str;
-		comptimeAssertEq(b, "aslasdasddkjahl55dkjahsldkjahsdacc"_str);
-		comptimeAssertEq(b, gk::String("aslasdasddkjahl55dkjahsldkjahsdacc"_str));
+		check_eq(b, "aslasdasddkjahl55dkjahsldkjahsdacc"_str);
+		check_eq(b, gk::String("aslasdasddkjahl55dkjahsldkjahsdacc"_str));
 	});
 
 test_case("ConcatSmallUtf8AndStr") {
@@ -1696,8 +1696,8 @@ test_case("ConcatSmallUtf8AndStr") {
 comptime_test_case(String, ConcatSmallUtf8AndStr, {
 		const gk::String a = "Übergrößenträger"_str;
 		gk::String b = a + "cc"_str;
-		comptimeAssertEq(b, "Übergrößenträgercc"_str);
-		comptimeAssertEq(b, gk::String("Übergrößenträgercc"_str));
+		check_eq(b, "Übergrößenträgercc"_str);
+		check_eq(b, gk::String("Übergrößenträgercc"_str));
 	});
 
 test_case("ConcatSmallUtf8AndStrToHeap") {
@@ -1710,8 +1710,8 @@ test_case("ConcatSmallUtf8AndStrToHeap") {
 comptime_test_case(String, ConcatSmallUtf8AndStrToHeap, {
 		const gk::String a = "Übergrößenträgerasjhdgashh"_str;
 		gk::String b = a + "cc"_str;
-		comptimeAssertEq(b, "Übergrößenträgerasjhdgashhcc"_str);
-		comptimeAssertEq(b, gk::String("Übergrößenträgerasjhdgashhcc"_str));
+		check_eq(b, "Übergrößenträgerasjhdgashhcc"_str);
+		check_eq(b, gk::String("Übergrößenträgerasjhdgashhcc"_str));
 	});
 
 test_case("ConcatHeapUtf8AndStr") {
@@ -1724,8 +1724,8 @@ test_case("ConcatHeapUtf8AndStr") {
 comptime_test_case(String, ConcatHeapUtf8AndStr, {
 		const gk::String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		gk::String b = a + "cc"_str;
-		comptimeAssertEq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgercc"_str);
-		comptimeAssertEq(b, gk::String("ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgercc"_str));
+		check_eq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgercc"_str);
+		check_eq(b, gk::String("ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgercc"_str));
 	});
 
 #pragma endregion
@@ -1742,8 +1742,8 @@ test_case("InvertConcatEmptyAndStr") {
 comptime_test_case(String, InvertConcatEmptyAndStr, {
 		const gk::String a;
 		gk::String b = "cc"_str + a;
-		comptimeAssertEq(b, "cc"_str);
-		comptimeAssertEq(b, gk::String("cc"_str));
+		check_eq(b, "cc"_str);
+		check_eq(b, gk::String("cc"_str));
 	});
 
 test_case("InvertConcatCharStringAndStr") {
@@ -1756,8 +1756,8 @@ test_case("InvertConcatCharStringAndStr") {
 comptime_test_case(String, InvertConcatCharStringAndStr, {
 		const gk::String a = 'c';
 		gk::String b = "cc"_str + a;
-		comptimeAssertEq(b, "ccc"_str);
-		comptimeAssertEq(b, gk::String("ccc"_str));
+		check_eq(b, "ccc"_str);
+		check_eq(b, gk::String("ccc"_str));
 	});
 
 test_case("InvertConcatSmallStringAndStrToHeap") {
@@ -1770,8 +1770,8 @@ test_case("InvertConcatSmallStringAndStrToHeap") {
 comptime_test_case(String, InvertConcatSmallStringAndStrToHeap, {
 		const gk::String a = "aslasdasddkjahldkjahsldkjahsda"_str;
 		gk::String b = "cc"_str + a;
-		comptimeAssertEq(b, "ccaslasdasddkjahldkjahsldkjahsda"_str);
-		comptimeAssertEq(b, gk::String("ccaslasdasddkjahldkjahsldkjahsda"_str));
+		check_eq(b, "ccaslasdasddkjahldkjahsldkjahsda"_str);
+		check_eq(b, gk::String("ccaslasdasddkjahldkjahsldkjahsda"_str));
 	});
 
 test_case("InvertConcatHeapStringAndStrToHeap") {
@@ -1784,8 +1784,8 @@ test_case("InvertConcatHeapStringAndStrToHeap") {
 comptime_test_case(String, InvertConcatHeapStringAndStrToHeap, {
 		const gk::String a = "aslasdasddkjahl55dkjahsldkjahsda"_str;
 		gk::String b = "cc"_str + a;
-		comptimeAssertEq(b, "ccaslasdasddkjahl55dkjahsldkjahsda"_str);
-		comptimeAssertEq(b, gk::String("ccaslasdasddkjahl55dkjahsldkjahsda"_str));
+		check_eq(b, "ccaslasdasddkjahl55dkjahsldkjahsda"_str);
+		check_eq(b, gk::String("ccaslasdasddkjahl55dkjahsldkjahsda"_str));
 	});
 
 test_case("InvertConcatSmallUtf8AndStr") {
@@ -1798,8 +1798,8 @@ test_case("InvertConcatSmallUtf8AndStr") {
 comptime_test_case(String, InvertConcatSmallUtf8AndStr, {
 		const gk::String a = "Übergrößenträger"_str;
 		gk::String b = "cc"_str + a;
-		comptimeAssertEq(b, "ccÜbergrößenträger"_str);
-		comptimeAssertEq(b, gk::String("ccÜbergrößenträger"_str));
+		check_eq(b, "ccÜbergrößenträger"_str);
+		check_eq(b, gk::String("ccÜbergrößenträger"_str));
 	});
 
 test_case("InvertConcatSmallUtf8AndStrToHeap") {
@@ -1812,8 +1812,8 @@ test_case("InvertConcatSmallUtf8AndStrToHeap") {
 comptime_test_case(String, InvertConcatSmallUtf8AndStrToHeap, {
 		const gk::String a = "Übergrößenträgerasjhdgashh"_str;
 		gk::String b = "cc"_str + a;
-		comptimeAssertEq(b, "ccÜbergrößenträgerasjhdgashh"_str);
-		comptimeAssertEq(b, gk::String("ccÜbergrößenträgerasjhdgashh"_str));
+		check_eq(b, "ccÜbergrößenträgerasjhdgashh"_str);
+		check_eq(b, gk::String("ccÜbergrößenträgerasjhdgashh"_str));
 	});
 
 test_case("InvertConcatHeapUtf8AndStr") {
@@ -1826,8 +1826,8 @@ test_case("InvertConcatHeapUtf8AndStr") {
 comptime_test_case(String, InvertConcatHeapUtf8AndStr, {
 		const gk::String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		gk::String b = "cc"_str + a;
-		comptimeAssertEq(b, "ccÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str);
-		comptimeAssertEq(b, gk::String("ccÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str));
+		check_eq(b, "ccÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str);
+		check_eq(b, gk::String("ccÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str));
 	});
 
 #pragma endregion
@@ -1844,8 +1844,8 @@ test_case("ConcatEmptyAndOtherString") {
 comptime_test_case(String, ConcatEmptyAndOtherString, {
 		const gk::String a;
 		gk::String b = a + gk::String("cc"_str);
-		comptimeAssertEq(b, "cc"_str);
-		comptimeAssertEq(b, gk::String("cc"_str));
+		check_eq(b, "cc"_str);
+		check_eq(b, gk::String("cc"_str));
 	});
 
 test_case("ConcatCharStringAndOtherString") {
@@ -1858,8 +1858,8 @@ test_case("ConcatCharStringAndOtherString") {
 comptime_test_case(String, ConcatCharStringAndOtherString, {
 		const gk::String a = 'c';
 		gk::String b = a + gk::String("cc"_str);
-		comptimeAssertEq(b, "ccc"_str);
-		comptimeAssertEq(b, gk::String("ccc"_str));
+		check_eq(b, "ccc"_str);
+		check_eq(b, gk::String("ccc"_str));
 	});
 
 test_case("ConcatSmallStringAndOtherStringToHeap") {
@@ -1872,8 +1872,8 @@ test_case("ConcatSmallStringAndOtherStringToHeap") {
 comptime_test_case(String, ConcatSmallStringAndOtherStringToHeap, {
 		const gk::String a = "aslasdasddkjahldkjahsldkjahsda"_str;
 		gk::String b = a + gk::String("cc"_str);
-		comptimeAssertEq(b, "aslasdasddkjahldkjahsldkjahsdacc"_str);
-		comptimeAssertEq(b, gk::String("aslasdasddkjahldkjahsldkjahsdacc"_str));
+		check_eq(b, "aslasdasddkjahldkjahsldkjahsdacc"_str);
+		check_eq(b, gk::String("aslasdasddkjahldkjahsldkjahsdacc"_str));
 	});
 
 test_case("ConcatHeapStringAndOtherStringToHeap") {
@@ -1886,8 +1886,8 @@ test_case("ConcatHeapStringAndOtherStringToHeap") {
 comptime_test_case(String, ConcatHeapStringAndOtherStringToHeap, {
 		const gk::String a = "aslasdasddkjahl55dkjahsldkjahsda"_str;
 		gk::String b = a + gk::String("cc"_str);
-		comptimeAssertEq(b, "aslasdasddkjahl55dkjahsldkjahsdacc"_str);
-		comptimeAssertEq(b, gk::String("aslasdasddkjahl55dkjahsldkjahsdacc"_str));
+		check_eq(b, "aslasdasddkjahl55dkjahsldkjahsdacc"_str);
+		check_eq(b, gk::String("aslasdasddkjahl55dkjahsldkjahsdacc"_str));
 	});
 
 test_case("ConcatSmallUtf8AndOtherString") {
@@ -1900,8 +1900,8 @@ test_case("ConcatSmallUtf8AndOtherString") {
 comptime_test_case(String, ConcatSmallUtf8AndOtherString, {
 		const gk::String a = "Übergrößenträger"_str;
 		gk::String b = a + gk::String("cc"_str);
-		comptimeAssertEq(b, "Übergrößenträgercc"_str);
-		comptimeAssertEq(b, gk::String("Übergrößenträgercc"_str));
+		check_eq(b, "Übergrößenträgercc"_str);
+		check_eq(b, gk::String("Übergrößenträgercc"_str));
 	});
 
 test_case("ConcatSmallUtf8AndOtherStringToHeap") {
@@ -1914,8 +1914,8 @@ test_case("ConcatSmallUtf8AndOtherStringToHeap") {
 comptime_test_case(String, ConcatSmallUtf8AndOtherStringToHeap, {
 		const gk::String a = "Übergrößenträgerasjhdgashh"_str;
 		gk::String b = a + gk::String("cc"_str);
-		comptimeAssertEq(b, "Übergrößenträgerasjhdgashhcc"_str);
-		comptimeAssertEq(b, gk::String("Übergrößenträgerasjhdgashhcc"_str));
+		check_eq(b, "Übergrößenträgerasjhdgashhcc"_str);
+		check_eq(b, gk::String("Übergrößenträgerasjhdgashhcc"_str));
 	});
 
 test_case("ConcatHeapUtf8AndOtherString") {
@@ -1928,8 +1928,8 @@ test_case("ConcatHeapUtf8AndOtherString") {
 comptime_test_case(String, ConcatHeapUtf8AndOtherString, {
 		const gk::String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		gk::String b = a + gk::String("cc"_str);
-		comptimeAssertEq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgercc"_str);
-		comptimeAssertEq(b, gk::String("ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgercc"_str));
+		check_eq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgercc"_str);
+		check_eq(b, gk::String("ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgercc"_str));
 	});
 
 #pragma endregion
@@ -1946,8 +1946,8 @@ test_case("ChainConcat") {
 comptime_test_case(String, ChainConcat, {
 		gk::String a = "hello world!"_str;
 		gk::String b = a + ' ' + "hmm"_str + " t" + 'h' + gk::String("is is") + " a multi concat string thats quite large"_str;
-		comptimeAssertEq(b, "hello world! hmm this is a multi concat string thats quite large"_str);
-		comptimeAssertEq(b, gk::String("hello world! hmm this is a multi concat string thats quite large"_str));
+		check_eq(b, "hello world! hmm this is a multi concat string thats quite large"_str);
+		check_eq(b, gk::String("hello world! hmm this is a multi concat string thats quite large"_str));
 	});
 
 #pragma endregion
@@ -1962,8 +1962,8 @@ test_case("FromBoolTrue") {
 
 comptime_test_case(String, FromBoolTrue, {
 		gk::String a = gk::String::fromBool(true);
-		comptimeAssertEq(a, "true"_str);
-		comptimeAssertEq(a, gk::String("true"_str));
+		check_eq(a, "true"_str);
+		check_eq(a, gk::String("true"_str));
 	});
 
 test_case("FromBoolFalse") {
@@ -1974,8 +1974,8 @@ test_case("FromBoolFalse") {
 
 comptime_test_case(String, FromBoolFalse, {
 		gk::String a = gk::String::fromBool(false);
-		comptimeAssertEq(a, "false"_str);
-		comptimeAssertEq(a, gk::String("false"_str));
+		check_eq(a, "false"_str);
+		check_eq(a, gk::String("false"_str));
 	});
 
 test_case("FromSignedIntZero") {
@@ -1985,7 +1985,7 @@ test_case("FromSignedIntZero") {
 
 comptime_test_case(String, FromSignedIntZero, {
 	gk::String a = gk::String::fromInt(0);
-	comptimeAssertEq(a, '0');
+	check_eq(a, '0');
 	});
 
 test_case("FromSignedIntSmallValue") {
@@ -1995,7 +1995,7 @@ test_case("FromSignedIntSmallValue") {
 
 comptime_test_case(String, FromSignedIntSmallValue, {
 		gk::String a = gk::String::fromInt(16);
-		comptimeAssertEq(a, "16"_str);
+		check_eq(a, "16"_str);
 	});
 
 test_case("FromSignedIntMaximumValue") {
@@ -2005,7 +2005,7 @@ test_case("FromSignedIntMaximumValue") {
 
 comptime_test_case(String, FromSignedIntMaximumValue, {
 		gk::String a = gk::String::fromInt(MAXINT64);
-		comptimeAssertEq(a, "9223372036854775807"_str);
+		check_eq(a, "9223372036854775807"_str);
 	});
 
 test_case("FromSignedIntSmallNegativeValue") {
@@ -2015,7 +2015,7 @@ test_case("FromSignedIntSmallNegativeValue") {
 
 comptime_test_case(String, FromSignedIntSmallNegativeValue, {
 		gk::String a = gk::String::fromInt(-3);
-		comptimeAssertEq(a, "-3"_str);
+		check_eq(a, "-3"_str);
 	});
 
 test_case("FromSignedIntMinimumValue") {
@@ -2025,7 +2025,7 @@ test_case("FromSignedIntMinimumValue") {
 
 comptime_test_case(String, FromSignedIntMinimumValue, {
 		gk::String a = gk::String::fromInt(MININT64);
-		comptimeAssertEq(a, "-9223372036854775808"_str);
+		check_eq(a, "-9223372036854775808"_str);
 	});
 
 test_case("FromUnsignedIntZero") {
@@ -2035,7 +2035,7 @@ test_case("FromUnsignedIntZero") {
 
 comptime_test_case(String, FromUnsignedIntZero, {
 		gk::String a = gk::String::fromUint(0);
-		comptimeAssertEq(a, '0');
+		check_eq(a, '0');
 	});
 
 test_case("FromUnsignedIntSmallValue") {
@@ -2045,7 +2045,7 @@ test_case("FromUnsignedIntSmallValue") {
 
 comptime_test_case(String, FromUnsignedIntSmallValue, {
 		gk::String a = gk::String::fromUint(23);
-		comptimeAssertEq(a, "23"_str);
+		check_eq(a, "23"_str);
 	});
 
 test_case("FromUnsignedIntMaximumValue") {
@@ -2055,7 +2055,7 @@ test_case("FromUnsignedIntMaximumValue") {
 
 comptime_test_case(String, FromUnsignedIntMaximumValue, {
 		gk::String a = gk::String::fromUint(MAXUINT64);
-		comptimeAssertEq(a, "18446744073709551615"_str);
+		check_eq(a, "18446744073709551615"_str);
 	});
 
 test_case("FromFloatZero") {
@@ -2065,7 +2065,7 @@ test_case("FromFloatZero") {
 
 comptime_test_case(String, FromFloatZero, {
 		gk::String a = gk::String::fromFloat(0.0);
-		comptimeAssertEq(a, "0.0"_str);
+		check_eq(a, "0.0"_str);
 	});
 
 test_case("FromFloatPositiveInfinity") {
@@ -2090,7 +2090,7 @@ test_case("FromFloatWholeNumber") {
 
 comptime_test_case(String, FromFloatWholeNumber, {
 		gk::String a = gk::String::fromFloat(100.0);
-		comptimeAssertEq(a, "100.0"_str);
+		check_eq(a, "100.0"_str);
 	});
 
 test_case("FromFloatWholeNegativeNumber") {
@@ -2100,7 +2100,7 @@ test_case("FromFloatWholeNegativeNumber") {
 
 comptime_test_case(String, FromFloatWholeNegativeNumber, {
 		gk::String a = gk::String::fromFloat(-100.0);
-		comptimeAssertEq(a, "-100.0"_str);
+		check_eq(a, "-100.0"_str);
 	});
 
 test_case("FromFloatDecimalNumber") {
@@ -2110,7 +2110,7 @@ test_case("FromFloatDecimalNumber") {
 
 comptime_test_case(String, FromFloatDecimalNumber, {
 		gk::String a = gk::String::fromFloat(100.09999);
-		comptimeAssertEq(a, "100.09999"_str);
+		check_eq(a, "100.09999"_str);
 	});
 
 test_case("FromFloatDecimalNegativeNumber") {
@@ -2120,7 +2120,7 @@ test_case("FromFloatDecimalNegativeNumber") {
 
 comptime_test_case(String, FromFloatDecimalNegativeNumber, {
 		gk::String a = gk::String::fromFloat(-100.09999);
-		comptimeAssertEq(a, "-100.09999"_str);
+		check_eq(a, "-100.09999"_str);
 	});
 
 test_case("FromFloatDecimalNumberDefaultPrecision") {
@@ -2130,7 +2130,7 @@ test_case("FromFloatDecimalNumberDefaultPrecision") {
 
 comptime_test_case(String, FromFloatDecimalNumberDefaultPrecision, {
 		gk::String a = gk::String::fromFloat(100.12000005);
-		comptimeAssertEq(a, "100.12"_str);
+		check_eq(a, "100.12"_str);
 	});
 
 test_case("FromFloatDecimalNegativeNumberDefaultPrecision") {
@@ -2140,7 +2140,7 @@ test_case("FromFloatDecimalNegativeNumberDefaultPrecision") {
 
 comptime_test_case(String, FromFloatDecimalNegativeNumberDefaultPrecision, {
 		gk::String a = gk::String::fromFloat(-100.12000005);
-		comptimeAssertEq(a, "-100.12"_str);
+		check_eq(a, "-100.12"_str);
 	});
 
 test_case("FromFloatDecimalNumberCustomPrecision") {
@@ -2150,7 +2150,7 @@ test_case("FromFloatDecimalNumberCustomPrecision") {
 
 comptime_test_case(String, FromFloatDecimalNumberCustomPrecision, {
 		gk::String a = gk::String::fromFloat(100.12000005, 10);
-		comptimeAssertEq(a, "100.12000005"_str);
+		check_eq(a, "100.12000005"_str);
 	});
 
 test_case("FromFloatDecimalNegativeNumberCustomPrecision") {
@@ -2160,7 +2160,7 @@ test_case("FromFloatDecimalNegativeNumberCustomPrecision") {
 
 comptime_test_case(String, FromFloatDecimalNegativeNumberCustomPrecision, {
 		gk::String a = gk::String::fromFloat(-100.12000005, 10);
-		comptimeAssertEq(a, "-100.12000005"_str);
+		check_eq(a, "-100.12000005"_str);
 	});
 
 test_case("FromTemplateBool") {
@@ -2172,7 +2172,7 @@ test_case("FromTemplateBool") {
 comptime_test_case(String, FromTemplateBool, {
 		bool b = true;
 		gk::String a = gk::String::from(b);
-		comptimeAssertEq(a, "true"_str);
+		check_eq(a, "true"_str);
 	});
 
 test_case("FromTemplategk::i8") {
@@ -2184,7 +2184,7 @@ test_case("FromTemplategk::i8") {
 comptime_test_case(String, FromTemplateInt8, {
 		gk::i8 num = -56;
 		gk::String a = gk::String::from(num);
-		comptimeAssertEq(a, "-56"_str);
+		check_eq(a, "-56"_str);
 	});
 
 test_case("FromTemplategk::u8") {
@@ -2196,7 +2196,7 @@ test_case("FromTemplategk::u8") {
 comptime_test_case(String, FromTemplateUint8, {
 		gk::u8 num = 56;
 		gk::String a = gk::String::from(num);
-		comptimeAssertEq(a, "56"_str);
+		check_eq(a, "56"_str);
 	});
 
 test_case("FromTemplategk::i16") {
@@ -2208,7 +2208,7 @@ test_case("FromTemplategk::i16") {
 comptime_test_case(String, FromTemplateInt16, {
 		gk::i16 num = -1000;
 		gk::String a = gk::String::from(num);
-		comptimeAssertEq(a, "-1000"_str);
+		check_eq(a, "-1000"_str);
 	});
 
 test_case("FromTemplategk::u16") {
@@ -2220,7 +2220,7 @@ test_case("FromTemplategk::u16") {
 comptime_test_case(String, FromTemplateUint16, {
 		gk::u16 num = 1000;
 		gk::String a = gk::String::from(num);
-		comptimeAssertEq(a, "1000"_str);
+		check_eq(a, "1000"_str);
 	});
 
 test_case("FromTemplategk::i32") {
@@ -2232,7 +2232,7 @@ test_case("FromTemplategk::i32") {
 comptime_test_case(String, FromTemplateInt32, {
 		gk::i32 num = -99999;
 		gk::String a = gk::String::from(num);
-		comptimeAssertEq(a, "-99999"_str);
+		check_eq(a, "-99999"_str);
 	});
 
 test_case("FromTemplategk::u32") {
@@ -2244,7 +2244,7 @@ test_case("FromTemplategk::u32") {
 comptime_test_case(String, FromTemplateUint32, {
 		gk::u32 num = 99999;
 		gk::String a = gk::String::from(num);
-		comptimeAssertEq(a, "99999"_str);
+		check_eq(a, "99999"_str);
 	});
 
 test_case("FromTemplategk::i64") {
@@ -2256,7 +2256,7 @@ test_case("FromTemplategk::i64") {
 comptime_test_case(String, FromTemplateInt64, {
 		gk::i64 num = -123456789012345;
 		gk::String a = gk::String::from(num);
-		comptimeAssertEq(a, "-123456789012345"_str);
+		check_eq(a, "-123456789012345"_str);
 	});
 
 test_case("FromTemplategk::u64") {
@@ -2268,7 +2268,7 @@ test_case("FromTemplategk::u64") {
 comptime_test_case(String, FromTemplateUint64, {
 		gk::u64 num = 123456789012345;
 		gk::String a = gk::String::from(num);
-		comptimeAssertEq(a, "123456789012345"_str);
+		check_eq(a, "123456789012345"_str);
 	});
 
 test_case("FromTemplateFloat32") {
@@ -2280,7 +2280,7 @@ test_case("FromTemplateFloat32") {
 comptime_test_case(String, FromTemplateFloat32, {
 		float num = -123.45f;
 		gk::String a = gk::String::from(num);
-		comptimeAssertEq(a, "-123.44999"_str); // slightly imprecise
+		check_eq(a, "-123.44999"_str); // slightly imprecise
 	});
 
 test_case("FromTemplateFloat64") {
@@ -2292,7 +2292,7 @@ test_case("FromTemplateFloat64") {
 comptime_test_case(String, FromTemplateFloat64, {
 		double num = -123.45;
 		gk::String a = gk::String::from(num);
-		comptimeAssertEq(a, "-123.45"_str);
+		check_eq(a, "-123.45"_str);
 	});
 
 test_case("FromTemplateCustomType") {
@@ -2308,7 +2308,7 @@ comptime_test_case(String, FromTemplateCustomType, {
 		e.a = 1.0;
 		e.b = 1;
 		gk::String a = gk::String::from(e);
-		comptimeAssertEq(a, "1.0, 1"_str);
+		check_eq(a, "1.0, 1"_str);
 	});
 
 #pragma endregion
@@ -2324,7 +2324,7 @@ test_case("FormatOneArg") {
 comptime_test_case(String, FormatOneArg, {
 		gk::i32 num = 4;
 		gk::String a = gk::String::format<"num: {}">(num);
-		comptimeAssertEq(a, "num: 4"_str);
+		check_eq(a, "num: 4"_str);
 	});
 
 test_case("FormatOneArgWithTextAfter") {
@@ -2336,7 +2336,7 @@ test_case("FormatOneArgWithTextAfter") {
 comptime_test_case(String, FormatOneArgWithTextAfter, {
 		float num = 4.f;
 		gk::String a = gk::String::format<"num: {}... cool!">(num);
-		comptimeAssertEq(a, "num: 4.0... cool!"_str);
+		check_eq(a, "num: 4.0... cool!"_str);
 	});
 
 test_case("FormatTwoArgs") {
@@ -2350,7 +2350,7 @@ comptime_test_case(String, FormatTwoArgs, {
 		int num1 = 5;
 		float num2 = 5;
 		gk::String a = gk::String::format<"num1: {}, num2: {}">(num1, num2);
-		comptimeAssertEq(a, "num1: 5, num2: 5.0"_str);
+		check_eq(a, "num1: 5, num2: 5.0"_str);
 	});
 
 test_case("FormatTwoArgsWithOperation") {
@@ -2364,7 +2364,7 @@ comptime_test_case(String, FormatTwoArgsWithOperation, {
 		int num1 = 5;
 		float num2 = 5;
 		gk::String a = gk::String::format<"num1: {}, num2: {}, multiplied: {}">(num1, num2, num1 * num2);
-		comptimeAssertEq(a, "num1: 5, num2: 5.0, multiplied: 25.0"_str);
+		check_eq(a, "num1: 5, num2: 5.0, multiplied: 25.0"_str);
 	});
 
 test_case("FormatFromCustomType") {
@@ -2382,7 +2382,7 @@ comptime_test_case(String, FormatFromCustomType, {
 		e.b = 5;
 		int count = 2;
 		gk::String a = gk::String::format<"the {} numbers are {}">(count, e);
-		comptimeAssertEq(a, "the 2 numbers are -1.19999, 5"_str);
+		check_eq(a, "the 2 numbers are -1.19999, 5"_str);
 	});
 
 #pragma endregion
@@ -2399,8 +2399,8 @@ test_case("FindCharInSso") {
 comptime_test_case(String, FindCharInSso, {
 		gk::String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 		gk::Option<gk::usize> opt = a.find('5');
-		comptimeAssert(opt.none() == false);
-		comptimeAssertEq(opt.some(), 21);
+		check(opt.none() == false);
+		check_eq(opt.some(), 21);
 	});
 
 test_case("FindCharInHeap") {
@@ -2413,8 +2413,8 @@ test_case("FindCharInHeap") {
 comptime_test_case(String, FindCharInHeap, {
 		gk::String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajwheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 		gk::Option<gk::usize> opt = a.find('5');
-		comptimeAssert(opt.none() == false);
-		comptimeAssertEq(opt.some(), 81);
+		check(opt.none() == false);
+		check_eq(opt.some(), 81);
 	});
 
 test_case("NotFindCharInSso") {
@@ -2426,7 +2426,7 @@ test_case("NotFindCharInSso") {
 comptime_test_case(String, NotFindCharInSso, {
 		gk::String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 		gk::Option<gk::usize> opt = a.find('6');
-		comptimeAssert(opt.none());
+		check(opt.none());
 	});
 
 test_case("NotFindCharInHeap") {
@@ -2438,7 +2438,7 @@ test_case("NotFindCharInHeap") {
 comptime_test_case(String, NotFindCharInHeap, {
 		gk::String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajwheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 		gk::Option<gk::usize> opt = a.find('6');
-		comptimeAssert(opt.none());
+		check(opt.none());
 	});
 
 #pragma endregion
@@ -2455,8 +2455,8 @@ test_case("FindStrInSso") {
 comptime_test_case(String, FindStrInSso, {
 		gk::String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 		gk::Option<gk::usize> opt = a.find("5a"_str);
-		comptimeAssert(opt.none() == false);
-		comptimeAssertEq(opt.some(), 21);
+		check(opt.none() == false);
+		check_eq(opt.some(), 21);
 	});
 
 test_case("FindStrInHeap") {
@@ -2469,8 +2469,8 @@ test_case("FindStrInHeap") {
 comptime_test_case(String, FindStrInHeap, {
 		gk::String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajw5bheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 		gk::Option<gk::usize> opt = a.find("5a"_str);
-		comptimeAssert(opt.none() == false);
-		comptimeAssertEq(opt.some(), 83);
+		check(opt.none() == false);
+		check_eq(opt.some(), 83);
 	});
 
 test_case("FindUtf8StrInSso") {
@@ -2483,8 +2483,8 @@ test_case("FindUtf8StrInSso") {
 comptime_test_case(String, FindUtf8StrInSso, {
 		gk::String a = "Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find("ßen"_str);
-		comptimeAssert(opt.none() == false);
-		comptimeAssertEq(opt.some(), 9);
+		check(opt.none() == false);
+		check_eq(opt.some(), 9);
 	});
 
 test_case("FindUtf8StrInHeap") {
@@ -2497,8 +2497,8 @@ test_case("FindUtf8StrInHeap") {
 comptime_test_case(String, FindUtf8StrInHeap, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger5ÜbergrößenträgerÜbergrößenträgerÜbergrößenträger6Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find("6Übe"_str);
-		comptimeAssert(opt.none() == false);
-		comptimeAssertEq(opt.some(), 141);
+		check(opt.none() == false);
+		check_eq(opt.some(), 141);
 	});
 
 test_case("NotFindStrInSso") {
@@ -2510,7 +2510,7 @@ test_case("NotFindStrInSso") {
 comptime_test_case(String, NotFindStrInSso, {
 		gk::String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 		gk::Option<gk::usize> opt = a.find("ya"_str);
-		comptimeAssert(opt.none());
+		check(opt.none());
 	});
 
 test_case("NotFindStrInHeap") {
@@ -2522,7 +2522,7 @@ test_case("NotFindStrInHeap") {
 comptime_test_case(String, NotFindStrInHeap, {
 		gk::String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajw5bheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 		gk::Option<gk::usize> opt = a.find(";5"_str);
-		comptimeAssert(opt.none());
+		check(opt.none());
 	});
 
 test_case("NotFindUtf8StrInSso") {
@@ -2534,7 +2534,7 @@ test_case("NotFindUtf8StrInSso") {
 comptime_test_case(String, NotFindUtf8StrInSso, {
 		gk::String a = "Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find("ßet"_str);
-		comptimeAssert(opt.none());
+		check(opt.none());
 	});
 
 test_case("NotFindUtf8StrInHeap") {
@@ -2546,7 +2546,7 @@ test_case("NotFindUtf8StrInHeap") {
 comptime_test_case(String, NotFindUtf8StrInHeap, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger5ÜbergrößenträgerÜbergrößenträgerÜbergrößenträger6Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find("5Üba"_str);
-		comptimeAssert(opt.none());
+		check(opt.none());
 	});
 
 #pragma endregion
@@ -2556,29 +2556,29 @@ comptime_test_case(String, NotFindUtf8StrInHeap, {
 test_case("FindOtherStringInSso") {
 	gk::String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 	gk::Option<gk::usize> opt = a.find(gk::String("5a"_str));
-	comptimeAssert(opt.none() == false);
-	comptimeAssertEq(opt.some(), 21);
+	check(opt.none() == false);
+	check_eq(opt.some(), 21);
 }
 
 comptime_test_case(String, FindOtherStringInSso, {
 		gk::String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 		gk::Option<gk::usize> opt = a.find(gk::String("5a"_str));
-		comptimeAssert(opt.none() == false);
-		comptimeAssertEq(opt.some(), 21);
+		check(opt.none() == false);
+		check_eq(opt.some(), 21);
 	});
 
 test_case("FindOtherStringInHeap") {
 	gk::String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajw5bheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 	gk::Option<gk::usize> opt = a.find(gk::String("5a"_str));
-	comptimeAssert(opt.none() == false);
-	comptimeAssertEq(opt.some(), 83);
+	check(opt.none() == false);
+	check_eq(opt.some(), 83);
 }
 
 comptime_test_case(String, FindOtherStringInHeap, {
 		gk::String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajw5bheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 		gk::Option<gk::usize> opt = a.find(gk::String("5a"_str));
-		comptimeAssert(opt.none() == false);
-		comptimeAssertEq(opt.some(), 83);
+		check(opt.none() == false);
+		check_eq(opt.some(), 83);
 	});
 
 test_case("FindUtf8OtherStringInSso") {
@@ -2591,8 +2591,8 @@ test_case("FindUtf8OtherStringInSso") {
 comptime_test_case(String, FindUtf8OtherStringInSso, {
 		gk::String a = "Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find(gk::String("ßen"_str));
-		comptimeAssert(opt.none() == false);
-		comptimeAssertEq(opt.some(), 9);
+		check(opt.none() == false);
+		check_eq(opt.some(), 9);
 	});
 
 test_case("FindUtf8OtherStringInHeap") {
@@ -2605,32 +2605,32 @@ test_case("FindUtf8OtherStringInHeap") {
 comptime_test_case(String, FindUtf8OtherStringInHeap, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger5ÜbergrößenträgerÜbergrößenträgerÜbergrößenträger6Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find(gk::String("6Übe"_str));
-		comptimeAssert(opt.none() == false);
-		comptimeAssertEq(opt.some(), 141);
+		check(opt.none() == false);
+		check_eq(opt.some(), 141);
 	});
 
 test_case("NotFindOtherStringInSso") {
 	gk::String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 	gk::Option<gk::usize> opt = a.find(gk::String("ya"_str));
-	comptimeAssert(opt.none());
+	check(opt.none());
 }
 
 comptime_test_case(String, NotFindOtherStringInSso, {
 		gk::String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 		gk::Option<gk::usize> opt = a.find(gk::String("ya"_str));
-		comptimeAssert(opt.none());
+		check(opt.none());
 	});
 
 test_case("NotFindOtherStringInHeap") {
 	gk::String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajw5bheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 	gk::Option<gk::usize> opt = a.find(gk::String(";5"_str));
-	comptimeAssert(opt.none());
+	check(opt.none());
 }
 
 comptime_test_case(String, NotFindOtherStringInHeap, {
 		gk::String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajw5bheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 		gk::Option<gk::usize> opt = a.find(gk::String(";5"_str));
-		comptimeAssert(opt.none());
+		check(opt.none());
 	});
 
 test_case("NotFindUtf8OtherStringInSso") {
@@ -2642,7 +2642,7 @@ test_case("NotFindUtf8OtherStringInSso") {
 comptime_test_case(String, NotFindUtf8OtherStringInSso, {
 		gk::String a = "Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find(gk::String("ßet"_str));
-		comptimeAssert(opt.none());
+		check(opt.none());
 	});
 
 test_case("NotFindUtf8OtherStringInHeap") {
@@ -2654,7 +2654,7 @@ test_case("NotFindUtf8OtherStringInHeap") {
 comptime_test_case(String, NotFindUtf8OtherStringInHeap, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger5ÜbergrößenträgerÜbergrößenträgerÜbergrößenträger6Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find(gk::String("5Üba"_str));
-		comptimeAssert(opt.none());
+		check(opt.none());
 	});
 
 #pragma endregion
@@ -2670,7 +2670,7 @@ test_case("SubstringSsoStartingFromBeginning") {
 comptime_test_case(String, SubstringSsoStartingFromBeginning, {
 		gk::String a = "Übergrößenträger"_str;
 		gk::String b = a.substring(0, 12);
-		comptimeAssertEq(b, "Übergröße"_str);
+		check_eq(b, "Übergröße"_str);
 	});
 
 test_case("SubstringSsoStartingFromOffset") {
@@ -2682,7 +2682,7 @@ test_case("SubstringSsoStartingFromOffset") {
 comptime_test_case(String, SubstringSsoStartingFromOffset, {
 		gk::String a = "Übergrößenträger"_str;
 		gk::String b = a.substring(2, 12);
-		comptimeAssertEq(b, "bergröße"_str);
+		check_eq(b, "bergröße"_str);
 	});
 
 test_case("SubstringHeapToSsoStartingFromBeginning") {
@@ -2694,7 +2694,7 @@ test_case("SubstringHeapToSsoStartingFromBeginning") {
 comptime_test_case(String, SubstringHeapToSsoStartingFromBeginning, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträger"_str;
 		gk::String b = a.substring(0, 20);
-		comptimeAssertEq(b, "Übergrößenträger"_str);
+		check_eq(b, "Übergrößenträger"_str);
 	});
 
 test_case("SubstringHeapToSsoStartingFromOffset") {
@@ -2706,7 +2706,7 @@ test_case("SubstringHeapToSsoStartingFromOffset") {
 comptime_test_case(String, SubstringHeapToSsoStartingFromOffset, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträger"_str;
 		gk::String b = a.substring(20, 40);
-		comptimeAssertEq(b, "Übergrößenträger"_str);
+		check_eq(b, "Übergrößenträger"_str);
 	});
 
 test_case("SubstringHeapToHeapStartingFromBeginning") {
@@ -2718,7 +2718,7 @@ test_case("SubstringHeapToHeapStartingFromBeginning") {
 comptime_test_case(String, SubstringHeapToHeapStartingFromBeginning, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		gk::String b = a.substring(0, 40);
-		comptimeAssertEq(b, "ÜbergrößenträgerÜbergrößenträger"_str);
+		check_eq(b, "ÜbergrößenträgerÜbergrößenträger"_str);
 	});
 
 test_case("SubstringHeapToHeapStartingFromOffset") {
@@ -2730,7 +2730,7 @@ test_case("SubstringHeapToHeapStartingFromOffset") {
 comptime_test_case(String, SubstringHeapToHeapStartingFromOffset, {
 		gk::String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		gk::String b = a.substring(20, 80);
-		comptimeAssertEq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str);
+		check_eq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str);
 	});
 
 #pragma endregion
