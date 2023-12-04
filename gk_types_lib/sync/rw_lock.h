@@ -18,7 +18,10 @@ namespace gk
 		LockedReader(const RwLock<T>* rwlock) : _rwlock(rwlock) {}
 
 		LockedReader(const LockedReader&) = delete;
-		LockedReader(LockedReader&&) = delete;
+		LockedReader(LockedReader&& other) noexcept {
+			_rwlock = other._rwlock;
+			other._rwlock = nullptr;
+		}
 		LockedReader& operator = (const LockedReader&) = delete;
 		LockedReader& operator = (LockedReader&&) = delete;
 
@@ -47,7 +50,10 @@ namespace gk
 		LockedWriter(RwLock<T>* rwlock) : _rwlock(rwlock) {}
 
 		LockedWriter(const LockedWriter&) = delete;
-		LockedWriter(LockedWriter&&) = delete; 
+		LockedWriter(LockedWriter&& other) noexcept {
+			_rwlock = other._rwlock;
+			other._rwlock = nullptr;
+		}
 		LockedWriter& operator = (const LockedWriter&) = delete;
 		LockedWriter& operator = (LockedWriter&&) = delete;
 
