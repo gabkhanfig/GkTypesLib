@@ -80,6 +80,8 @@ namespace gk
 
 			constexpr ResultUnion(ResultErr<E>&& _err)
 				: error(std::move(_err._value)) {}
+
+			constexpr ~ResultUnion() {}
 		};
 
 	public:
