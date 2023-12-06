@@ -333,7 +333,7 @@ comptime_test_case(String, ConstructStrLargeUtf8, {
 		check_eq(a.usedBytes(), 37);
 		check_eq(a.cstr()[0], "Ü"[0]);
 		check_eq(a.cstr()[1], "Ü"[1]);
-		comptimeAssertNe(a.cstr()[36], '\0');
+		check_ne(a.cstr()[36], '\0');
 		check_eq(a.cstr()[37], '\0');
 	});
 
@@ -447,7 +447,7 @@ comptime_test_case(String, CopyConstructStrLargeUtf8, {
 		check_eq(b.usedBytes(), 37);
 		check_eq(b.cstr()[0], "Ü"[0]);
 		check_eq(b.cstr()[1], "Ü"[1]);
-		comptimeAssertNe(b.cstr()[36], '\0');
+		check_ne(b.cstr()[36], '\0');
 		check_eq(b.cstr()[37], '\0');
 	});
 
@@ -561,7 +561,7 @@ comptime_test_case(String, MoveConstructStrLargeUtf8, {
 		check_eq(b.usedBytes(), 37);
 		check_eq(b.cstr()[0], "Ü"[0]);
 		check_eq(b.cstr()[1], "Ü"[1]);
-		comptimeAssertNe(b.cstr()[36], '\0');
+		check_ne(b.cstr()[36], '\0');
 		check_eq(b.cstr()[37], '\0');
 	});
 
@@ -875,7 +875,7 @@ test_case("NotEqualChar") {
 
 comptime_test_case(String, NotEqualChar, {
 		gk::String a = 'b';
-		comptimeAssertNe(a, 'c');
+		check_ne(a, 'c');
 	});
 
 test_case("NotEqualCharSameFirst") {
@@ -885,7 +885,7 @@ test_case("NotEqualCharSameFirst") {
 
 comptime_test_case(String, NotEqualCharSameFirst, {
 		gk::String a = "ca"_str;
-		comptimeAssertNe(a, 'c');
+		check_ne(a, 'c');
 	});
 
 test_case("NotEqualCharAndLargeString") {
@@ -895,7 +895,7 @@ test_case("NotEqualCharAndLargeString") {
 
 comptime_test_case(String, NotEqualCharAndLargeString, {
 		gk::String a = "calsjkhdglajhsgdlajhsgdoauiysgdoauyisgdoauhsgdlajhsgdlajhsgdlajhsd"_str;
-		comptimeAssertNe(a, 'c');
+		check_ne(a, 'c');
 	});
 
 #pragma endregion
@@ -959,7 +959,7 @@ test_case("NotEqualSmallStr") {
 
 comptime_test_case(String, NotEqualSmallStr, {
 		gk::String a = "hh"_str;
-		comptimeAssertNe(a, "hi"_str);
+		check_ne(a, "hi"_str);
 	});
 
 test_case("NotEqualSsoMaxStr") {
@@ -969,7 +969,7 @@ test_case("NotEqualSsoMaxStr") {
 
 comptime_test_case(String, NotEqualSsoMaxStr, {
 		gk::String a = "bshdlakjshdlkajshdlkjasdasdddg"_str;
-		comptimeAssertNe(a, "ashdlakjshdlkajshdlkjasdasdddg"_str);
+		check_ne(a, "ashdlakjshdlkajshdlkjasdasdddg"_str);
 	});
 
 test_case("NotEqualLargeStr") {
@@ -979,7 +979,7 @@ test_case("NotEqualLargeStr") {
 
 comptime_test_case(String, NotEqualLargeStr, {
 		gk::String a = "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwsteoiuywgoiuy6203871602837610238761023"_str;
-		comptimeAssertNe(a, "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str);
+		check_ne(a, "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str);
 	});
 
 test_case("NotEqualUtf8Small") {
@@ -989,7 +989,7 @@ test_case("NotEqualUtf8Small") {
 
 comptime_test_case(String, NotEqualUtf8Small, {
 		gk::String a = "ßeb"_str;
-		comptimeAssertNe(a, "ßen"_str);
+		check_ne(a, "ßen"_str);
 	});
 
 test_case("NotEqualUtf8Large") {
@@ -999,7 +999,7 @@ test_case("NotEqualUtf8Large") {
 
 comptime_test_case(String, NotEqualUtf8Large, {
 		gk::String a = "ÜbergrößenträgerÜbargrößenträ"_str;
-		comptimeAssertNe(a, "ÜbergrößenträgerÜbergrößenträ"_str);
+		check_ne(a, "ÜbergrößenträgerÜbergrößenträ"_str);
 	});
 
 #pragma endregion
@@ -1073,7 +1073,7 @@ test_case("NotEqualSmallStrOtherString") {
 
 comptime_test_case(String, NotEqualSmallStrOtherString, {
 		gk::String a = "hh"_str;
-		comptimeAssertNe(a, gk::String("hi"_str));
+		check_ne(a, gk::String("hi"_str));
 	});
 
 test_case("NotEqualSsoMaxStrOtherString") {
@@ -1083,7 +1083,7 @@ test_case("NotEqualSsoMaxStrOtherString") {
 
 comptime_test_case(String, NotEqualSsoMaxStrOtherString, {
 		gk::String a = "bshdlakjshdlkajshdlkjasdasdddg"_str;
-		comptimeAssertNe(a, gk::String("ashdlakjshdlkajshdlkjasdasdddg"_str));
+		check_ne(a, gk::String("ashdlakjshdlkajshdlkjasdasdddg"_str));
 	});
 
 test_case("NotEqualLargeStrOtherString") {
@@ -1093,7 +1093,7 @@ test_case("NotEqualLargeStrOtherString") {
 
 comptime_test_case(String, NotEqualLargeStrOtherString, {
 		gk::String a = "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwsteoiuywgoiuy6203871602837610238761023"_str;
-		comptimeAssertNe(a, gk::String("ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str));
+		check_ne(a, gk::String("ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str));
 	});
 
 test_case("NotEqualUtf8SmallOtherString") {
@@ -1103,7 +1103,7 @@ test_case("NotEqualUtf8SmallOtherString") {
 
 comptime_test_case(String, NotEqualUtf8SmallOtherString, {
 		gk::String a = "ßeb"_str;
-		comptimeAssertNe(a, gk::String("ßen"_str));
+		check_ne(a, gk::String("ßen"_str));
 	});
 
 test_case("NotEqualUtf8LargeOtherString") {
@@ -1113,7 +1113,7 @@ test_case("NotEqualUtf8LargeOtherString") {
 
 comptime_test_case(String, NotEqualUtf8LargeOtherString, {
 		gk::String a = "ÜbergrößenträgerÜbargrößenträ"_str;
-		comptimeAssertNe(a, gk::String("ÜbergrößenträgerÜbergrößenträ"_str));
+		check_ne(a, gk::String("ÜbergrößenträgerÜbergrößenträ"_str));
 	});
 
 #pragma endregion
