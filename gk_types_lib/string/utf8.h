@@ -130,4 +130,70 @@ namespace gk
 			
 		}
 	}
+
+
+
+	/**
+	* @param str: Beginning of the utf8 buffer range
+	* @param length: The amount of bytes long the utf8 range is
+	*/
+	constexpr bool isValidUtf8(const char* str, usize length) {
+		constexpr char asciiBitmask = (char)0b10000000;
+
+		constexpr char utf8_TrailingBytesNotUsedBits = (char)0b00111111;
+		constexpr char utf8_TrailingBytesCodePoint = (char)0b10000000;
+
+		constexpr char utf8_2ByteCodePoint = (char)0b11000000;
+		constexpr char utf8_2ByteBitmask = (char)0b11100000;
+
+		constexpr char utf8_3ByteCodePoint = (char)0b11100000;
+		constexpr char utf8_3ByteBitmask = (char)0b11110000;
+
+		constexpr char utf8_4ByteCodePoint = (char)0b11110000;
+		constexpr char utf8_4ByteBitmask = (char)0b11111000;
+
+		usize i = 0;
+		while (i < length) {
+			char c = str[i];
+			if ((c & asciiBitmask) == 0) { // ascii character, 1 byte
+				i += 1;
+			}
+			else if ((c & utf8_2ByteBitmask) == utf8_2ByteCodePoint) { // 2 byte utf8
+				if (!(str[i + 1] & utf8_TrailingBytesCodePoint)) {
+					return false;
+				}
+				i += 2;
+			}
+			else if ((c & utf8_3ByteBitmask) == utf8_3ByteCodePoint) { // 3 byte utf8
+				if (!(str[i + 1] & utf8_TrailingBytesCodePoint)) {
+					return false;
+				}
+				if (!(str[i + 2] & utf8_TrailingBytesCodePoint)) {
+					return false;
+				}
+				i += 3;
+			}
+			else if ((c & utf8_4ByteBitmask) == utf8_4ByteCodePoint) { // 4 bye utf8
+				if (!(str[i + 1] & utf8_TrailingBytesCodePoint)) {
+					return false;
+				}
+				if (!(str[i + 2] & utf8_TrailingBytesCodePoint)) {
+					return false;
+				}
+				if (!(str[i + 3] & utf8_TrailingBytesCodePoint)) {
+					return false;
+				}
+				i += 4;
+			}
+			else if (c == '\0') { // null terminator within buffer
+				return false;
+			}
+			else { // not 1-4 bytes
+				return false;
+			}
+
+		}
+		return true;
+	}
+
 }
