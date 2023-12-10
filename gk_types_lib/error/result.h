@@ -159,6 +159,24 @@ namespace gk
 		}
 
 		/**
+		* Get a copy of the Ok variant of this Result.
+		* If the Result is the Error variant, or has been invalidated through a prior call to `ok()` or `error()`,
+		* will assert.
+		*
+		* @return A copy of the Ok value
+		*/
+		[[nodiscard]] constexpr T okCopy() const {
+			check_message(isOk(), "Result is not the Ok variant. Either it is an error, or the Ok variant has already been moved out");
+			
+			if constexpr (std::is_same_v<T, void>) {
+				return;
+			}
+			else {
+				return _union.ok;
+			}
+		}
+
+		/**
 		* Moves out the Error variant of this Result.
 		* If the Result is the Ok variant, or has been invalidated through a prior call to `ok()` or `error()`,
 		* will assert.
@@ -174,6 +192,24 @@ namespace gk
 			}
 			else {
 				return std::move(_union.error);
+			}
+		}
+
+		/**
+		* Get a copy of the Error variant of this Result.
+		* If the Result is the Ok variant, or has been invalidated through a prior call to `ok()` or `error()`,
+		* will assert.
+		* 
+		* @return A copy of the Error value
+		*/
+		[[nodiscard]] constexpr E errorCopy() const {
+			check_message(isError(), "Result is not the Error variant. Either it is ok, or the Error variant has already been moved out");
+
+			if constexpr (std::is_same_v<E, void>) {
+				return;
+			}
+			else {
+				return _union.error;
 			}
 		}
 
