@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basic_types.h"
+#include "option/option.h"
 
 namespace gk
 {
@@ -15,4 +16,6 @@ namespace gk
 		v++;
 		return v;
 	}
+
+	Option<usize> bitscanForwardNext(u64* bitmask);
 }
