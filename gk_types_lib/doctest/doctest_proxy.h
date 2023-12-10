@@ -74,7 +74,7 @@ namespace gk {
 #define subcase
 #define test_suite
 
-#define comptime_test_case
+#define comptime_test_case(test_case_name, test_name, test_block)
 
 #endif
 
