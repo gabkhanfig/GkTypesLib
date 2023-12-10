@@ -29,7 +29,8 @@ add_library(GkTypesLib STATIC
 "gk_types_lib/job/job_system.cpp" 
 "gk_types_lib/error/result.cpp" 
 "gk_types_lib/allocator/heap_allocator.cpp" 
-"gk_types_lib/doctest/doctest_proxy.cpp")
+"gk_types_lib/doctest/doctest_proxy.cpp" 
+"gk_types_lib/utility.cpp")
 
 add_executable(GkTypesLibTest 
 "gk_types_lib/test.cpp" 
@@ -50,7 +51,8 @@ add_executable(GkTypesLibTest
 "gk_types_lib/job/job_system.cpp" 
 "gk_types_lib/error/result.cpp" 
 "gk_types_lib/allocator/heap_allocator.cpp" 
-"gk_types_lib/doctest/doctest_proxy.cpp")
+"gk_types_lib/doctest/doctest_proxy.cpp" 
+"gk_types_lib/utility.cpp")
 
 # https://github.com/doctest/doctest/blob/master/doc/markdown/faq.md#why-are-my-tests-in-a-static-library-not-getting-registered
 #include(doctest_force_link_static_lib_in_target.cmake)
