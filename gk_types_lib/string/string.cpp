@@ -2959,4 +2959,29 @@ comptime_test_case(String, SubstringHeapToHeapStartingFromOffset, {
 
 #pragma endregion
 
+#pragma region Parse
+
+test_case("String parse bool true") {
+	String a = "true"_str;
+	check(a.parseBool().ok());
+}
+
+test_case("String parse bool true") {
+	String a = "false"_str;
+	check_not(a.parseBool().ok());
+}
+
+test_case("String parse bool error") {
+	String a = "truea"_str;
+	check(a.parseBool().isError());
+}
+
+test_case("String parse bool error sanity") {
+	String a = "falseb"_str;
+	check(a.parseBool().isError());
+}
+
+
+#pragma endregion
+
 #endif
