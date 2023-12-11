@@ -385,6 +385,10 @@ namespace gk
 		*/
 		constexpr Result<bool> parseBool() const;
 
+		/**
+		*/
+		constexpr Result<i64> parseInt() const;
+
 	private:
 
 		constexpr void setHeapFlag() {
@@ -1434,6 +1438,145 @@ inline constexpr gk::Result<bool> gk::String::parseBool() const
 	else {
 		return ResultErr();
 	}
+}
+
+inline constexpr gk::Result<gk::i64> gk::String::parseInt() const
+{
+	// All ints will fit within the 31 char SSO buffer.
+	if (!isSso()) {
+		return ResultErr();
+	}
+
+	const usize length = ssoLen();
+	const char* buffer = rep.sso.chars;
+	const bool isNegative = buffer[0] == '-';
+
+	// validate
+	do {
+		// max/min signed int64.
+		constexpr usize MAX_NUMBER_LENGTH = 19;
+		bool isLengthMax = false;
+		if (isNegative) {
+			if (length > (MAX_NUMBER_LENGTH + 1)) return ResultErr();
+			if (length == (MAX_NUMBER_LENGTH + 1)) isLengthMax = true;
+		}
+		else {
+			if (length > MAX_NUMBER_LENGTH) return ResultErr();
+			if (length == MAX_NUMBER_LENGTH) isLengthMax = true;
+		}
+
+		usize i = static_cast<usize>(isNegative); // start at 0 for positive, or 1 for negative;
+		for (; i < length; i++) {
+			const char c = buffer[i];
+			if (c >= '0' && c <= '9') {
+				continue;
+			}
+			return ResultErr();
+		}
+
+		// MUST ensure string is within 64 bit signed int bounds.
+		if (isLengthMax) {
+			i = static_cast<usize>(isNegative);
+
+			// + 9,223,372,036,854,775,807
+			// - 9,223,372,036,854,775,808
+			if (buffer[i] != '9') {
+				break;
+			}
+			if (buffer[i + 1] > '2') {
+				return ResultErr();
+			}
+			if (buffer[i + 2] > '2') {
+				return ResultErr();
+			}
+			if (buffer[i + 3] > '3') {
+				return ResultErr();
+			}
+			if (buffer[i + 4] > '3') {
+				return ResultErr();
+			}
+			if (buffer[i + 5] > '7') {
+				return ResultErr();
+			}
+			if (buffer[i + 6] > '2') {
+				return ResultErr();
+			}
+			if (buffer[i + 7] > '0') {
+				return ResultErr();
+			}
+			if (buffer[i + 8] > '3') {
+				return ResultErr();
+			}
+			if (buffer[i + 9] > '6') {
+				return ResultErr();
+			}
+			if (buffer[i + 10] > '8') {
+				return ResultErr();
+			}
+			if (buffer[i + 11] > '5') {
+				return ResultErr();
+			}
+			if (buffer[i + 12] > '4') {
+				return ResultErr();
+			}
+			if (buffer[i + 13] > '7') {
+				return ResultErr();
+			}
+			if (buffer[i + 14] > '7') {
+				return ResultErr();
+			}
+			if (buffer[i + 15] > '5') {
+				return ResultErr();
+			}
+			if (buffer[i + 16] > '8') {
+				return ResultErr();
+			}
+			if (buffer[i + 17] > '0') {
+				return ResultErr();
+			}
+
+			if (isNegative) {
+				if (buffer[i + 18] > '8') {
+					return ResultErr();
+				}
+			}
+			else {
+				if (buffer[i + 18] > '7') {
+					return ResultErr();
+				}
+			}
+		} 
+	} while (false); // allow breaking
+
+	auto convertCharToInt = [](char c) {
+		return static_cast<i64>(c - '0');
+	};
+
+	const char* end = buffer + length - 1;
+
+	i64 out = 0;
+
+	{
+		const i64 lengthToCheck = static_cast<i64>(isNegative ? length - 1 : length);
+		for (i64 i = 0; i < lengthToCheck; i++) {
+			const i64 tens = [](i64 index) {
+				i64 ret = 1;
+				for (i64 _i = 0; _i < index; _i++) {
+					ret *= 10;
+				}
+				return ret;
+			}(i);
+
+			const char c = *(end - i); // decrement
+			out += convertCharToInt(c) * tens;
+		}
+	}
+
+	if (isNegative) {
+		out *= -1ULL;
+	}
+
+	return ResultOk<i64>(out);
 }
 
 template<>
