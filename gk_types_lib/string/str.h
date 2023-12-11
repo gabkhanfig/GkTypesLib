@@ -1,6 +1,7 @@
 #pragma once
 #include "../basic_types.h"
 #include "../doctest/doctest_proxy.h"
+#include "../option/option.h"
 #include "utf8.h"
 #include <xtr1common>
 #include <string>
@@ -64,6 +65,12 @@ namespace gk
       str.buffer = start;
       str.len = length;
       return str;
+    }
+
+    
+
+    friend std::ostream& operator << (std::ostream& os, const Str& inStr) {
+      return os.write(inStr.buffer, inStr.len);
     }
   };
 }
