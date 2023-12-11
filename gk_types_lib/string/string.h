@@ -381,6 +381,10 @@ namespace gk
 		*/
 		constexpr String substring(usize startIndexInclusive, usize endIndexExclusive) const;
 
+		/**
+		*/
+		constexpr Result<bool> parseBool() const;
+
 	private:
 
 		constexpr void setHeapFlag() {
@@ -1376,6 +1380,60 @@ inline constexpr gk::String gk::String::substring(usize startIndexInclusive, usi
 	outStr.rep.heap.capacity = mallocCapacity;
 	outStr.setHeapFlag();
 	return outStr;
+}
+
+inline constexpr gk::Result<bool> gk::String::parseBool() const
+{
+	constexpr usize TRUE_STRING_BUFFER = []() {
+		usize out = 0;
+		out |= static_cast<usize>('t');
+		out |= static_cast<usize>('r') << 8;
+		out |= static_cast<usize>('u') << 16;
+		out |= static_cast<usize>('e') << 24;
+		return out;
+	}();
+
+	constexpr usize FALSE_STRING_BUFFER = []() {
+		usize out = 0;
+		out |= static_cast<usize>('f');
+		out |= static_cast<usize>('a') << 8;
+		out |= static_cast<usize>('l') << 16;
+		out |= static_cast<usize>('s') << 24;
+		out |= static_cast<usize>('e') << 32;
+		return out;
+	}();
+
+	if (!isSso()) {
+		return ResultErr();
+	}
+
+	const usize ssoBufferAsMachineWord = [&]() {
+		if (std::is_constant_evaluated()) {
+			usize out = 0;
+			out |= static_cast<usize>(rep.sso.chars[0]);
+			out |= static_cast<usize>(rep.sso.chars[1]) << 8;
+			out |= static_cast<usize>(rep.sso.chars[2]) << 16;
+			out |= static_cast<usize>(rep.sso.chars[3]) << 24;
+			out |= static_cast<usize>(rep.sso.chars[4]) << 32;
+			out |= static_cast<usize>(rep.sso.chars[5]) << 40;
+			out |= static_cast<usize>(rep.sso.chars[6]) << 48;
+			out |= static_cast<usize>(rep.sso.chars[7]) << 56;
+			return out;
+		}
+		else {
+			return *reinterpret_cast<const usize*>(rep.sso.chars);
+		}
+	}();
+
+	if (ssoBufferAsMachineWord == TRUE_STRING_BUFFER) {
+		return ResultOk<bool>(true);
+	}
+	else if (ssoBufferAsMachineWord == FALSE_STRING_BUFFER) {
+		return ResultOk<bool>(false);
+	}
+	else {
+		return ResultErr();
+	}
 }
 
 template<>
