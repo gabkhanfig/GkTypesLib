@@ -1083,9 +1083,9 @@ struct StringMaker : public detail::StringMakerBase<
 
 #ifndef DOCTEST_STRINGIFY
 #ifdef DOCTEST_CONFIG_DOUBLE_STRINGIFY
-#define DOCTEST_STRINGIFY(...) toString(toString(__VA_ARGS__))
+#define DOCTEST_STRINGIFY(...) doctest::toString(doctest::toString(__VA_ARGS__))
 #else
-#define DOCTEST_STRINGIFY(...) toString(__VA_ARGS__)
+#define DOCTEST_STRINGIFY(...) doctest::toString(__VA_ARGS__)
 #endif
 #endif
 
