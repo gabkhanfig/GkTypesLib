@@ -2981,6 +2981,60 @@ test_case("String parse bool error sanity") {
 	check(a.parseBool().isError());
 }
 
+test_case("String parse signed int zero") {
+	String a = '0';
+	check_eq(a.parseInt().ok(), 0);
+}
+
+test_case("String parse signed int one") {
+	String a = '1';
+	check_eq(a.parseInt().ok(), 1);
+}
+
+test_case("String parse signed int negative one") {
+	String a = "-1"_str;
+	check_eq(a.parseInt().ok(), -1);
+}
+
+test_case("String parse signed int random positive value") {
+	String a = "5612496929"_str;
+	check_eq(a.parseInt().ok(), 5612496929);
+}
+
+test_case("String parse signed int random negative value") {
+	String a = "-5612496929"_str;
+	check_eq(a.parseInt().ok(), -5612496929);
+}
+
+test_case("String parse signed int max value") {
+	String a = "9223372036854775807"_str;
+	check_eq(a.parseInt().ok(), std::numeric_limits<gk::i64>::max());
+}
+
+test_case("String parse signed int min value") {
+	String a = "-9223372036854775808"_str;
+	check_eq(a.parseInt().ok(), std::numeric_limits<gk::i64>::min());
+}
+
+test_case("String parse signed int invalid decimal") {
+	String a = "58.5"_str;
+	check(a.parseInt().isError());
+}
+
+test_case("String parse signed int has text") {
+	String a = "-hello"_str;
+	check(a.parseInt().isError());
+}
+
+test_case("String parse signed int out of bounds positive") {
+	String a = "9223372036854775808"_str; // one greater than max
+	check(a.parseInt().isError());
+}
+
+test_case("String parse signed int out of bounds negative") {
+	String a = "-9223372036854775809"_str; // one less than min
+	check(a.parseInt().isError());
+}
 
 #pragma endregion
 
