@@ -382,14 +382,39 @@ namespace gk
 		constexpr String substring(usize startIndexInclusive, usize endIndexExclusive) const;
 
 		/**
+		* Parses a bool from the string.
+		* If the string is "true", returns an Ok variant of `true`.
+		* If the string is "false", returns an Ok variant of `false`.
+		* All other string values will be an Error variant.
+		* 
+		* @return The parsed boolean, or an error.
 		*/
 		constexpr Result<bool> parseBool() const;
 
 		/**
+		* Parses a signed 64 bit integer from the string.
+		* For example, the string of "-1234" returns an Ok variant of `-1234`.
+		* 
+		* Errors:
+		* 
+		* - Decimals will return an Error variant (eg. 12.5).
+		* - Anything out of the signed 64 bit range will return an Error (eg. "9223372036854775808" / "-9223372036854775809").
+		* 
+		* @return The parsed signed 64 bit integer, or an error.
 		*/
 		constexpr Result<i64> parseInt() const;
 
 		/**
+		* Parses an unsigned 64 bit integer from the string.
+		* For example, the string of "1234" returns an Ok variant of `-1234`.
+		* 
+		* Errors:
+		* 
+		* - Negatives will return an Error variant.
+		* - Decimals will return an Error variant (eg. 12.5).
+		* - Anything out of the signed 64 bit range will return an Error (eg. "18446744073709551616").
+		* 
+		* @return The parsed unsigned 64 bit integer, or an error.
 		*/
 		constexpr Result<u64> parseUint() const;
 
