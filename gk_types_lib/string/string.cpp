@@ -3036,6 +3036,46 @@ test_case("String parse signed int out of bounds negative") {
 	check(a.parseInt().isError());
 }
 
+test_case("String parse unsigned int zero") {
+	String a = '0';
+	check_eq(a.parseUint().ok(), 0);
+}
+
+test_case("String parse unsigned int one") {
+	String a = '1';
+	check_eq(a.parseUint().ok(), 1);
+}
+
+test_case("String parse random value") {
+	String a = "249872938"_str;
+	check_eq(a.parseUint().ok(), 249872938);
+}
+
+test_case("String parse max value") {
+	String a = "18446744073709551615"_str;
+	check_eq(a.parseUint().ok(), 18446744073709551615);
+}
+
+test_case("String parse unsigned int negative error") {
+	String a = "-1"_str;
+	check(a.parseUint().isError());
+}
+
+test_case("String parse unsigned int decimal error") {
+	String a = "58.5"_str;
+	check(a.parseUint().isError());
+}
+
+test_case("String parse unsigned int word error") {
+	String a = "hello"_str;
+	check(a.parseUint().isError());
+}
+
+test_case("String parse unsigned int word error sanity") {
+	String a = "25hello"_str;
+	check(a.parseUint().isError());
+}
+
 #pragma endregion
 
 #endif
