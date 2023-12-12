@@ -52,14 +52,57 @@ namespace gk
     */
     [[nodiscard]] static constexpr Str fromSlice(const char* start, usize length);
 
+    /**
+    * Find the index of a char within this string slice.
+    * If it exists, the Some variant will be returned with the index,
+    * otherwise the None variant will be returned.
+    * 
+    * @param c: Character to find. Should not be null terminator.
+    * @return The index of the character if it exists.
+    */
     [[nodiscard]] constexpr Option<usize> find(char c) const;
 
+    /**
+    * Find the start index of another string slice within this one.
+    * If it exists, the Some variant will be returned with the index where it begins,
+    * otherwise the None variant will be returned.
+    * 
+    * @param str: String slice to find
+    * @return The index of the beginning of the slice if it exists.
+    */
     [[nodiscard]] constexpr Option<usize> find(gk::Str str) const;
 
+    /**
+    * Find the last index of a char within this string slice.
+    * If it exists, the Some variant will be returned with the index,
+    * otherwise the None variant will be returned.
+    *
+    * @param c: Character to find. Should not be null terminator.
+    * @return The index of the character if it exists.
+    */
     [[nodiscard]] constexpr Option<usize> findLast(char c) const;
 
+    /**
+    * Find the start index of the last occurrence of another string slice within this one.
+    * If it exists, the Some variant will be returned with the index where it begins,
+    * otherwise the None variant will be returned.
+    *
+    * @param str: String slice to find
+    * @return The index of the beginning of the slice if it exists.
+    */
     [[nodiscard]] constexpr Option<usize> findLast(gk::Str str) const;
 
+    /**
+    * Creates a substring from `startIndexInclusive` to `endIndexExclusive`.
+    * Checks that the substring is valid UTF8.
+    * Uses indices into the string slice, not UTF8 codepoints.
+    * Doing `substring(start, start + 10)` will make a substring of `len() == 10`.
+    * Does NOT make a copy, is just an offset into the slice.
+    *
+    * @param startIndexInclusive: Beginning of the substring. buffer[startIndexInclusive] is included.
+    * @param endIndexInclusive: End of the substring. buffer[endIndexExclusive] is NOT included.
+    * @return Valid UTF8 substring.
+    */
     [[nodiscard]] constexpr gk::Str substring(usize startIndexInclusive, usize endIndexExclusive) const;
 
     friend std::ostream& operator << (std::ostream& os, const Str& inStr) {
