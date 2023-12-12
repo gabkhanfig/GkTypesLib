@@ -68,6 +68,12 @@ namespace gk
     }
 
     
+    constexpr gk::Str substring(usize startIndexInclusive, usize endIndexExclusive) const {
+      gk::Str sub;
+      sub.buffer = buffer + startIndexInclusive;
+      sub.len = endIndexExclusive - startIndexInclusive;
+      return sub;
+    }
 
     friend std::ostream& operator << (std::ostream& os, const Str& inStr) {
       return os.write(inStr.buffer, inStr.len);
