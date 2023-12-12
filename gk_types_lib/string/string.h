@@ -1463,6 +1463,17 @@ inline constexpr gk::Result<gk::i64> gk::String::parseInt() const
 	const char* buffer = rep.sso.chars;
 	const bool isNegative = buffer[0] == '-';
 
+	if (length == 1) { // fast return
+		if (buffer[0] >= '0' && buffer[0] <= '9') {
+			return ResultOk<i64>(static_cast<i64>(internal::convertCharToInt(buffer[0])));
+		}
+	}
+	else if (length == 2 && isNegative) {
+		if (buffer[1] >= '0' && buffer[1] <= '9') {
+			return ResultOk<i64>(static_cast<i64>(internal::convertCharToInt(buffer[1])) * -1ULL);
+		}
+	}
+
 	// validate
 	do {
 		// max/min signed int64.
