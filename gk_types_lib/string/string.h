@@ -1486,6 +1486,9 @@ inline constexpr gk::Result<gk::i64> gk::String::parseInt() const
 
 	const usize length = ssoLen();
 	const char* buffer = rep.sso.chars;
+
+	if (length == 0) return ResultErr();
+
 	const bool isNegative = buffer[0] == '-';
 
 	if (length == 1) { // fast return
@@ -1632,6 +1635,8 @@ inline constexpr gk::Result<gk::u64> gk::String::parseUint() const
 
 	const usize length = ssoLen();
 	const char* buffer = rep.sso.chars;
+
+	if (length == 0) return ResultErr();
 
 	if (length == 1) { // fast return
 		if (buffer[0] >= '0' && buffer[0] <= '9') {
