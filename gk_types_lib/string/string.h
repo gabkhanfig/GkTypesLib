@@ -1414,6 +1414,9 @@ inline constexpr gk::Option<gk::usize> gk::String::find(const Str& str) const
 	if (str.len == 1) {
 		return find(str.buffer[0]);
 	}
+	if (str.len == 0) {
+		return Option<usize>();
+	}
 
 	if (std::is_constant_evaluated()) {
 		const char firstChar = str.buffer[0];
