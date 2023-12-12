@@ -386,7 +386,7 @@ namespace gk
 		* If the string is "true", returns an Ok variant of `true`.
 		* If the string is "false", returns an Ok variant of `false`.
 		* All other string values will be an Error variant.
-		* 
+		*
 		* @return The parsed boolean, or an error.
 		*/
 		[[nodiscard]] constexpr Result<bool> parseBool() const;
@@ -394,12 +394,12 @@ namespace gk
 		/**
 		* Parses a signed 64 bit integer from the string.
 		* For example, the string of "-1234" returns an Ok variant of `-1234`.
-		* 
+		*
 		* Errors:
-		* 
+		*
 		* - Decimals will return an Error variant (eg. 12.5).
 		* - Anything out of the signed 64 bit range will return an Error (eg. "9223372036854775808" / "-9223372036854775809").
-		* 
+		*
 		* @return The parsed signed 64 bit integer, or an error.
 		*/
 		[[nodiscard]] constexpr Result<i64> parseInt() const;
@@ -407,13 +407,13 @@ namespace gk
 		/**
 		* Parses an unsigned 64 bit integer from the string.
 		* For example, the string of "1234" returns an Ok variant of `-1234`.
-		* 
+		*
 		* Errors:
-		* 
+		*
 		* - Negatives will return an Error variant.
 		* - Decimals will return an Error variant (eg. 12.5).
 		* - Anything out of the signed 64 bit range will return an Error (eg. "18446744073709551616").
-		* 
+		*
 		* @return The parsed unsigned 64 bit integer, or an error.
 		*/
 		[[nodiscard]] constexpr Result<u64> parseUint() const;
@@ -423,20 +423,58 @@ namespace gk
 		* For example, the string of "-1234.5678" returns an Ok variant of `-1234.5678`.
 		* Works with no decimals present.
 		* NOTE: Due to how floats are, this can be slightly inaccurate.
-		* 
+		*
 		* Errors:
-		* 
+		*
 		* - Not a number at all.
 		* - Multiple decimals.
 		* - Decimal without numbers after.
-		* 
+		*
 		* @return The parsed 64 bit float, or an error.
 		*/
 		[[nodiscard]] constexpr Result<double> parseFloat() const;
 
-		
+		/**
+		* Allow parsing of a string into a type, or returning an error if it cannot be parsed.
+		* Specialization is required, but is already implemented for bool, int types, and float types.
+		*
+		* @return The successfully parsed T, or an error.
+		*/
+		template<typename T>
+		[[nodiscard]] constexpr Result<T> parse() const = delete;
 
+		template<>
+		[[nodiscard]] constexpr Result<bool> parse<bool>() const { return parseBool(); }
 
+		template<>
+		[[nodiscard]] constexpr Result<i8> parse<i8>() const;
+
+		template<>
+		[[nodiscard]] constexpr Result<i16> parse<i16>() const;
+
+		template<>
+		[[nodiscard]] constexpr Result<i32> parse<i32>() const;
+
+		template<>
+		[[nodiscard]] constexpr Result<i64> parse<i64>() const { return parseInt(); }
+
+		template<>
+		[[nodiscard]] constexpr Result<u8> parse<u8>() const;
+
+		template<>
+		[[nodiscard]] constexpr Result<u16> parse<u16>() const;
+
+		template<>
+		[[nodiscard]] constexpr Result<u32> parse<u32>() const;
+
+		template<>
+		[[nodiscard]] constexpr Result<u64> parse<u64>() const { return parseUint(); }
+
+		template<>
+		[[nodiscard]] constexpr Result<float> parse<float>() const;
+
+		template<>
+		[[nodiscard]] constexpr Result<double> parse<double>() const { return parseFloat(); }
 
 	private:
 
@@ -1892,6 +1930,106 @@ inline constexpr gk::Result<double> gk::String::parseFloat() const
 	}
 
 	return ResultOk<double>(isNegative ? (wholeValue + decimalValue) * -1.0 : (wholeValue + decimalValue));
+}
+
+template<>
+inline constexpr gk::Result<gk::i8> gk::String::parse<gk::i8>() const { 
+	Result<i64> parsed = parseInt();
+	if (parsed.isError()) return ResultErr();
+	
+	i64 num = parsed.okCopy();
+	if (num > static_cast<i64>(std::numeric_limits<i8>::max())) {
+		return ResultErr();
+	}
+	else if (num < static_cast<i64>(std::numeric_limits<i8>::min())) {
+		return ResultErr();
+	}
+	else {
+		return ResultOk<i8>(static_cast<i8>(num));
+	}
+}
+
+template<>
+inline constexpr gk::Result<gk::i16> gk::String::parse<gk::i16>() const { 
+	Result<i64> parsed = parseInt();
+	if (parsed.isError()) return ResultErr();
+	
+	i64 num = parsed.okCopy();
+	if (num > static_cast<i64>(std::numeric_limits<i16>::max())) {
+		return ResultErr();
+	}
+	else if (num < static_cast<i64>(std::numeric_limits<i16>::min())) {
+		return ResultErr();
+	}
+	else {
+		return ResultOk<i16>(static_cast<i16>(num));
+	}
+}
+
+template<>
+inline constexpr gk::Result<gk::i32> gk::String::parse<gk::i32>() const { 
+	Result<i64> parsed = parseInt();
+	if (parsed.isError()) return ResultErr();
+	
+	i64 num = parsed.okCopy();
+	if (num > static_cast<i32>(std::numeric_limits<i32>::max())) {
+		return ResultErr();
+	}
+	else if (num < static_cast<i32>(std::numeric_limits<i32>::min())) {
+		return ResultErr();
+	}
+	else {
+		return ResultOk<i32>(static_cast<i32>(num));
+	}
+}
+
+template<>
+inline constexpr gk::Result<gk::u8> gk::String::parse<gk::u8>() const {
+	Result<u64> parsed = parseUint();
+	if (parsed.isError()) return ResultErr();
+
+	u64 num = parsed.okCopy();
+	if (num > static_cast<u64>(std::numeric_limits<u8>::max())) {
+		return ResultErr();
+	}
+	else {
+		return ResultOk<u8>(static_cast<u8>(num));
+	}
+}
+
+template<>
+inline constexpr gk::Result<gk::u16> gk::String::parse<gk::u16>() const {
+	Result<u64> parsed = parseUint();
+	if (parsed.isError()) return ResultErr();
+
+	u64 num = parsed.okCopy();
+	if (num > static_cast<u64>(std::numeric_limits<u16>::max())) {
+		return ResultErr();
+	}
+	else {
+		return ResultOk<u16>(static_cast<u16>(num));
+	}
+}
+
+template<>
+inline constexpr gk::Result<gk::u32> gk::String::parse<gk::u32>() const {
+	Result<u64> parsed = parseUint();
+	if (parsed.isError()) return ResultErr();
+
+	u64 num = parsed.okCopy();
+	if (num > static_cast<u64>(std::numeric_limits<u32>::max())) {
+		return ResultErr();
+	}
+	else {
+		return ResultOk<u32>(static_cast<u32>(num));
+	}
+}
+
+template<>
+inline constexpr gk::Result<float> gk::String::parse<float>() const {
+	Result<double> parsed = parseFloat();
+	if (parsed.isError()) return ResultErr();
+	return ResultOk<float>(static_cast<float>(parsed.okCopy()));
 }
 
 template<>
