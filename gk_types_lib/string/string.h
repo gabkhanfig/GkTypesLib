@@ -418,6 +418,24 @@ namespace gk
 		*/
 		constexpr Result<u64> parseUint() const;
 
+		/**
+		* Parses a 64 bit float from the string.
+		* For example, the string of "-1234.5678" returns an Ok variant of `-1234.5678`.
+		* Works with no decimals present.
+		* NOTE: Due to how floats are, this can be slightly inaccurate.
+		* 
+		* Errors:
+		* 
+		* - Not a number at all.
+		* - Multiple decimals.
+		* - Decimal without numbers after.
+		* 
+		* @return The parsed 64 bit float, or an error.
+		*/
+		constexpr Result<double> parseFloat() const;
+
+
+
 	private:
 
 		constexpr void setHeapFlag() {
@@ -1747,6 +1765,131 @@ inline constexpr gk::Result<gk::u64> gk::String::parseUint() const
 	}
 
 	return ResultOk<u64>(out);
+}
+
+inline constexpr gk::Result<double> gk::String::parseFloat() const
+{
+	auto convertCharToDouble = [](char c) {
+		switch (c) {
+		case '0':
+			return 0.0;
+		case '1':
+			return 1.0;
+		case '2':
+			return 2.0;
+		case '3':
+			return 3.0;
+		case '4':
+			return 4.0;
+		case '5':
+			return 5.0;
+		case '6':
+			return 6.0;
+		case '7':
+			return 7.0;
+		case '8':
+			return 8.0;
+		case '9':
+			return 9.0;
+		default:
+			std::cout << c << '\n';
+			check(false);
+		}
+	};
+
+	auto powOf10 = [](usize index) {
+		double ret = 1;
+		for (usize i = 0; i < index; i++) {
+			ret *= 10.0;
+		}
+		return ret;
+	};
+
+	const char* buffer = cstr();
+	const usize length = len();
+
+	if (length == 0) return ResultErr();
+
+	if (length == 1) { // fast return. useful for JSON.
+		if (buffer[0] >= '0' && buffer[0] <= '9') {
+			return ResultOk<double>(convertCharToDouble(buffer[0]));
+		}
+	}
+
+	const bool isNegative = buffer[0] == '-';
+
+	usize decimalIndex = ~0; // impossibly large value
+
+	// validate and set decimal position
+	do {
+		usize i = static_cast<usize>(isNegative); // start at 0 for positive, or 1 for negative;
+		for (; i < length; i++) {
+			const char c = buffer[i];
+
+			if (c >= '0' && c <= '9') {
+				continue;
+			}
+
+			if (c == '.' && decimalIndex == ~0) { // decimal wasn't already set
+				if (i == (length - 1)) { // decimal is last char
+					return ResultErr();
+				}
+
+				decimalIndex = i;
+				continue;
+			}
+
+			return ResultErr();
+		}
+	} while (false);
+
+	const bool hasDecimal = decimalIndex != ~0;
+
+	double wholeValue = 0.0;
+	double decimalValue = 0.0;
+
+	// whole part
+	{
+		const char* end = hasDecimal ? (buffer + decimalIndex - 1) : (buffer + length - 1);
+		const usize lengthToCheck = [&]() {
+			if (isNegative) {
+				if (hasDecimal) {
+					return decimalIndex - 1;
+				}
+				else {
+					return length - 1;
+				}
+			}
+			else {
+				if (hasDecimal) {
+					return decimalIndex;
+				}
+				else {
+					return length;
+				}
+			}
+		}();
+
+		for (usize i = 0; i < lengthToCheck; i++) {
+			const char c = *(end - i); // decrement
+			wholeValue += powOf10(i) * convertCharToDouble(c);
+		}
+	}
+
+	// decimal part
+	if (hasDecimal) {
+		const char* end = buffer + length - 1;
+		const char* start = buffer + decimalIndex + 1;
+		const usize lengthToCheck = length - decimalIndex - 1;
+
+		for (usize i = 0; i < lengthToCheck; i++) {
+			//const char c = *(end - i);
+			const char c = start[i];
+			decimalValue += (1.0 / powOf10(i + 1)) * convertCharToDouble(c);
+		}
+	}
+
+	return ResultOk<double>(isNegative ? (wholeValue + decimalValue) * -1.0 : (wholeValue + decimalValue));
 }
 
 template<>
