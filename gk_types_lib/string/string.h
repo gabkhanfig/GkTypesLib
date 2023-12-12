@@ -1470,7 +1470,7 @@ inline constexpr gk::Result<gk::i64> gk::String::parseInt() const
 	}
 	else if (length == 2 && isNegative) {
 		if (buffer[1] >= '0' && buffer[1] <= '9') {
-			return ResultOk<i64>(static_cast<i64>(internal::convertCharToInt(buffer[1])) * -1ULL);
+			return ResultOk<i64>(static_cast<i64>(internal::convertCharToInt(buffer[1])) * -1LL);
 		}
 	}
 
@@ -1592,7 +1592,7 @@ inline constexpr gk::Result<gk::i64> gk::String::parseInt() const
 	}
 
 	if (isNegative) {
-		out *= -1ULL;
+		out *= -1LL;
 	}
 
 	return ResultOk<i64>(out);
