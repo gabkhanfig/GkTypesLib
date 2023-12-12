@@ -123,6 +123,46 @@ namespace gk
       }
     }
 
+    constexpr Option<usize> findLast(gk::Str str) const {
+      if (str.len == 0) {
+        return Option<usize>();
+      }
+      else if (str.len == 1) {
+        return find(str.buffer[0]);
+      }
+      else if (str.len > len) {
+        return Option<usize>();
+      }
+      //else if (str.len == len) {
+      //  if (*this == str) {
+      //    return Option<usize>(0);
+      //  }
+      //  return Option<usize>();
+      //}
+      if (true) { // TODO SIMD
+        usize i = len - 1;
+        const char firstChar = str.buffer[0];
+        while (true) {
+          if (buffer[i] == firstChar) {
+            const char* thisCompareStart = buffer + i;
+
+            bool found = true;
+            for (usize compareIndex = 1; compareIndex < str.len; compareIndex++) { // dont need to check the first character
+              if (thisCompareStart[compareIndex] != str.buffer[compareIndex]) {
+                found = false;
+                break;
+              }
+            }
+            if (found) {
+              return Option<usize>(i); // All has been checked.
+            }
+          }
+          if (i == 0) return Option<usize>();
+          i--;
+        }
+      }
+    }
+
     constexpr gk::Str substring(usize startIndexInclusive, usize endIndexExclusive) const {
       gk::Str sub;
       sub.buffer = buffer + startIndexInclusive;
