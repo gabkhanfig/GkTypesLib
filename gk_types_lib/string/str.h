@@ -74,6 +74,46 @@ namespace gk
       return Option<usize>();
     }
 
+    constexpr Option<usize> find(gk::Str str) const {
+      if (str.len == 0) {
+        return Option<usize>();
+      }
+      else if (str.len == 1) {
+        return find(str.buffer[0]);
+      }
+      else if (str.len > len) {
+        return Option<usize>();
+      }
+      //else if (str.len == len) {
+      //  if (*this == str) {
+      //    return Option<usize>(0);
+      //  }
+      //  return Option<usize>();
+      //}
+      
+      if (true) { // TODO SIMD
+        const char firstChar = str.buffer[0];
+        for (u64 i = 0; i < len; i++) {
+          if (buffer[i] == firstChar) {
+            const char* thisCompareStart = buffer + i;
+
+            bool found = true;
+            for (u64 compareIndex = 1; compareIndex < str.len; compareIndex++) { // dont need to check the first character
+              if (thisCompareStart[compareIndex] != str.buffer[compareIndex]) {
+                found = false;
+                break;
+              }
+            }
+            if (found) {
+              return Option<usize>(i); // All has been checked.
+            }
+          }
+        }
+        return Option<usize>();
+      }
+      
+    }
+
     constexpr Option<usize> findLast(char c) const {
       usize i = len - 1;
       while (true) {
