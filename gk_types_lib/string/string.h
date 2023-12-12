@@ -389,6 +389,10 @@ namespace gk
 		*/
 		constexpr Result<i64> parseInt() const;
 
+		/**
+		*/
+		constexpr Result<u64> parseUint() const;
+
 	private:
 
 		constexpr void setHeapFlag() {
@@ -1440,6 +1444,14 @@ inline constexpr gk::Result<bool> gk::String::parseBool() const
 	}
 }
 
+namespace gk {
+	namespace internal {
+		constexpr u64 convertCharToInt(char c) {
+			return static_cast<u64>(c - '0');
+		}
+	}
+}
+
 inline constexpr gk::Result<gk::i64> gk::String::parseInt() const
 {
 	// All ints will fit within the 31 char SSO buffer.
@@ -1548,10 +1560,6 @@ inline constexpr gk::Result<gk::i64> gk::String::parseInt() const
 		} 
 	} while (false); // allow breaking
 
-	auto convertCharToInt = [](char c) {
-		return static_cast<i64>(c - '0');
-	};
-
 	const char* end = buffer + length - 1;
 
 	i64 out = 0;
@@ -1568,7 +1576,7 @@ inline constexpr gk::Result<gk::i64> gk::String::parseInt() const
 			}(i);
 
 			const char c = *(end - i); // decrement
-			out += convertCharToInt(c) * tens;
+			out += static_cast<i64>(internal::convertCharToInt(c)) * tens;
 		}
 	}
 
