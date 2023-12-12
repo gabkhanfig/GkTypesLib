@@ -67,7 +67,22 @@ namespace gk
       return str;
     }
 
-    
+    constexpr Option<usize> find(char c) const {
+      for (usize i = 0; i < len; i++) {
+        if (buffer[i] == c) return Option<usize>(i);
+      }
+      return Option<usize>();
+    }
+
+    constexpr Option<usize> findLast(char c) const {
+      usize i = len - 1;
+      while (true) {
+        if (buffer[i] == c) return Option<usize>(i);
+        if (i == 0) return Option<usize>();
+        i--;
+      }
+    }
+
     constexpr gk::Str substring(usize startIndexInclusive, usize endIndexExclusive) const {
       gk::Str sub;
       sub.buffer = buffer + startIndexInclusive;
