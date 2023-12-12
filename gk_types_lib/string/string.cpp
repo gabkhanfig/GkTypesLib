@@ -3076,6 +3076,31 @@ test_case("String parse unsigned int word error sanity") {
 	check(a.parseUint().isError());
 }
 
+test_case("String parse float zero") {
+	String a = '0';
+	check_eq(a.parseFloat().ok(), 0);
+}
+
+test_case("String parse float one") {
+	String a = '1';
+	check_eq(a.parseFloat().ok(), 1);
+}
+
+test_case("String parse float negative one") {
+	String a = "-1"_str;
+	check_eq(a.parseFloat().ok(), -1);
+}
+
+test_case("String parse float one decimal slot") {
+	String a = "1.9"_str;
+	check_eq(a.parseFloat().ok(), 1.9);
+}
+
+test_case("String parse float long decimal") {
+	String a = "-1234.56789"_str;
+	check_eq(a.parseFloat().ok(), -1234.56789);
+}
+
 #pragma endregion
 
 #endif
