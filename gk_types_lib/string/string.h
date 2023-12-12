@@ -1598,6 +1598,127 @@ inline constexpr gk::Result<gk::i64> gk::String::parseInt() const
 	return ResultOk<i64>(out);
 }
 
+inline constexpr gk::Result<gk::u64> gk::String::parseUint() const
+{
+	// All ints will fit within the 31 char SSO buffer.
+	if (!isSso()) {
+		return ResultErr();
+	}
+
+	const usize length = ssoLen();
+	const char* buffer = rep.sso.chars;
+
+	if (length == 1) { // fast return
+		if (buffer[0] >= '0' && buffer[0] <= '9') {
+			return ResultOk<u64>(internal::convertCharToInt(buffer[0]));
+		}
+	}
+
+	// validate
+	do {
+		// max chars in an unsigned 64 bit integer
+		constexpr usize MAX_NUMBER_LENGTH = 20;
+		const bool isLengthMax = length == MAX_NUMBER_LENGTH;
+
+		if (length > MAX_NUMBER_LENGTH) return ResultErr();
+
+		for (usize i = 0; i < length; i++) {
+			const char c = buffer[i];
+			if (c >= '0' && c <= '9') {
+				continue;
+			}
+			return ResultErr();
+		}
+
+		if (!isLengthMax) {
+			break;
+		}
+
+		// 18,446,744,073,709,551,615
+		if (buffer[0] > '1') {
+			return ResultErr();
+		}
+		if (buffer[1] > '8') {
+			return ResultErr();
+		}
+		if (buffer[2] > '4') {
+			return ResultErr();
+		}
+		if (buffer[3] > '4') {
+			return ResultErr();
+		}
+		if (buffer[4] > '6') {
+			return ResultErr();
+		}
+		if (buffer[5] > '7') {
+			return ResultErr();
+		}
+		if (buffer[6] > '4') {
+			return ResultErr();
+		}
+		if (buffer[7] > '4') {
+			return ResultErr();
+		}
+		if (buffer[8] > '0') {
+			return ResultErr();
+		}
+		if (buffer[9] > '7') {
+			return ResultErr();
+		}
+		if (buffer[10] > '3') {
+			return ResultErr();
+		}
+		if (buffer[11] > '7') {
+			return ResultErr();
+		}
+		if (buffer[12] > '0') {
+			return ResultErr();
+		}
+		if (buffer[13] > '9') {
+			return ResultErr();
+		}
+		if (buffer[14] > '5') {
+			return ResultErr();
+		}
+		if (buffer[15] > '5') {
+			return ResultErr();
+		}
+		if (buffer[16] > '1') {
+			return ResultErr();
+		}
+		if (buffer[17] > '6') {
+			return ResultErr();
+		}
+		if (buffer[18] > '1') {
+			return ResultErr();
+		}
+		if (buffer[19] > '5') {
+			return ResultErr();
+		}
+	} while (false);
+
+	const char* end = buffer + length - 1;
+
+	u64 out = 0;
+
+	{
+		for (u64 i = 0; i < length; i++) {
+			const u64 tens = [](u64 index) {
+				u64 ret = 1;
+				for (u64 _i = 0; _i < index; _i++) {
+					ret *= 10;
+				}
+				return ret;
+			}(i);
+
+			const char c = *(end - i); // decrement
+			out += internal::convertCharToInt(c) * tens;
+		}
+	}
+
+	return ResultOk<u64>(out);
+}
+
 template<>
 inline size_t gk::hash<gk::String>(const gk::String& key) { // Why would you ever use this??
 	return key.hash();
