@@ -221,56 +221,56 @@ namespace gk
 		*
 		* @return a new string with the char concatenated.
 		*/
-		constexpr friend String operator + (const String& lhs, char rhs);
+		[[nodiscard]] constexpr friend String operator + (const String& lhs, char rhs);
 
 		/**
 		* Concat a moved string with a char.
 		*
 		* @return `lhs` with the char appended.
 		*/
-		constexpr friend String operator + (String&& lhs, char rhs) { return std::move(lhs.append(rhs)); }
+		[[nodiscard]] constexpr friend String operator + (String&& lhs, char rhs) { return std::move(lhs.append(rhs)); }
 
 		/**
 		* Concat a copy of a string with a string slice.
 		*
 		* @return a new string with the string slice concatenated.
 		*/
-		constexpr friend String operator + (const String& lhs, const Str& rhs);
+		[[nodiscard]] constexpr friend String operator + (const String& lhs, const Str& rhs);
 
 		/**
 		* Concat a moved string with a string slice.
 		*
 		* @return `lhs` with the string slice appended.
 		*/
-		constexpr friend String operator + (String&& lhs, const Str& rhs) { return std::move(lhs.append(rhs)); }
+		[[nodiscard]] constexpr friend String operator + (String&& lhs, const Str& rhs) { return std::move(lhs.append(rhs)); }
 
 		/**
 		* Concat a copy of a string with another string.
 		*
 		* @return a new string with the other string concatenated.
 		*/
-		constexpr friend String operator + (const String& lhs, const String& rhs) { return lhs + rhs.asStr(); }
+		[[nodiscard]] constexpr friend String operator + (const String& lhs, const String& rhs) { return lhs + rhs.asStr(); }
 
 		/**
 		* Concat a moved string with a copy of a string.
 		*
 		* @return `lhs` with the other string appended.
 		*/
-		constexpr friend String operator + (String&& lhs, const String& rhs) { return std::move(lhs.append(rhs)); }
+		[[nodiscard]] constexpr friend String operator + (String&& lhs, const String& rhs) { return std::move(lhs.append(rhs)); }
 
 		/**
 		* Concat a char with a string after it.
 		*
 		* @return a new string with the char concatenated with the other string.
 		*/
-		constexpr friend String operator + (char lhs, const String& rhs);
+		[[nodiscard]] constexpr friend String operator + (char lhs, const String& rhs);
 
 		/**
 		* Concat a string slice with a string after it.
 		*
 		* @return a new string with the string slice concatenated with the other string.
 		*/
-		constexpr friend String operator + (const Str& lhs, const String& rhs);
+		[[nodiscard]] constexpr friend String operator + (const Str& lhs, const String& rhs);
 
 		/**
 		* Create a string from a bool
@@ -349,25 +349,25 @@ namespace gk
 		* @return Formatted string
 		*/
 		template<gk::Str formatStr, typename... Types>
-		constexpr static String format(const Types&... inputs);
+		[[nodiscard]] constexpr static String format(const Types&... inputs);
 
 		/**
 		* Find the first occurrence of a character within this String.
 		* Is SIMD optimized.
 		*/
-		constexpr Option<usize> find(char c) const;
+		[[nodiscard]] constexpr Option<usize> find(char c) const;
 
 		/**
 		* Find the starting index of a string slice within this String.
 		* Is SIMD optimzed.
 		*/
-		constexpr Option<usize> find(const Str& str) const;
+		[[nodiscard]] constexpr Option<usize> find(const Str& str) const;
 
 		/**
 		* Find the starting index of a substring within this String.
 		* Is SIMD optimzed.
 		*/
-		constexpr Option<usize> find(const String& other) const { return find(other.asStr()); }
+		[[nodiscard]] constexpr Option<usize> find(const String& other) const { return find(other.asStr()); }
 
 		/**
 		* Creates a substring from `startIndexInclusive` to `endIndexExclusive`.
@@ -379,7 +379,7 @@ namespace gk
 		* @param endIndexInclusive: End of the substring. cstr()[endIndexExclusive] is NOT included.
 		* @return Valid UTF8 substring.
 		*/
-		constexpr String substring(usize startIndexInclusive, usize endIndexExclusive) const;
+		[[nodiscard]] constexpr String substring(usize startIndexInclusive, usize endIndexExclusive) const;
 
 		/**
 		* Parses a bool from the string.
@@ -389,7 +389,7 @@ namespace gk
 		* 
 		* @return The parsed boolean, or an error.
 		*/
-		constexpr Result<bool> parseBool() const;
+		[[nodiscard]] constexpr Result<bool> parseBool() const;
 
 		/**
 		* Parses a signed 64 bit integer from the string.
@@ -402,7 +402,7 @@ namespace gk
 		* 
 		* @return The parsed signed 64 bit integer, or an error.
 		*/
-		constexpr Result<i64> parseInt() const;
+		[[nodiscard]] constexpr Result<i64> parseInt() const;
 
 		/**
 		* Parses an unsigned 64 bit integer from the string.
@@ -416,7 +416,7 @@ namespace gk
 		* 
 		* @return The parsed unsigned 64 bit integer, or an error.
 		*/
-		constexpr Result<u64> parseUint() const;
+		[[nodiscard]] constexpr Result<u64> parseUint() const;
 
 		/**
 		* Parses a 64 bit float from the string.
@@ -432,7 +432,9 @@ namespace gk
 		* 
 		* @return The parsed 64 bit float, or an error.
 		*/
-		constexpr Result<double> parseFloat() const;
+		[[nodiscard]] constexpr Result<double> parseFloat() const;
+
+		
 
 
 
