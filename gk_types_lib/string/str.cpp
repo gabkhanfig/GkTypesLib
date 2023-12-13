@@ -547,4 +547,44 @@ test_case("Str parse unsigned int out of range") {
 	check(a.parseUint().isError());
 }
 
+test_case("Str parse float zero") {
+	gk::Str a = "0";
+	check_eq(a.parseFloat().ok(), 0);
+}
+
+test_case("Str parse float one") {
+	gk::Str a = "1";
+	check_eq(a.parseFloat().ok(), 1);
+}
+
+test_case("Str parse float negative one") {
+	gk::Str a = "-1";
+	check_eq(a.parseFloat().ok(), -1);
+}
+
+test_case("Str parse float one decimal slot") {
+	gk::Str a = "1.9";
+	check_eq(a.parseFloat().ok(), 1.9);
+}
+
+test_case("Str parse float long decimal") {
+	gk::Str a = "-1234.56789";
+	check_eq(a.parseFloat().ok(), -1234.56789);
+}
+
+test_case("Str parse float multiple decimals error") {
+	gk::Str a = "-1234.5.6789";
+	check(a.parseFloat().isError());
+}
+
+test_case("Str parse float improperly terminated decimal") {
+	gk::Str a = "12345.";
+	check(a.parseFloat().isError());
+}
+
+test_case("Str parse float text error") {
+	gk::Str a = "1aaa2345";
+	check(a.parseFloat().isError());
+}
+
 #endif
