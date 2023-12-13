@@ -171,6 +171,48 @@ namespace gk
     */
     [[nodiscard]] constexpr Result<double> parseFloat() const;
 
+    /**
+    * Allow parsing of a string slice into a type, or returning an error if it cannot be parsed.
+    * Specialization is required, but is already implemented for bool, int types, and float types.
+    *
+    * @return The successfully parsed T, or an error.
+    */
+    template<typename T>
+    [[nodiscard]] constexpr Result<T> parse() const = delete;
+
+    template<>
+    [[nodiscard]] constexpr Result<bool> parse<bool>() const { return parseBool(); }
+
+    template<>
+    [[nodiscard]] constexpr Result<i8> parse<i8>() const;
+
+    template<>
+    [[nodiscard]] constexpr Result<i16> parse<i16>() const;
+
+    template<>
+    [[nodiscard]] constexpr Result<i32> parse<i32>() const;
+
+    template<>
+    [[nodiscard]] constexpr Result<i64> parse<i64>() const { return parseInt(); }
+
+    template<>
+    [[nodiscard]] constexpr Result<u8> parse<u8>() const;
+
+    template<>
+    [[nodiscard]] constexpr Result<u16> parse<u16>() const;
+
+    template<>
+    [[nodiscard]] constexpr Result<u32> parse<u32>() const;
+
+    template<>
+    [[nodiscard]] constexpr Result<u64> parse<u64>() const { return parseUint(); }
+
+    template<>
+    [[nodiscard]] constexpr Result<float> parse<float>() const;
+
+    template<>
+    [[nodiscard]] constexpr Result<double> parse<double>() const { return parseFloat(); }
+
     friend std::ostream& operator << (std::ostream& os, const Str& inStr) {
       return os.write(inStr.buffer, inStr.len);
     }
@@ -795,4 +837,104 @@ inline constexpr gk::Result<double> gk::Str::parseFloat() const
   }
 
   return ResultOk<double>(isNegative ? (wholeValue + decimalValue) * -1.0 : (wholeValue + decimalValue));
+}
+
+template<>
+inline constexpr gk::Result<gk::i8> gk::Str::parse<gk::i8>() const {
+  Result<i64> parsed = parseInt();
+  if (parsed.isError()) return ResultErr();
+
+  i64 num = parsed.okCopy();
+  if (num > static_cast<i64>(std::numeric_limits<i8>::max())) {
+    return ResultErr();
+  }
+  else if (num < static_cast<i64>(std::numeric_limits<i8>::min())) {
+    return ResultErr();
+  }
+  else {
+    return ResultOk<i8>(static_cast<i8>(num));
+  }
+}
+
+template<>
+inline constexpr gk::Result<gk::i16> gk::Str::parse<gk::i16>() const {
+  Result<i64> parsed = parseInt();
+  if (parsed.isError()) return ResultErr();
+
+  i64 num = parsed.okCopy();
+  if (num > static_cast<i64>(std::numeric_limits<i16>::max())) {
+    return ResultErr();
+  }
+  else if (num < static_cast<i64>(std::numeric_limits<i16>::min())) {
+    return ResultErr();
+  }
+  else {
+    return ResultOk<i16>(static_cast<i16>(num));
+  }
+}
+
+template<>
+inline constexpr gk::Result<gk::i32> gk::Str::parse<gk::i32>() const {
+  Result<i64> parsed = parseInt();
+  if (parsed.isError()) return ResultErr();
+
+  i64 num = parsed.okCopy();
+  if (num > static_cast<i32>(std::numeric_limits<i32>::max())) {
+    return ResultErr();
+  }
+  else if (num < static_cast<i32>(std::numeric_limits<i32>::min())) {
+    return ResultErr();
+  }
+  else {
+    return ResultOk<i32>(static_cast<i32>(num));
+  }
+}
+
+template<>
+inline constexpr gk::Result<gk::u8> gk::Str::parse<gk::u8>() const {
+  Result<u64> parsed = parseUint();
+  if (parsed.isError()) return ResultErr();
+
+  u64 num = parsed.okCopy();
+  if (num > static_cast<u64>(std::numeric_limits<u8>::max())) {
+    return ResultErr();
+  }
+  else {
+    return ResultOk<u8>(static_cast<u8>(num));
+  }
+}
+
+template<>
+inline constexpr gk::Result<gk::u16> gk::Str::parse<gk::u16>() const {
+  Result<u64> parsed = parseUint();
+  if (parsed.isError()) return ResultErr();
+
+  u64 num = parsed.okCopy();
+  if (num > static_cast<u64>(std::numeric_limits<u16>::max())) {
+    return ResultErr();
+  }
+  else {
+    return ResultOk<u16>(static_cast<u16>(num));
+  }
+}
+
+template<>
+inline constexpr gk::Result<gk::u32> gk::Str::parse<gk::u32>() const {
+  Result<u64> parsed = parseUint();
+  if (parsed.isError()) return ResultErr();
+
+  u64 num = parsed.okCopy();
+  if (num > static_cast<u64>(std::numeric_limits<u32>::max())) {
+    return ResultErr();
+  }
+  else {
+    return ResultOk<u32>(static_cast<u32>(num));
+  }
+}
+
+template<>
+inline constexpr gk::Result<float> gk::Str::parse<float>() const {
+  Result<double> parsed = parseFloat();
+  if (parsed.isError()) return ResultErr();
+  return ResultOk<float>(static_cast<float>(parsed.okCopy()));
 }

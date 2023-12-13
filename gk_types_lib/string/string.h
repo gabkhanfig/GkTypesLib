@@ -1537,146 +1537,10 @@ inline constexpr gk::Result<gk::i64> gk::String::parseInt() const
 		return ResultErr();
 	}
 
-	const usize length = ssoLen();
-	const char* buffer = rep.sso.chars;
-
-	if (length == 0) return ResultErr();
-
-	const bool isNegative = buffer[0] == '-';
-
-	if (length == 1) { // fast return
-		if (buffer[0] >= '0' && buffer[0] <= '9') {
-			return ResultOk<i64>(static_cast<i64>(internal::convertCharToInt(buffer[0])));
-		}
-	}
-	else if (length == 2 && isNegative) {
-		if (buffer[1] >= '0' && buffer[1] <= '9') {
-			return ResultOk<i64>(static_cast<i64>(internal::convertCharToInt(buffer[1])) * -1LL);
-		}
-	}
-
-	// validate
-	do {
-		// max/min signed int64.
-		constexpr usize MAX_NUMBER_LENGTH = 19;
-		bool isLengthMax = false;
-		if (isNegative) {
-			if (length > (MAX_NUMBER_LENGTH + 1)) return ResultErr();
-			if (length == (MAX_NUMBER_LENGTH + 1)) isLengthMax = true;
-		}
-		else {
-			if (length > MAX_NUMBER_LENGTH) return ResultErr();
-			if (length == MAX_NUMBER_LENGTH) isLengthMax = true;
-		}
-
-		usize i = static_cast<usize>(isNegative); // start at 0 for positive, or 1 for negative;
-		for (; i < length; i++) {
-			const char c = buffer[i];
-			if (c >= '0' && c <= '9') {
-				continue;
-			}
-			return ResultErr();
-		}
-
-		// MUST ensure string is within 64 bit signed int bounds.
-		if (isLengthMax) {
-			i = static_cast<usize>(isNegative);
-
-			// + 9,223,372,036,854,775,807
-			// - 9,223,372,036,854,775,808
-			if (buffer[i] != '9') {
-				break;
-			}
-			if (buffer[i + 1] > '2') {
-				return ResultErr();
-			}
-			if (buffer[i + 2] > '2') {
-				return ResultErr();
-			}
-			if (buffer[i + 3] > '3') {
-				return ResultErr();
-			}
-			if (buffer[i + 4] > '3') {
-				return ResultErr();
-			}
-			if (buffer[i + 5] > '7') {
-				return ResultErr();
-			}
-			if (buffer[i + 6] > '2') {
-				return ResultErr();
-			}
-			if (buffer[i + 7] > '0') {
-				return ResultErr();
-			}
-			if (buffer[i + 8] > '3') {
-				return ResultErr();
-			}
-			if (buffer[i + 9] > '6') {
-				return ResultErr();
-			}
-			if (buffer[i + 10] > '8') {
-				return ResultErr();
-			}
-			if (buffer[i + 11] > '5') {
-				return ResultErr();
-			}
-			if (buffer[i + 12] > '4') {
-				return ResultErr();
-			}
-			if (buffer[i + 13] > '7') {
-				return ResultErr();
-			}
-			if (buffer[i + 14] > '7') {
-				return ResultErr();
-			}
-			if (buffer[i + 15] > '5') {
-				return ResultErr();
-			}
-			if (buffer[i + 16] > '8') {
-				return ResultErr();
-			}
-			if (buffer[i + 17] > '0') {
-				return ResultErr();
-			}
-
-			if (isNegative) {
-				if (buffer[i + 18] > '8') {
-					return ResultErr();
-				}
-			}
-			else {
-				if (buffer[i + 18] > '7') {
-					return ResultErr();
-				}
-			}
-		} 
-	} while (false); // allow breaking
-
-	const char* end = buffer + length - 1;
-
-	i64 out = 0;
-
-	{
-		const i64 lengthToCheck = static_cast<i64>(isNegative ? length - 1 : length);
-		for (i64 i = 0; i < lengthToCheck; i++) {
-			const i64 tens = [](i64 index) {
-				i64 ret = 1;
-				for (i64 _i = 0; _i < index; _i++) {
-					ret *= 10;
-				}
-				return ret;
-			}(i);
-
-			const char c = *(end - i); // decrement
-			out += static_cast<i64>(internal::convertCharToInt(c)) * tens;
-		}
-	}
-
-	if (isNegative) {
-		out *= -1LL;
-	}
-
-	return ResultOk<i64>(out);
+	gk::Str asStr;
+	asStr.buffer = rep.sso.chars;
+	asStr.len = ssoLen();
+	return asStr.parseInt();
 }
 
 inline constexpr gk::Result<gk::u64> gk::String::parseUint() const
@@ -1686,345 +1550,104 @@ inline constexpr gk::Result<gk::u64> gk::String::parseUint() const
 		return ResultErr();
 	}
 
-	const usize length = ssoLen();
-	const char* buffer = rep.sso.chars;
-
-	if (length == 0) return ResultErr();
-
-	if (length == 1) { // fast return
-		if (buffer[0] >= '0' && buffer[0] <= '9') {
-			return ResultOk<u64>(internal::convertCharToInt(buffer[0]));
-		}
-	}
-
-	// validate
-	do {
-		// max chars in an unsigned 64 bit integer
-		constexpr usize MAX_NUMBER_LENGTH = 20;
-		const bool isLengthMax = length == MAX_NUMBER_LENGTH;
-
-		if (length > MAX_NUMBER_LENGTH) return ResultErr();
-
-		for (usize i = 0; i < length; i++) {
-			const char c = buffer[i];
-			if (c >= '0' && c <= '9') {
-				continue;
-			}
-			return ResultErr();
-		}
-
-		if (!isLengthMax) {
-			break;
-		}
-
-		// 18,446,744,073,709,551,615
-		if (buffer[0] > '1') {
-			return ResultErr();
-		}
-		if (buffer[1] > '8') {
-			return ResultErr();
-		}
-		if (buffer[2] > '4') {
-			return ResultErr();
-		}
-		if (buffer[3] > '4') {
-			return ResultErr();
-		}
-		if (buffer[4] > '6') {
-			return ResultErr();
-		}
-		if (buffer[5] > '7') {
-			return ResultErr();
-		}
-		if (buffer[6] > '4') {
-			return ResultErr();
-		}
-		if (buffer[7] > '4') {
-			return ResultErr();
-		}
-		if (buffer[8] > '0') {
-			return ResultErr();
-		}
-		if (buffer[9] > '7') {
-			return ResultErr();
-		}
-		if (buffer[10] > '3') {
-			return ResultErr();
-		}
-		if (buffer[11] > '7') {
-			return ResultErr();
-		}
-		if (buffer[12] > '0') {
-			return ResultErr();
-		}
-		if (buffer[13] > '9') {
-			return ResultErr();
-		}
-		if (buffer[14] > '5') {
-			return ResultErr();
-		}
-		if (buffer[15] > '5') {
-			return ResultErr();
-		}
-		if (buffer[16] > '1') {
-			return ResultErr();
-		}
-		if (buffer[17] > '6') {
-			return ResultErr();
-		}
-		if (buffer[18] > '1') {
-			return ResultErr();
-		}
-		if (buffer[19] > '5') {
-			return ResultErr();
-		}
-	} while (false);
-
-	const char* end = buffer + length - 1;
-
-	u64 out = 0;
-
-	{
-		for (u64 i = 0; i < length; i++) {
-			const u64 tens = [](u64 index) {
-				u64 ret = 1;
-				for (u64 _i = 0; _i < index; _i++) {
-					ret *= 10;
-				}
-				return ret;
-			}(i);
-
-			const char c = *(end - i); // decrement
-			out += internal::convertCharToInt(c) * tens;
-		}
-	}
-
-	return ResultOk<u64>(out);
+	gk::Str asStr;
+	asStr.buffer = rep.sso.chars;
+	asStr.len = ssoLen();
+	return asStr.parseUint();
 }
 
 inline constexpr gk::Result<double> gk::String::parseFloat() const
 {
-	auto convertCharToDouble = [](char c) {
-		switch (c) {
-		case '0':
-			return 0.0;
-		case '1':
-			return 1.0;
-		case '2':
-			return 2.0;
-		case '3':
-			return 3.0;
-		case '4':
-			return 4.0;
-		case '5':
-			return 5.0;
-		case '6':
-			return 6.0;
-		case '7':
-			return 7.0;
-		case '8':
-			return 8.0;
-		case '9':
-			return 9.0;
-		default:
-			std::cout << c << '\n';
-			check(false);
-		}
-	};
-
-	auto powOf10 = [](usize index) {
-		double ret = 1;
-		for (usize i = 0; i < index; i++) {
-			ret *= 10.0;
-		}
-		return ret;
-	};
-
-	const char* buffer = cstr();
-	const usize length = len();
-
-	if (length == 0) return ResultErr();
-
-	if (length == 1) { // fast return. useful for JSON.
-		if (buffer[0] >= '0' && buffer[0] <= '9') {
-			return ResultOk<double>(convertCharToDouble(buffer[0]));
-		}
-	}
-
-	const bool isNegative = buffer[0] == '-';
-
-	usize decimalIndex = ~0; // impossibly large value
-
-	// validate and set decimal position
-	do {
-		usize i = static_cast<usize>(isNegative); // start at 0 for positive, or 1 for negative;
-		for (; i < length; i++) {
-			const char c = buffer[i];
-
-			if (c >= '0' && c <= '9') {
-				continue;
-			}
-
-			if (c == '.' && decimalIndex == ~0) { // decimal wasn't already set
-				if (i == (length - 1)) { // decimal is last char
-					return ResultErr();
-				}
-
-				decimalIndex = i;
-				continue;
-			}
-
-			return ResultErr();
-		}
-	} while (false);
-
-	const bool hasDecimal = decimalIndex != ~0;
-
-	double wholeValue = 0.0;
-	double decimalValue = 0.0;
-
-	// whole part
-	{
-		const char* end = hasDecimal ? (buffer + decimalIndex - 1) : (buffer + length - 1);
-		const usize lengthToCheck = [&]() {
-			if (isNegative) {
-				if (hasDecimal) {
-					return decimalIndex - 1;
-				}
-				else {
-					return length - 1;
-				}
-			}
-			else {
-				if (hasDecimal) {
-					return decimalIndex;
-				}
-				else {
-					return length;
-				}
-			}
-		}();
-
-		for (usize i = 0; i < lengthToCheck; i++) {
-			const char c = *(end - i); // decrement
-			wholeValue += powOf10(i) * convertCharToDouble(c);
-		}
-	}
-
-	// decimal part
-	if (hasDecimal) {
-		const char* end = buffer + length - 1;
-		const char* start = buffer + decimalIndex + 1;
-		const usize lengthToCheck = length - decimalIndex - 1;
-
-		for (usize i = 0; i < lengthToCheck; i++) {
-			//const char c = *(end - i);
-			const char c = start[i];
-			decimalValue += (1.0 / powOf10(i + 1)) * convertCharToDouble(c);
-		}
-	}
-
-	return ResultOk<double>(isNegative ? (wholeValue + decimalValue) * -1.0 : (wholeValue + decimalValue));
+	gk::Str asStr;
+	asStr.buffer = cstr();
+	asStr.len = len();
+	return asStr.parseFloat();
 }
 
 template<>
 inline constexpr gk::Result<gk::i8> gk::String::parse<gk::i8>() const { 
-	Result<i64> parsed = parseInt();
-	if (parsed.isError()) return ResultErr();
-	
-	i64 num = parsed.okCopy();
-	if (num > static_cast<i64>(std::numeric_limits<i8>::max())) {
+	// All ints will fit within the 31 char SSO buffer.
+	if (!isSso()) {
 		return ResultErr();
 	}
-	else if (num < static_cast<i64>(std::numeric_limits<i8>::min())) {
-		return ResultErr();
-	}
-	else {
-		return ResultOk<i8>(static_cast<i8>(num));
-	}
+
+	gk::Str asStr;
+	asStr.buffer = rep.sso.chars;
+	asStr.len = ssoLen();
+	return asStr.parse<i8>();
 }
 
 template<>
 inline constexpr gk::Result<gk::i16> gk::String::parse<gk::i16>() const { 
-	Result<i64> parsed = parseInt();
-	if (parsed.isError()) return ResultErr();
-	
-	i64 num = parsed.okCopy();
-	if (num > static_cast<i64>(std::numeric_limits<i16>::max())) {
+	// All ints will fit within the 31 char SSO buffer.
+	if (!isSso()) {
 		return ResultErr();
 	}
-	else if (num < static_cast<i64>(std::numeric_limits<i16>::min())) {
-		return ResultErr();
-	}
-	else {
-		return ResultOk<i16>(static_cast<i16>(num));
-	}
+
+	gk::Str asStr;
+	asStr.buffer = rep.sso.chars;
+	asStr.len = ssoLen();
+	return asStr.parse<i16>();
 }
 
 template<>
 inline constexpr gk::Result<gk::i32> gk::String::parse<gk::i32>() const { 
-	Result<i64> parsed = parseInt();
-	if (parsed.isError()) return ResultErr();
-	
-	i64 num = parsed.okCopy();
-	if (num > static_cast<i32>(std::numeric_limits<i32>::max())) {
+	// All ints will fit within the 31 char SSO buffer.
+	if (!isSso()) {
 		return ResultErr();
 	}
-	else if (num < static_cast<i32>(std::numeric_limits<i32>::min())) {
-		return ResultErr();
-	}
-	else {
-		return ResultOk<i32>(static_cast<i32>(num));
-	}
+
+	gk::Str asStr;
+	asStr.buffer = rep.sso.chars;
+	asStr.len = ssoLen();
+	return asStr.parse<i32>();
 }
 
 template<>
 inline constexpr gk::Result<gk::u8> gk::String::parse<gk::u8>() const {
-	Result<u64> parsed = parseUint();
-	if (parsed.isError()) return ResultErr();
-
-	u64 num = parsed.okCopy();
-	if (num > static_cast<u64>(std::numeric_limits<u8>::max())) {
+	// All ints will fit within the 31 char SSO buffer.
+	if (!isSso()) {
 		return ResultErr();
 	}
-	else {
-		return ResultOk<u8>(static_cast<u8>(num));
-	}
+
+	gk::Str asStr;
+	asStr.buffer = rep.sso.chars;
+	asStr.len = ssoLen();
+	return asStr.parse<u8>();
 }
 
 template<>
 inline constexpr gk::Result<gk::u16> gk::String::parse<gk::u16>() const {
-	Result<u64> parsed = parseUint();
-	if (parsed.isError()) return ResultErr();
-
-	u64 num = parsed.okCopy();
-	if (num > static_cast<u64>(std::numeric_limits<u16>::max())) {
+	// All ints will fit within the 31 char SSO buffer.
+	if (!isSso()) {
 		return ResultErr();
 	}
-	else {
-		return ResultOk<u16>(static_cast<u16>(num));
-	}
+
+	gk::Str asStr;
+	asStr.buffer = rep.sso.chars;
+	asStr.len = ssoLen();
+	return asStr.parse<u16>();
 }
 
 template<>
 inline constexpr gk::Result<gk::u32> gk::String::parse<gk::u32>() const {
-	Result<u64> parsed = parseUint();
-	if (parsed.isError()) return ResultErr();
-
-	u64 num = parsed.okCopy();
-	if (num > static_cast<u64>(std::numeric_limits<u32>::max())) {
+	// All ints will fit within the 31 char SSO buffer.
+	if (!isSso()) {
 		return ResultErr();
 	}
-	else {
-		return ResultOk<u32>(static_cast<u32>(num));
-	}
+
+	gk::Str asStr;
+	asStr.buffer = rep.sso.chars;
+	asStr.len = ssoLen();
+	return asStr.parse<u32>();
 }
 
 template<>
 inline constexpr gk::Result<float> gk::String::parse<float>() const {
-	Result<double> parsed = parseFloat();
-	if (parsed.isError()) return ResultErr();
-	return ResultOk<float>(static_cast<float>(parsed.okCopy()));
+	gk::Str asStr;
+	asStr.buffer = cstr();
+	asStr.len = len();
+	return asStr.parse<float>();
 }
 
 template<>
