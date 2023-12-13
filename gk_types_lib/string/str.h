@@ -125,6 +125,8 @@ namespace gk
   private:
 
     bool equalStr(const gk::Str& str) const;
+
+    Option<usize> findChar(char c) const;
   };
 }
 
@@ -185,10 +187,15 @@ inline constexpr bool gk::Str::operator==(const Str& str) const
 
 inline constexpr gk::Option<gk::usize> gk::Str::find(char c) const
 {
-  for (usize i = 0; i < len; i++) {
-    if (buffer[i] == c) return Option<usize>(i);
+  if (std::is_constant_evaluated()) {
+    for (usize i = 0; i < len; i++) {
+      if (buffer[i] == c) return Option<usize>(i);
+    }
+    return Option<usize>();
   }
-  return Option<usize>();
+  else {
+    return findChar(c);
+  }
 }
 
 inline constexpr gk::Option<gk::usize> gk::Str::find(gk::Str str) const
