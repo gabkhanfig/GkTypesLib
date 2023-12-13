@@ -52,6 +52,10 @@ namespace gk
     */
     [[nodiscard]] static constexpr Str fromSlice(const char* start, usize length);
 
+    [[nodiscard]] bool operator == (char c) const;
+
+    [[nodiscard]] bool operator == (const Str& str) const;
+
     /**
     * Find the index of a char within this string slice.
     * If it exists, the Some variant will be returned with the index,
@@ -108,6 +112,10 @@ namespace gk
     friend std::ostream& operator << (std::ostream& os, const Str& inStr) {
       return os.write(inStr.buffer, inStr.len);
     }
+
+  private:
+
+    bool equalStr(const gk::Str& str) const;
   };
 }
 
@@ -134,6 +142,38 @@ inline constexpr gk::Str gk::Str::fromSlice(const char* start, usize length)
   str.buffer = start;
   str.len = length;
   return str;
+}
+
+inline bool gk::Str::operator==(char c) const
+{
+  {
+    if (len == 1 && buffer[0] == c) {
+      return true;
+    }
+    return false;
+  }
+}
+
+inline bool gk::Str::operator==(const Str& str) const
+{
+  if (len != str.len) {
+    return false;
+  }
+  if (buffer == str.buffer) {
+    return true;
+  }
+
+  if (std::is_constant_evaluated()) {
+    for (usize i = 0; i < len; i++) {
+      if (buffer[i] != str.buffer[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+  else {
+    return equalStr(str);
+  }
 }
 
 inline constexpr gk::Option<gk::usize> gk::Str::find(char c) const
