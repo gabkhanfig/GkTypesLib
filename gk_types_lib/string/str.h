@@ -118,6 +118,16 @@ namespace gk
     */
     [[nodiscard]] constexpr gk::Str substring(usize startIndexInclusive, usize endIndexExclusive) const;
 
+    /**
+    * Parses a bool from the string slice.
+    * If the string slice is "true", returns an Ok variant of `true`.
+    * If the string slice is "false", returns an Ok variant of `false`.
+    * All other values will be an Error variant.
+    *
+    * @return The parsed boolean, or an error.
+    */
+    [[nodiscard]] constexpr Result<bool> parseBool() const;
+
     friend std::ostream& operator << (std::ostream& os, const Str& inStr) {
       return os.write(inStr.buffer, inStr.len);
     }
@@ -295,4 +305,65 @@ inline constexpr gk::Str gk::Str::substring(usize startIndexInclusive, usize end
   sub.buffer = buffer + startIndexInclusive;
   sub.len = endIndexExclusive - startIndexInclusive;
   return sub;
+}
+
+inline constexpr gk::Result<bool> gk::Str::parseBool() const
+{
+  constexpr usize TRUE_STRING_BUFFER = []() {
+    usize out = 0;
+    out |= static_cast<usize>('t');
+    out |= static_cast<usize>('r') << 8;
+    out |= static_cast<usize>('u') << 16;
+    out |= static_cast<usize>('e') << 24;
+    return out;
+  }();
+
+  constexpr usize FALSE_STRING_BUFFER = []() {
+    usize out = 0;
+    out |= static_cast<usize>('f');
+    out |= static_cast<usize>('a') << 8;
+    out |= static_cast<usize>('l') << 16;
+    out |= static_cast<usize>('s') << 24;
+    out |= static_cast<usize>('e') << 32;
+    return out;
+  }();
+
+  if (len == 4) { // maybe true
+    const usize cmp = [&]() {
+      usize out = 0;
+      out |= static_cast<usize>(buffer[0]);
+      out |= static_cast<usize>(buffer[1]) << 8;
+      out |= static_cast<usize>(buffer[2]) << 16;
+      out |= static_cast<usize>(buffer[3]) << 24;
+      return out;
+    }();
+
+    if (cmp == TRUE_STRING_BUFFER) {
+      return ResultOk<bool>(true);
+    }
+    else {
+      return ResultErr();
+    }
+  }
+  else if (len == 5) { // maybe false
+    const usize cmp = [&]() {
+      usize out = 0;
+      out |= static_cast<usize>(buffer[0]);
+      out |= static_cast<usize>(buffer[1]) << 8;
+      out |= static_cast<usize>(buffer[2]) << 16;
+      out |= static_cast<usize>(buffer[3]) << 24;
+      out |= static_cast<usize>(buffer[4]) << 32;
+      return out;
+    }();
+
+    if (cmp == FALSE_STRING_BUFFER) {
+      return ResultOk<bool>(false);
+    }
+    else {
+      return ResultErr();
+    }
+  }
+  else {
+    return ResultErr();
+  }
 }
