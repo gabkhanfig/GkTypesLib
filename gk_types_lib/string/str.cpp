@@ -254,4 +254,59 @@ consteval bool CompileTimeStr_MoveAssign() {
 }
 static_assert(CompileTimeStr_MoveAssign());
 
+test_case("Str equal char") {
+	gk::Str str = "a";
+	check_eq(str, 'a');
+}
+
+test_case("Str not equal char") {
+	gk::Str str = "a";
+	check_ne(str, 'b');
+}
+
+test_case("Str equal small string slice") {
+	char temp1[3];
+	char temp2[3];
+	memcpy(temp1, "hi", 3);
+	memcpy(temp2, "hi", 3);
+
+	gk::Str str1 = temp1;
+	gk::Str str2 = temp2;
+	check_eq(str1, str2);
+}
+
+test_case("Str not equal small string slice") {
+	char temp1[3];
+	char temp2[3];
+	memcpy(temp1, "hi", 3);
+	memcpy(temp2, "wo", 3);
+
+	gk::Str str1 = temp1;
+	gk::Str str2 = temp2;
+	check_ne(str1, str2);
+}
+
+test_case("Str equal large string slice") {
+	const char* large = "akusydhliauaysdoiuaysdoiauysdpoiuaysdpiuaysd";
+	char temp1[45];
+	char temp2[45];
+	memcpy(temp1, large, 45);
+	memcpy(temp2, large, 45);
+
+	gk::Str str1 = temp1;
+	gk::Str str2 = temp2;
+	check_eq(str1, str2);
+}
+
+test_case("Str not equal large string slice") {
+	char temp1[45];
+	char temp2[45];
+	memcpy(temp1, "akusydhliauaysgoiuaysdoiauysdpoiuaysdpiuaysd", 45);
+	memcpy(temp2, "akusydhliauaysdoiuaysdoiauysdpoiuaysdpiuaysd", 45);
+
+	gk::Str str1 = temp1;
+	gk::Str str2 = temp2;
+	check_ne(str1, str2);
+}
+
 #endif
