@@ -76,6 +76,17 @@ namespace gk
     [[nodiscard]] constexpr Option<usize> find(char c) const;
 
     /**
+    * Find the index of a char within this string slice starting at a given offset.
+    * If it exists, the Some variant will be returned with the index,
+    * otherwise the None variant will be returned.
+    *
+    * @param c: Character to find. Should not be null terminator.
+    * @param offset: Offset within the slice buffer to start at.
+    * @return The index of the character if it exists.
+    */
+    [[nodiscard]] constexpr Option<usize> findFrom(char c, usize offset) const;
+
+    /**
     * Find the start index of another string slice within this one.
     * If it exists, the Some variant will be returned with the index where it begins,
     * otherwise the None variant will be returned.
@@ -291,6 +302,17 @@ inline constexpr gk::Option<gk::usize> gk::Str::find(char c) const
   else {
     return findChar(c);
   }
+}
+
+inline constexpr gk::Option<gk::usize> gk::Str::findFrom(char c, usize offset) const
+{
+  if (offset > len) {
+    return Option<usize>();
+  }
+  for (usize i = offset; i < len; i++) {
+    if (buffer[i] == c) return Option<usize>(i);
+  }
+  return Option<usize>();
 }
 
 inline constexpr gk::Option<gk::usize> gk::Str::find(gk::Str str) const
