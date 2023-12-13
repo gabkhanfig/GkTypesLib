@@ -1530,14 +1530,6 @@ inline constexpr gk::Result<bool> gk::String::parseBool() const
 	}
 }
 
-namespace gk {
-	namespace internal {
-		constexpr u64 convertCharToInt(char c) {
-			return static_cast<u64>(c - '0');
-		}
-	}
-}
-
 inline constexpr gk::Result<gk::i64> gk::String::parseInt() const
 {
 	// All ints will fit within the 31 char SSO buffer.
