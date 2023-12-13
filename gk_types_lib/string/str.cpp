@@ -387,4 +387,24 @@ test_case("Str not equal large string slice") {
 	check_ne(str1, str2);
 }
 
+test_case("Str find char tiny") {
+	gk::Str a = "0123456789";
+	check_eq(a.find('4').some(), 4);
+}
+
+test_case("Str find char large") {
+	gk::Str a = "ailyuhdhspiausydpiauysdpiauysdpiauysdpiausydpaisd;asdg";
+	check_eq(a.find(';').some(), 49);
+}
+
+test_case("Str find not char tiny") {
+	gk::Str a = "0123456789";
+	check(a.find('!').none());
+}
+
+test_case("Str find not char large") {
+	gk::Str a = "ailyuhdhspiausydpiauysdpiauysdpiauysdpiausydpaisd;asdg";
+	check(a.find('!').none());
+}
+
 #endif
