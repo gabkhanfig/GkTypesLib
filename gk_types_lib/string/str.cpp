@@ -397,6 +397,11 @@ test_case("Str find char large") {
 	check_eq(a.find(';').some(), 49);
 }
 
+test_case("Str find char extra large") {
+	gk::Str a = "ailyuhdhspiausydpiauysdpiauysdpiauysdpiausydpaisd;asdgfahdpaiushdpaiushdpaiushdpaiushdpaiushdpaiushdpiauhsfpiaushdpiauhsdpiauhsdpiaushdpiauhdpaiushdpaiusdhpaiushdpaiushd?asdasd";
+	check_eq(a.find('?').some(), 169);
+}
+
 test_case("Str find not char tiny") {
 	gk::Str a = "0123456789";
 	check(a.find('!').none());
@@ -404,6 +409,11 @@ test_case("Str find not char tiny") {
 
 test_case("Str find not char large") {
 	gk::Str a = "ailyuhdhspiausydpiauysdpiauysdpiauysdpiausydpaisd;asdg";
+	check(a.find('!').none());
+}
+
+test_case("Str find not char extra large") {
+	gk::Str a = "ailyuhdhspiausydpiauysdpiauysdpiauysdpiausydpaisd;asdgfahdpaiushdpaiushdpaiushdpaiushdpaiushdpaiushdpiauhsfpiaushdpiauhsdpiauhsdpiaushdpiauhdpaiushdpaiusdhpaiushdpaiushd?asdasd";
 	check(a.find('!').none());
 }
 
