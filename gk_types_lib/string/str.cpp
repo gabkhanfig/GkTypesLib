@@ -447,5 +447,59 @@ test_case("Str parse bool error 4") {
 	check(a.parseBool().isError());
 }
 
+test_case("Str parse signed int zero") {
+	gk::Str a = "0";
+	check_eq(a.parseInt().ok(), 0);
+}
+
+test_case("Str parse signed int one") {
+	gk::Str a = "1";
+	check_eq(a.parseInt().ok(), 1);
+}
+
+test_case("Str parse signed int negative one") {
+	gk::Str a = "-1";
+	check_eq(a.parseInt().ok(), -1);
+}
+
+test_case("Str parse signed int random positive value") {
+	gk::Str a = "5612496929";
+	check_eq(a.parseInt().ok(), 5612496929);
+}
+
+test_case("Str parse signed int random negative value") {
+	gk::Str a = "-5612496929";
+	check_eq(a.parseInt().ok(), -5612496929);
+}
+
+test_case("Str parse signed int max value") {
+	gk::Str a = "9223372036854775807";
+	check_eq(a.parseInt().ok(), std::numeric_limits<gk::i64>::max());
+}
+
+test_case("Str parse signed int min value") {
+	gk::Str a = "-9223372036854775808";
+	check_eq(a.parseInt().ok(), std::numeric_limits<gk::i64>::min());
+}
+
+test_case("Str parse signed int invalid decimal") {
+	gk::Str a = "58.5";
+	check(a.parseInt().isError());
+}
+
+test_case("Str parse signed int has text") {
+	gk::Str a = "-hello";
+	check(a.parseInt().isError());
+}
+
+test_case("Str parse signed int out of bounds positive") {
+	gk::Str a = "9223372036854775808"; // one greater than max
+	check(a.parseInt().isError());
+}
+
+test_case("Str parse signed int out of bounds negative") {
+	gk::Str a = "-9223372036854775809"; // one less than min
+	check(a.parseInt().isError());
+}
 
 #endif
