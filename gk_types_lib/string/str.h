@@ -128,8 +128,6 @@ namespace gk
     */
     [[nodiscard]] constexpr Result<bool> parseBool() const;
 
-    
-
     /**
     * Parses a signed 64 bit integer from the string.
     * For example, the string of "-1234" returns an Ok variant of `-1234`.
@@ -142,6 +140,20 @@ namespace gk
     * @return The parsed signed 64 bit integer, or an error.
     */
     [[nodiscard]] constexpr Result<i64> parseInt() const;
+
+    /**
+    * Parses an unsigned 64 bit integer from the string slice.
+    * For example, the slice of "1234" returns an Ok variant of `-1234`.
+    *
+    * Errors:
+    *
+    * - Negatives will return an Error variant.
+    * - Decimals will return an Error variant (eg. 12.5).
+    * - Anything out of the signed 64 bit range will return an Error (eg. "18446744073709551616").
+    *
+    * @return The parsed unsigned 64 bit integer, or an error.
+    */
+    [[nodiscard]] constexpr Result<u64> parseUint() const;
 
     friend std::ostream& operator << (std::ostream& os, const Str& inStr) {
       return os.write(inStr.buffer, inStr.len);
@@ -530,4 +542,119 @@ inline constexpr gk::Result<gk::i64> gk::Str::parseInt() const
   }
 
   return ResultOk<i64>(out);
+}
+
+inline constexpr gk::Result<gk::u64> gk::Str::parseUint() const
+{
+  if (len == 0) return ResultErr();
+
+  if (len == 1) { // fast return
+    if (buffer[0] >= '0' && buffer[0] <= '9') {
+      return ResultOk<u64>(internal::convertCharToInt(buffer[0]));
+    }
+  }
+
+  // validate
+  do {
+    // max chars in an unsigned 64 bit integer
+    constexpr usize MAX_NUMBER_LENGTH = 20;
+    const bool isLengthMax = len == MAX_NUMBER_LENGTH;
+
+    if (len > MAX_NUMBER_LENGTH) return ResultErr();
+
+    for (usize i = 0; i < len; i++) {
+      const char c = buffer[i];
+      if (c >= '0' && c <= '9') {
+        continue;
+      }
+      return ResultErr();
+    }
+
+    if (!isLengthMax) {
+      break;
+    }
+
+    // 18,446,744,073,709,551,615
+    if (buffer[0] > '1') {
+      return ResultErr();
+    }
+    if (buffer[1] > '8') {
+      return ResultErr();
+    }
+    if (buffer[2] > '4') {
+      return ResultErr();
+    }
+    if (buffer[3] > '4') {
+      return ResultErr();
+    }
+    if (buffer[4] > '6') {
+      return ResultErr();
+    }
+    if (buffer[5] > '7') {
+      return ResultErr();
+    }
+    if (buffer[6] > '4') {
+      return ResultErr();
+    }
+    if (buffer[7] > '4') {
+      return ResultErr();
+    }
+    if (buffer[8] > '0') {
+      return ResultErr();
+    }
+    if (buffer[9] > '7') {
+      return ResultErr();
+    }
+    if (buffer[10] > '3') {
+      return ResultErr();
+    }
+    if (buffer[11] > '7') {
+      return ResultErr();
+    }
+    if (buffer[12] > '0') {
+      return ResultErr();
+    }
+    if (buffer[13] > '9') {
+      return ResultErr();
+    }
+    if (buffer[14] > '5') {
+      return ResultErr();
+    }
+    if (buffer[15] > '5') {
+      return ResultErr();
+    }
+    if (buffer[16] > '1') {
+      return ResultErr();
+    }
+    if (buffer[17] > '6') {
+      return ResultErr();
+    }
+    if (buffer[18] > '1') {
+      return ResultErr();
+    }
+    if (buffer[19] > '5') {
+      return ResultErr();
+    }
+  } while (false);
+
+  const char* end = buffer + len - 1;
+
+  u64 out = 0;
+
+  {
+    for (u64 i = 0; i < len; i++) {
+      const u64 tens = [](u64 index) {
+        u64 ret = 1;
+        for (u64 _i = 0; _i < index; _i++) {
+          ret *= 10;
+        }
+        return ret;
+      }(i);
+
+      const char c = *(end - i); // decrement
+      out += internal::convertCharToInt(c) * tens;
+    }
+  }
+
+  return ResultOk<u64>(out);
 }
