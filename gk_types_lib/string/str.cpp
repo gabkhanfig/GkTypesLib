@@ -502,4 +502,49 @@ test_case("Str parse signed int out of bounds negative") {
 	check(a.parseInt().isError());
 }
 
+test_case("Str parse unsigned int zero") {
+	gk::Str a = "0";
+	check_eq(a.parseUint().ok(), 0);
+}
+
+test_case("Str parse unsigned int one") {
+	gk::Str a = "1";
+	check_eq(a.parseUint().ok(), 1);
+}
+
+test_case("Str parse random value") {
+	gk::Str a = "249872938";
+	check_eq(a.parseUint().ok(), 249872938);
+}
+
+test_case("Str parse unsigned int max value") {
+	gk::Str a = "18446744073709551615";
+	check_eq(a.parseUint().ok(), 18446744073709551615);
+}
+
+test_case("Str parse unsigned int negative error") {
+	gk::Str a = "-1";
+	check(a.parseUint().isError());
+}
+
+test_case("Str parse unsigned int decimal error") {
+	gk::Str a = "58.5";
+	check(a.parseUint().isError());
+}
+
+test_case("Str parse unsigned int word error") {
+	gk::Str a = "hello";
+	check(a.parseUint().isError());
+}
+
+test_case("Str parse unsigned int word error sanity") {
+	gk::Str a = "25hello";
+	check(a.parseUint().isError());
+}
+
+test_case("Str parse unsigned int out of range") {
+	gk::Str a = "18446744073709551616";
+	check(a.parseUint().isError());
+}
+
 #endif
