@@ -63,6 +63,8 @@ namespace gk
 
 	public:
 
+		using ValueType = T;
+
 #pragma region Construct_Destruct_Assign
 
 		/**
