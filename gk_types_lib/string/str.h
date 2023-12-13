@@ -52,8 +52,17 @@ namespace gk
     */
     [[nodiscard]] static constexpr Str fromSlice(const char* start, usize length);
 
+    /**
+    * Equality comparison for if this string slice is equal to a single character.
+    * 
+    * @return If the slice is length 1, and is referencing `c`.
+    */
     [[nodiscard]] bool operator == (char c) const;
 
+    /**
+    * Equality comparison for this string slice and another.
+    * Is SIMD optimized.
+    */
     [[nodiscard]] bool operator == (const Str& str) const;
 
     /**
