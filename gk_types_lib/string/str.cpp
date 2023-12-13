@@ -417,4 +417,35 @@ test_case("Str find not char extra large") {
 	check(a.find('!').none());
 }
 
+test_case("Str parse bool true") {
+	gk::Str a = "true";
+	check_eq(a.parseBool().ok(), true);
+}
+
+test_case("Str parse bool false") {
+	gk::Str a = "false";
+	check_eq(a.parseBool().ok(), false);
+}
+
+test_case("Str parse bool error 1") {
+	gk::Str a = "trueb";
+	check(a.parseBool().isError());
+}
+
+test_case("Str parse bool error 2") {
+	gk::Str a = "falseb";
+	check(a.parseBool().isError());
+}
+
+test_case("Str parse bool error 3") {
+	gk::Str a = "trua";
+	check(a.parseBool().isError());
+}
+
+test_case("Str parse bool error 4") {
+	gk::Str a = "falsr";
+	check(a.parseBool().isError());
+}
+
+
 #endif
