@@ -1509,7 +1509,7 @@ inline constexpr gk::Result<bool> gk::String::parseBool() const
 			out |= static_cast<usize>(rep.sso.chars[2]) << 16;
 			out |= static_cast<usize>(rep.sso.chars[3]) << 24;
 			out |= static_cast<usize>(rep.sso.chars[4]) << 32;
-			//out |= static_cast<usize>(rep.sso.chars[5]) << 40;
+			out |= static_cast<usize>(rep.sso.chars[5]) << 40;
 			//out |= static_cast<usize>(rep.sso.chars[6]) << 48;
 			//out |= static_cast<usize>(rep.sso.chars[7]) << 56;
 			return out;
