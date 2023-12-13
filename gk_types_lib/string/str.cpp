@@ -157,7 +157,7 @@ bool gk::Str::equalStr(const gk::Str& str) const
 	// at this point, can be assumed that the lengths are equal.
 	constexpr usize SIMD_EQUAL_CHECK_THRESHOLD_LENGTH = 16;
 	if (len > SIMD_EQUAL_CHECK_THRESHOLD_LENGTH) {
-		internal::cmpEqStrAndStrSimd(*this, str);
+		return internal::cmpEqStrAndStrSimd(*this, str);
 	}
 	else {
 		for (usize i = 0; i < len; i++) {
