@@ -204,12 +204,12 @@ inline constexpr gk::Option<gk::usize> gk::Str::find(gk::Str str) const
   else if (str.len > len) {
     return Option<usize>();
   }
-  //else if (str.len == len) {
-  //  if (*this == str) {
-  //    return Option<usize>(0);
-  //  }
-  //  return Option<usize>();
-  //}
+  else if (str.len == len) {
+    if (*this == str) {
+      return Option<usize>(0);
+    }
+    return Option<usize>();
+  }
 
   if (true) { // TODO SIMD
     const char firstChar = str.buffer[0];
@@ -254,12 +254,12 @@ inline constexpr gk::Option<gk::usize> gk::Str::findLast(gk::Str str) const
   else if (str.len > len) {
     return Option<usize>();
   }
-  //else if (str.len == len) {
-  //  if (*this == str) {
-  //    return Option<usize>(0);
-  //  }
-  //  return Option<usize>();
-  //}
+  else if (str.len == len) {
+    if (*this == str) {
+      return Option<usize>(0);
+    }
+    return Option<usize>();
+  }
   if (true) { // TODO SIMD
     usize i = len - 1;
     const char firstChar = str.buffer[0];
