@@ -155,12 +155,10 @@ inline constexpr gk::Str gk::Str::fromSlice(const char* start, usize length)
 
 inline constexpr bool gk::Str::operator==(char c) const
 {
-  {
-    if (len == 1 && buffer[0] == c) {
-      return true;
-    }
-    return false;
+  if (len == 1 && buffer[0] == c) {
+    return true;
   }
+  return false;
 }
 
 inline constexpr bool gk::Str::operator==(const Str& str) const
