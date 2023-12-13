@@ -53,6 +53,11 @@ namespace gk
 			return tempPtr;
 		}
 
+		[[nodiscard]] constexpr T someCopy() const {
+			check_message(!none(), "Cannot get optional pointer value if its None. Either no pointer is stored, or it has been already moved out of Option ownership");
+			return _ptr;
+		}
+
 		[[nodiscard]] constexpr bool none() const {
 			return _ptr == nullptr;
 		}
@@ -108,6 +113,11 @@ namespace gk
 			check_message(!none(), "Cannot get optional value value if its None. Either no value is stored, or the value has been already moved out of Option ownership");
 			_hasValue = false;
 			return std::move(_value);
+		}
+
+		[[nodiscard]] constexpr T someCopy() const {
+			check_message(!none(), "Cannot get optional value value if its None. Either no value is stored, or the value has been already moved out of Option ownership");
+			return _value;
 		}
 
 		[[nodiscard]] constexpr bool none() const {
