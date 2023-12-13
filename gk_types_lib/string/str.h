@@ -57,13 +57,13 @@ namespace gk
     * 
     * @return If the slice is length 1, and is referencing `c`.
     */
-    [[nodiscard]] bool operator == (char c) const;
+    [[nodiscard]] constexpr bool operator == (char c) const;
 
     /**
     * Equality comparison for this string slice and another.
     * Is SIMD optimized.
     */
-    [[nodiscard]] bool operator == (const Str& str) const;
+    [[nodiscard]] constexpr bool operator == (const Str& str) const;
 
     /**
     * Find the index of a char within this string slice.
@@ -153,7 +153,7 @@ inline constexpr gk::Str gk::Str::fromSlice(const char* start, usize length)
   return str;
 }
 
-inline bool gk::Str::operator==(char c) const
+inline constexpr bool gk::Str::operator==(char c) const
 {
   {
     if (len == 1 && buffer[0] == c) {
@@ -163,7 +163,7 @@ inline bool gk::Str::operator==(char c) const
   }
 }
 
-inline bool gk::Str::operator==(const Str& str) const
+inline constexpr bool gk::Str::operator==(const Str& str) const
 {
   if (len != str.len) {
     return false;
