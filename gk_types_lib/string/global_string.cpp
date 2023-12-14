@@ -19,12 +19,12 @@ namespace gk
 		GlobalStringContainers() : nextId(0) {}
 	};
 
-	static gk::RwLock<GlobalStringContainers> initializeGlobalStringContainers() {
+	static gk::RwLock<GlobalStringContainers>* initializeGlobalStringContainers() {
 		GlobalStringContainers containers;
 		containers.ids.insert(""_str, 0);
 		containers.strings.push(""_str);
 		containers.nextId = 1;
-		return gk::RwLock<GlobalStringContainers>(std::move(containers));
+		return new gk::RwLock<GlobalStringContainers>(std::move(containers));
 	}
 
 	static GlobalString createNewEntryIfDoesntExist(gk::String&& inString, GlobalStringContainers& containers) // copy and move
@@ -69,8 +69,8 @@ namespace gk
 	}
 
 	forceinline static gk::RwLock<GlobalStringContainers>& getAllGlobalStrings() {
-		static gk::RwLock<GlobalStringContainers> globalStrings = initializeGlobalStringContainers();
-		return globalStrings;
+		static gk::RwLock<GlobalStringContainers>* globalStrings = initializeGlobalStringContainers();
+		return *globalStrings;
 	}
 }
 
