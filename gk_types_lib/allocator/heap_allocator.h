@@ -11,7 +11,7 @@ namespace gk
 	};
 
 	static Allocator* globalHeapAllocator() {
-		static Allocator global = Allocator::makeShared<HeapAllocator>();
-		return &global;
+		static Allocator* global = new Allocator(Allocator::makeShared<HeapAllocator>());
+		return global;
 	}
 }
