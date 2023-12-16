@@ -129,13 +129,13 @@ namespace gk
 		*/
 		constexpr ArrayList& operator = (const ArrayList& other) {
 			deleteExistingBuffer();
-			gk_assert(_data == nullptr);
+			check_eq(_data, nullptr);
 			_length = other._length;
 			_allocator = other._allocator.clone();
 			if (_length == 0) {
 				_data = nullptr;
 				_capacity = 0;
-				return;
+				return *this;
 			}
 
 			size_t requiredCapacity = _length;
