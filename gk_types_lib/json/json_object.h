@@ -473,13 +473,28 @@ inline constexpr gk::JsonValue::JsonValue(const JsonValue& other)
 			_value.number = other._value.number;
 			break;
 		case JsonValueType::String:
-			_value.string = other._value.string;
+			if (std::is_constant_evaluated()) {
+				_value.string = other._value.string;
+			}
+			else {
+				new (&_value.string) String(other._value.string);
+			}
 			break;
 		case JsonValueType::Array:
-			_value.arr = other._value.arr;
+			if (std::is_constant_evaluated()) {
+				_value.arr = other._value.arr;
+			}
+			else {
+				new (&_value.arr) ArrayList<JsonValue>(other._value.arr);
+			}
 			break;
 		case JsonValueType::Object:
-			_value.object = other._value.object;
+			if (std::is_constant_evaluated()) {
+				_value.object = other._value.object;
+			}
+			else {
+				new (&_value.object) JsonObject(other._value.object);
+			}
 			break;
 	}
 }
@@ -499,13 +514,28 @@ inline constexpr gk::JsonValue::JsonValue(JsonValue&& other) noexcept
 			_value.number = other._value.number;
 			break;
 		case JsonValueType::String:
-			_value.string = std::move(other._value.string);
+			if (std::is_constant_evaluated()) {
+				_value.string = std::move(other._value.string);
+			}
+			else {
+				new (&_value.string) String(std::move(other._value.string));
+			}
 			break;
 		case JsonValueType::Array:
-			_value.arr = std::move(other._value.arr);
+			if (std::is_constant_evaluated()) {
+				_value.arr = std::move(other._value.arr);
+			}
+			else {
+				new (&_value.arr) ArrayList<JsonValue>(std::move(other._value.arr));
+			}
 			break;
 		case JsonValueType::Object:
-			_value.object = std::move(other._value.object);
+			if (std::is_constant_evaluated()) {
+				_value.object = std::move(other._value.object);
+			}
+			else {
+				new (&_value.object) JsonObject(std::move(other._value.object));
+			}
 			break;
 	}
 }
@@ -524,13 +554,28 @@ inline constexpr gk::JsonValue& gk::JsonValue::operator=(const JsonValue& other)
 			_value.number = other._value.number;
 			break;
 		case JsonValueType::String:
-			_value.string = other._value.string;
+			if (std::is_constant_evaluated()) {
+				_value.string = other._value.string;
+			}
+			else {
+				new (&_value.string) String(other._value.string);
+			}
 			break;
 		case JsonValueType::Array:
-			_value.arr = other._value.arr;
+			if (std::is_constant_evaluated()) {
+				_value.arr = other._value.arr;
+			}
+			else {
+				new (&_value.arr) ArrayList<JsonValue>(other._value.arr);
+			}
 			break;
 		case JsonValueType::Object:
-			_value.object = other._value.object;
+			if (std::is_constant_evaluated()) {
+				_value.object = other._value.object;
+			}
+			else {
+				new (&_value.object) JsonObject(other._value.object);
+			}
 			break;
 	}
 	return *this;
@@ -551,13 +596,28 @@ inline constexpr gk::JsonValue& gk::JsonValue::operator=(JsonValue&& other) noex
 		_value.number = other._value.number;
 		break;
 	case JsonValueType::String:
-		_value.string = std::move(other._value.string);
+		if (std::is_constant_evaluated()) {
+			_value.string = std::move(other._value.string);
+		}
+		else {
+			new (&_value.string) String(std::move(other._value.string));
+		}
 		break;
 	case JsonValueType::Array:
-		_value.arr = std::move(other._value.arr);
+		if (std::is_constant_evaluated()) {
+			_value.arr = std::move(other._value.arr);
+		}
+		else {
+			new (&_value.arr) ArrayList<JsonValue>(std::move(other._value.arr));
+		}
 		break;
 	case JsonValueType::Object:
-		_value.object = std::move(other._value.object);
+		if (std::is_constant_evaluated()) {
+			_value.object = std::move(other._value.object);
+		}
+		else {
+			new (&_value.object) JsonObject(std::move(other._value.object));
+		}
 		break;
 	}
 	return *this;
