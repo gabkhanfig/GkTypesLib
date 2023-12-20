@@ -988,7 +988,12 @@ inline constexpr gk::JsonObject::Iterator gk::JsonObject::Iterator::iterBegin(Js
 	iter._object = object;
 	iter._currentBucket = object->buckets;
 	if (object->buckets != nullptr) {
-		iter.step();
+		while (iter._currentBucket->length == 0) {
+			iter._currentBucket++;
+			if (iter._currentBucket == object->buckets + object->bucketCount) {
+				break;
+			}
+		}
 	}
 	return iter;
 }
@@ -1036,7 +1041,12 @@ inline constexpr gk::JsonObject::ConstIterator gk::JsonObject::ConstIterator::it
 	iter._object = object;
 	iter._currentBucket = object->buckets;
 	if (object->buckets != nullptr) {
-		iter.step();
+		while (iter._currentBucket->length == 0) {
+			iter._currentBucket++;
+			if (iter._currentBucket == object->buckets + object->bucketCount) {
+				break;
+			}
+		}
 	}
 	return iter;
 }
