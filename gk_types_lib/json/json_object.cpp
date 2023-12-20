@@ -265,6 +265,7 @@ gk::Option<gk::JsonValue*> gk::JsonObject::addFieldRuntime(String&& name, JsonVa
 	{
 		const usize bucketIndex = bucketBits.value % bucketCount;
 		buckets[bucketIndex].insert(std::move(name), std::move(value), pairBits, gk::globalHeapAllocator());
+		elementCount++;
 		return gk::Option<JsonValue*>();
 	}
 }

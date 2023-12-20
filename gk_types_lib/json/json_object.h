@@ -922,6 +922,7 @@ inline constexpr gk::Option<gk::JsonValue*> gk::JsonObject::addField(String&& na
 			reallocate(elementCount + 1);
 		}
 		buckets->insert(std::move(name), std::move(value), 0, nullptr);
+		elementCount++;
 		return Option<JsonValue*>();
 	}
 	else {
