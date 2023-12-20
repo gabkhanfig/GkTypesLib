@@ -150,7 +150,7 @@ namespace gk
 			JsonObject* _object;
 			internal::JsonObjectBucket* _currentBucket;
 			usize _currentElementIndex;
-		};
+		}; // class Iterator
 
 		class ConstIterator {
 		public:
@@ -182,7 +182,7 @@ namespace gk
 			const JsonObject* _object;
 			const internal::JsonObjectBucket* _currentBucket;
 			usize _currentElementIndex;
-		};
+		}; // class ConstIterator
 
 		/**
 		* Begin of an Iterator with immutable keys, and mutable values, over
@@ -922,6 +922,7 @@ inline constexpr gk::Option<gk::JsonValue*> gk::JsonObject::addField(String&& na
 			reallocate(elementCount + 1);
 		}
 		buckets->insert(std::move(name), std::move(value), 0, nullptr);
+		return Option<JsonValue*>();
 	}
 	else {
 		return addFieldRuntime(std::move(name), std::move(value));
