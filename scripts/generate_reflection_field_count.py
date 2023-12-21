@@ -101,7 +101,7 @@ def deserialize(n: int) -> str:
 
     for i in range(n):
         #accumulate += "\n   if constexpr (N == " + str(i) + ") return ptr<decltype(p" + str(i + 1) + ")>{&p" + str(i + 1) + "};"
-        accumulate += "\n   if (internal::tryAssignFieldFromJsonObject(p" + str(i + 1) + "getFieldName<T, " + str(i) + ">(), jsonObject) == false) return ResultErr();"
+        accumulate += "\n   if (internal::tryAssignFieldFromJsonObject(p" + str(i + 1) + ", getFieldName<T, " + str(i) + ">(), jsonObject) == false) return ResultErr();"
 
     accumulate += "\n}"
     return accumulate
