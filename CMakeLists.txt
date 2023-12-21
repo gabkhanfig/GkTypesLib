@@ -68,6 +68,7 @@ target_compile_definitions(GkTypesLib PUBLIC
 	$<$<CONFIG:Release>:GK_TYPES_LIB_SHIPPING>
 )
 target_compile_definitions(GkTypesLibTest PUBLIC GK_TYPES_LIB_TEST)
+target_compile_definitions(GkTypesLibTest PUBLIC GK_TYPES_LIB_DEBUG)
 
 target_include_directories(GkTypesLib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
