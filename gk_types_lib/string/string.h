@@ -221,7 +221,7 @@ namespace gk
 		*
 		* @return a new string with the char concatenated.
 		*/
-		[[nodiscard]] constexpr friend String operator + (const String& lhs, char rhs);
+		constexpr friend String operator + (const String& lhs, char rhs);
 
 		/**
 		* Concat a moved string with a char.
@@ -235,7 +235,7 @@ namespace gk
 		*
 		* @return a new string with the string slice concatenated.
 		*/
-		[[nodiscard]] constexpr friend String operator + (const String& lhs, const Str& rhs);
+		constexpr friend String operator + (const String& lhs, const Str& rhs);
 
 		/**
 		* Concat a moved string with a string slice.
@@ -263,14 +263,14 @@ namespace gk
 		*
 		* @return a new string with the char concatenated with the other string.
 		*/
-		[[nodiscard]] constexpr friend String operator + (char lhs, const String& rhs);
+		constexpr friend String operator + (char lhs, const String& rhs);
 
 		/**
 		* Concat a string slice with a string after it.
 		*
 		* @return a new string with the string slice concatenated with the other string.
 		*/
-		[[nodiscard]] constexpr friend String operator + (const Str& lhs, const String& rhs);
+		constexpr friend String operator + (const Str& lhs, const String& rhs);
 
 		/**
 		* Create a string from a bool
@@ -924,7 +924,7 @@ inline constexpr gk::String& gk::String::append(const Str& str)
 	return *this;
 }
 
-constexpr gk::String gk::operator+(const String& lhs, char rhs)
+[[nodiscard]] constexpr gk::String gk::operator+(const String& lhs, char rhs)
 {
 	const usize length = lhs.len();
 	const usize newLength = length + 1;
@@ -954,7 +954,7 @@ constexpr gk::String gk::operator+(const String& lhs, char rhs)
 	return newString;
 }
 
-constexpr gk::String gk::operator+(const String& lhs, const Str& rhs)
+[[nodiscard]] constexpr gk::String gk::operator+(const String& lhs, const Str& rhs)
 {
 	const usize length = lhs.len();
 	const usize newLength = length + rhs.len;
@@ -984,7 +984,7 @@ constexpr gk::String gk::operator+(const String& lhs, const Str& rhs)
 	return newString;
 }
 
-constexpr gk::String gk::operator+(char lhs, const String& rhs)
+[[nodiscard]] constexpr gk::String gk::operator+(char lhs, const String& rhs)
 {
 	const usize length = rhs.len();
 	const usize newLength = 1 + length;
@@ -1014,7 +1014,7 @@ constexpr gk::String gk::operator+(char lhs, const String& rhs)
 	return newString;
 }
 
-constexpr gk::String gk::operator+(const Str& lhs, const String& rhs)
+[[nodiscard]] constexpr gk::String gk::operator+(const Str& lhs, const String& rhs)
 {
 	const usize length = rhs.len();
 	const usize newLength = lhs.len + length;
