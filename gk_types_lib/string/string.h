@@ -300,7 +300,8 @@ namespace gk
 
 		/**
 		* Allow converting types to a String. Specialization is required.
-		* Specializing gk::String::from<T>() will allow use in gk::String::format()
+		* Specializing gk::String::from<T>() will allow use in gk::String::format().
+		* For enum types, from<T> must be specialized. JSON serialization of enums will use the specialization.
 		*/
 		template<typename T>
 		[[nodiscard]] constexpr static String from(const T& value) = delete;
@@ -434,10 +435,10 @@ namespace gk
 		*/
 		[[nodiscard]] constexpr Result<double> parseFloat() const;
 
-
 		/**
 		* Allow parsing of a string into a type, or returning an error if it cannot be parsed.
 		* Specialization is required, but is already implemented for bool, int types, and float types.
+		* For enum types, parse<T> must be specialized. JSON deserialization of enums will use the specialization.
 		*
 		* @return The successfully parsed T, or an error.
 		*/
