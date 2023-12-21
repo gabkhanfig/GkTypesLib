@@ -287,7 +287,7 @@ namespace gk
 		*/
 		[[nodiscard]] constexpr static String fromUint(u64 num);
 
-		/**e
+		/**
 		* Creates a string from a float (double) with variable precision.
 		* Due to rounding errors of floats, some string representations will be SLIGHTLY off.
 		* All numbers have decimals after, including whole numbers (eg. "0.0").
@@ -433,6 +433,7 @@ namespace gk
 		* @return The parsed 64 bit float, or an error.
 		*/
 		[[nodiscard]] constexpr Result<double> parseFloat() const;
+
 
 		/**
 		* Allow parsing of a string into a type, or returning an error if it cannot be parsed.
