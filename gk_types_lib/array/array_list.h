@@ -83,7 +83,6 @@ namespace gk
 		* @param other: Other ArrayList to copy elements and allocator from.
 		*/
 		constexpr ArrayList(const ArrayList& other)
-			requires(std::is_copy_constructible_v<T>)
 			: _length(other._length), _allocator(other._allocator.clone())
 		{
 			if (_length == 0) {
