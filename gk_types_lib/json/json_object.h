@@ -176,7 +176,7 @@ namespace gk
 
 			constexpr void step();
 
-		private:
+		public:
 			constexpr ConstIterator() : _object(nullptr), _currentBucket(nullptr), _currentElementIndex(0) {}
 
 			const JsonObject* _object;
@@ -193,7 +193,7 @@ namespace gk
 		*
 		* @return Begin of mutable iterator
 		*/
-		Iterator begin() { return Iterator::iterBegin(this); }
+		constexpr Iterator begin() { return Iterator::iterBegin(this); }
 
 		/**
 		* End of an Iterator with immutable keys, and mutable values, over
@@ -204,7 +204,7 @@ namespace gk
 		*
 		* @return End of mutable iterator
 		*/
-		Iterator end() { return Iterator::iterEnd(this); }
+		constexpr Iterator end() { return Iterator::iterEnd(this); }
 
 		/**
 		* Begin of an Iterator with immutable keys, and immutable values, over
@@ -215,7 +215,7 @@ namespace gk
 		*
 		* @return Begin of immutable iterator
 		*/
-		ConstIterator begin() const { return ConstIterator::iterBegin(this); }
+		constexpr ConstIterator begin() const { return ConstIterator::iterBegin(this); }
 
 		/**
 		* End of an Iterator with immutable keys, and immutable values, over
@@ -226,7 +226,7 @@ namespace gk
 		*
 		* @return End of immutable iterator
 		*/
-		ConstIterator end() const { return ConstIterator::iterEnd(this); }
+		constexpr ConstIterator end() const { return ConstIterator::iterEnd(this); }
 
 	private:
 
@@ -261,6 +261,9 @@ namespace gk
 			JsonObject object;
 
 			constexpr JsonValueUnion() : null(0) {}
+			constexpr JsonValueUnion(String&& inString) : string(std::move(inString)) {}
+			constexpr JsonValueUnion(ArrayList<JsonValue>&& inArray) : arr(std::move(inArray)) {}
+			constexpr JsonValueUnion(JsonObject&& inObject) : object(std::move(inObject)) {}
 			constexpr ~JsonValueUnion() {}
 		};
 	}
@@ -318,7 +321,17 @@ namespace gk
 		* 
 		* @return The boolean json value.
 		*/
-		constexpr bool boolValue() {
+		constexpr bool& boolValue() {
+			check_eq(_type, JsonValueType::Bool);
+			return _value.boolean;
+		}
+
+		/**
+		* Will assert that the stored type is bool.
+		* 
+		* @return The boolean json value.
+		*/
+		constexpr const bool& boolValue() const {
 			check_eq(_type, JsonValueType::Bool);
 			return _value.boolean;
 		}
@@ -331,45 +344,97 @@ namespace gk
 		*
 		* @return The number json value.
 		*/
-		constexpr double numberValue() {
+		constexpr double& numberValue() {
+			check_eq(_type, JsonValueType::Number);
+			return _value.number;
+		}
+
+		/**
+		* Will assert that the stored type is number.
+		* Due to compatibility, only doubles are used by the number value.
+		* This means 2^53 is the maximum integer value without precision loss.
+		* For higher precision, use strings.
+		*
+		* @return The number json value.
+		*/
+		constexpr const double& numberValue() const {
 			check_eq(_type, JsonValueType::Number);
 			return _value.number;
 		}
 
 		/**
 		* Will assert that the stored type is string.
-		* Moves the string out of this json value, so accessing it again on this object useless.
 		* 
 		* @return The string json value.
 		*/
-		constexpr gk::String stringValue() {
+		constexpr gk::String& stringValue() {
 			check_eq(_type, JsonValueType::String);
-			return std::move(_value.string);
+			return _value.string;
+		}
+
+		/**
+		* Will assert that the stored type is string.
+		* 
+		* @return The string json value.
+		*/
+		constexpr const gk::String& stringValue() const {
+			check_eq(_type, JsonValueType::String);
+			return _value.string;
 		}
 
 		/**
 		* Will assert that the stored type is an array of json values.
-		* Moves the array out of this json value, so accessing it again on this object is useless.
 		* 
 		* @return The array of json values held by this value.
 		*/
-		constexpr ArrayList<JsonValue> arrayValue() {
+		constexpr ArrayList<JsonValue>& arrayValue() {
 			check_eq(_type, JsonValueType::Array);
-			return std::move(_value.arr);
+			return _value.arr;
+		}
+
+		/**
+		* Will assert that the stored type is an array of json values.
+		* 
+		* @return The array of json values held by this value.
+		*/
+		constexpr const ArrayList<JsonValue>& arrayValue() const {
+			check_eq(_type, JsonValueType::Array);
+			return _value.arr;
 		}
 
 		/**
 		* Will assert that the stored type is an object.
-		* Moves the json string object out of this json value, so accessing it again on this object is useless.
 		* 
 		* @return The json string containing a sub-object.
 		*/
-		constexpr JsonObject objectValue() {
+		constexpr JsonObject& objectValue() {
 			check_eq(_type, JsonValueType::Object);
-			return std::move(_value.object);
+			return _value.object;
+		}
+
+		/**
+		* Will assert that the stored type is an object.
+		* 
+		* @return The json string containing a sub-object.
+		*/
+		constexpr const JsonObject& objectValue() const {
+			check_eq(_type, JsonValueType::Object);
+			return _value.object;
 		}
 
 	private:
+
+		constexpr JsonValue(String&& inString)
+			: _type(JsonValueType::String), _value(std::move(inString))
+		{}
+
+		constexpr JsonValue(ArrayList<JsonValue>&& inArr)
+			: _type(JsonValueType::Array), _value(std::move(inArr))
+		{}
+
+		constexpr JsonValue(JsonObject&& inObject)
+			: _type(JsonValueType::Object), _value(std::move(inObject))
+		{}
 
 		JsonValueType _type;
 		internal::JsonValueUnion _value;
@@ -383,12 +448,13 @@ namespace gk
 		struct JsonKeyValue {
 			String key;
 			JsonValue value;
+			usize hashCode;
 
-			constexpr JsonKeyValue() = default;
+			constexpr JsonKeyValue() : hashCode(0) {};
 			constexpr ~JsonKeyValue() = default;
 
-			constexpr JsonKeyValue(String&& key, JsonValue&& value)
-				: key(std::move(key)), value(std::move(value))
+			constexpr JsonKeyValue(String&& key, JsonValue&& value, usize hashCode)
+				: key(std::move(key)), value(std::move(value)), hashCode(hashCode)
 			{}
 		};
 
@@ -424,13 +490,13 @@ namespace gk
 
 			constexpr void free(Allocator* allocator);
 			
-			constexpr Option<JsonValue*> find(const String& key, JsonPairHashBits hashCode);
+			constexpr Option<JsonValue*> find(const String& key, usize hashCode);
 
-			constexpr Option<const JsonValue*> find(const String& key, JsonPairHashBits hashCode) const;
+			constexpr Option<const JsonValue*> find(const String& key, usize hashCode) const;
 
-			constexpr void insert(String&& key, JsonValue&& value, JsonPairHashBits hashCode, Allocator* allocator);
+			constexpr void insert(String&& key, JsonValue&& value, usize hashCode, Allocator* allocator);
 
-			constexpr bool erase(const String& key, JsonPairHashBits hashCode, Allocator* allocator);
+			constexpr bool erase(const String& key, usize hashCode, Allocator* allocator);
 
 			i8* hashMasks;
 			JsonKeyValue* pairs;
@@ -474,7 +540,7 @@ inline constexpr gk::JsonValue::JsonValue(const JsonValue& other)
 			break;
 		case JsonValueType::String:
 			if (std::is_constant_evaluated()) {
-				_value.string = other._value.string;
+				std::construct_at(&_value, String(other._value.string));
 			}
 			else {
 				new (&_value.string) String(other._value.string);
@@ -482,7 +548,7 @@ inline constexpr gk::JsonValue::JsonValue(const JsonValue& other)
 			break;
 		case JsonValueType::Array:
 			if (std::is_constant_evaluated()) {
-				_value.arr = other._value.arr;
+				std::construct_at(&_value, ArrayList<JsonValue>(other._value.arr));
 			}
 			else {
 				new (&_value.arr) ArrayList<JsonValue>(other._value.arr);
@@ -490,7 +556,7 @@ inline constexpr gk::JsonValue::JsonValue(const JsonValue& other)
 			break;
 		case JsonValueType::Object:
 			if (std::is_constant_evaluated()) {
-				_value.object = other._value.object;
+				std::construct_at(&_value, JsonObject(other._value.object));
 			}
 			else {
 				new (&_value.object) JsonObject(other._value.object);
@@ -515,7 +581,7 @@ inline constexpr gk::JsonValue::JsonValue(JsonValue&& other) noexcept
 			break;
 		case JsonValueType::String:
 			if (std::is_constant_evaluated()) {
-				_value.string = std::move(other._value.string);
+				std::construct_at(&_value, std::move(other._value.string));
 			}
 			else {
 				new (&_value.string) String(std::move(other._value.string));
@@ -523,7 +589,7 @@ inline constexpr gk::JsonValue::JsonValue(JsonValue&& other) noexcept
 			break;
 		case JsonValueType::Array:
 			if (std::is_constant_evaluated()) {
-				_value.arr = std::move(other._value.arr);
+				std::construct_at(&_value, std::move(other._value.arr));
 			}
 			else {
 				new (&_value.arr) ArrayList<JsonValue>(std::move(other._value.arr));
@@ -531,7 +597,7 @@ inline constexpr gk::JsonValue::JsonValue(JsonValue&& other) noexcept
 			break;
 		case JsonValueType::Object:
 			if (std::is_constant_evaluated()) {
-				_value.object = std::move(other._value.object);
+				std::construct_at(&_value, std::move(other._value.object));
 			}
 			else {
 				new (&_value.object) JsonObject(std::move(other._value.object));
@@ -555,7 +621,7 @@ inline constexpr gk::JsonValue& gk::JsonValue::operator=(const JsonValue& other)
 			break;
 		case JsonValueType::String:
 			if (std::is_constant_evaluated()) {
-				_value.string = other._value.string;
+				std::construct_at(&_value, String(other._value.string));
 			}
 			else {
 				new (&_value.string) String(other._value.string);
@@ -563,7 +629,7 @@ inline constexpr gk::JsonValue& gk::JsonValue::operator=(const JsonValue& other)
 			break;
 		case JsonValueType::Array:
 			if (std::is_constant_evaluated()) {
-				_value.arr = other._value.arr;
+				std::construct_at(&_value, ArrayList<JsonValue>(other._value.arr));
 			}
 			else {
 				new (&_value.arr) ArrayList<JsonValue>(other._value.arr);
@@ -571,7 +637,7 @@ inline constexpr gk::JsonValue& gk::JsonValue::operator=(const JsonValue& other)
 			break;
 		case JsonValueType::Object:
 			if (std::is_constant_evaluated()) {
-				_value.object = other._value.object;
+				std::construct_at(&_value, JsonObject(other._value.object));
 			}
 			else {
 				new (&_value.object) JsonObject(other._value.object);
@@ -597,7 +663,8 @@ inline constexpr gk::JsonValue& gk::JsonValue::operator=(JsonValue&& other) noex
 		break;
 	case JsonValueType::String:
 		if (std::is_constant_evaluated()) {
-			_value.string = std::move(other._value.string);
+			std::construct_at(&_value, std::move(other._value.string));
+			//_value.string = std::move(other._value.string);
 		}
 		else {
 			new (&_value.string) String(std::move(other._value.string));
@@ -605,7 +672,7 @@ inline constexpr gk::JsonValue& gk::JsonValue::operator=(JsonValue&& other) noex
 		break;
 	case JsonValueType::Array:
 		if (std::is_constant_evaluated()) {
-			_value.arr = std::move(other._value.arr);
+			std::construct_at(&_value, std::move(other._value.arr));
 		}
 		else {
 			new (&_value.arr) ArrayList<JsonValue>(std::move(other._value.arr));
@@ -613,7 +680,7 @@ inline constexpr gk::JsonValue& gk::JsonValue::operator=(JsonValue&& other) noex
 		break;
 	case JsonValueType::Object:
 		if (std::is_constant_evaluated()) {
-			_value.object = std::move(other._value.object);
+			std::construct_at(&_value, std::move(other._value.object));
 		}
 		else {
 			new (&_value.object) JsonObject(std::move(other._value.object));
@@ -658,25 +725,19 @@ inline constexpr gk::JsonValue gk::JsonValue::makeNumber(double num)
 
 inline constexpr gk::JsonValue gk::JsonValue::makeString(String&& string)
 {
-	JsonValue value;
-	value._type = JsonValueType::String;
-	value._value.string = std::move(string);
+	JsonValue value = JsonValue(std::move(string));
 	return value;
 }
 
 inline constexpr gk::JsonValue gk::JsonValue::makeArray(ArrayList<JsonValue>&& arr)
 {
-	JsonValue value;
-	value._type = JsonValueType::Array;
-	value._value.arr = std::move(arr);
+	JsonValue value = JsonValue(std::move(arr));
 	return value;
 }
 
 inline constexpr gk::JsonValue gk::JsonValue::makeObject(JsonObject&& object)
 {
-	JsonValue value;
-	value._type = JsonValueType::Object;
-	value._value.object = std::move(object);
+	JsonValue value = JsonValue(std::move(object));
 	return value;
 }
 
@@ -746,9 +807,9 @@ inline constexpr void gk::internal::JsonObjectBucket::free(Allocator* allocator)
 	length = 0;
 }
 
-constexpr gk::Option<gk::JsonValue*> gk::internal::JsonObjectBucket::find(const String& key, JsonPairHashBits hashCode)
+constexpr gk::Option<gk::JsonValue*> gk::internal::JsonObjectBucket::find(const String& key, usize hashCode)
 {
-	Option<usize> index = findIndexOfKey(key, hashCode);
+	Option<usize> index = findIndexOfKey(key, JsonPairHashBits(hashCode));
 	if (index.none()) {
 		return Option<JsonValue*>();
 	}
@@ -757,9 +818,9 @@ constexpr gk::Option<gk::JsonValue*> gk::internal::JsonObjectBucket::find(const 
 	}
 }
 
-inline constexpr gk::Option<const gk::JsonValue*> gk::internal::JsonObjectBucket::find(const String& key, JsonPairHashBits hashCode) const
+inline constexpr gk::Option<const gk::JsonValue*> gk::internal::JsonObjectBucket::find(const String& key, usize hashCode) const
 {
-	Option<usize> index = findIndexOfKey(key, hashCode);
+	Option<usize> index = findIndexOfKey(key, JsonPairHashBits(hashCode));
 	if (index.none()) {
 		return Option<const JsonValue*>();
 	}
@@ -768,9 +829,9 @@ inline constexpr gk::Option<const gk::JsonValue*> gk::internal::JsonObjectBucket
 	}
 }
 
-inline constexpr void gk::internal::JsonObjectBucket::insert(String&& key, JsonValue&& value, JsonPairHashBits hashCode, Allocator* allocator)
+inline constexpr void gk::internal::JsonObjectBucket::insert(String&& key, JsonValue&& value, usize hashCode, Allocator* allocator)
 {
-	JsonKeyValue newPair{ std::move(key), std::move(value) };
+	JsonKeyValue newPair{ std::move(key), std::move(value), hashCode };
 	if (length == pairCapacity) {
 		if (pairCapacity == 0) {
 			reallocate(4, allocator);
@@ -787,14 +848,14 @@ inline constexpr void gk::internal::JsonObjectBucket::insert(String&& key, JsonV
 		//Option<usize> availableSlot = firstAvailableSlot();
 		//check(availableSlot.isSome());
 		new (pairs + length) JsonKeyValue(std::move(newPair));
-		hashMasks[length] = hashCode.value;
+		hashMasks[length] = JsonPairHashBits(hashCode).value;
 	}
 	length++;
 }
 
-inline constexpr bool gk::internal::JsonObjectBucket::erase(const String& key, JsonPairHashBits hashCode, Allocator* allocator)
+inline constexpr bool gk::internal::JsonObjectBucket::erase(const String& key, usize hashCode, Allocator* allocator)
 {
-	Option<usize> optIndex = findIndexOfKey(key, hashCode);
+	Option<usize> optIndex = findIndexOfKey(key, JsonPairHashBits(hashCode));
 	if (optIndex.none()) {
 		return false;
 	}
@@ -943,10 +1004,10 @@ inline constexpr gk::Option<gk::JsonValue*> gk::JsonObject::findField(const Stri
 
 	const usize hashCode = name.hash();
 	const internal::JsonHashBucketBits bucketBits = internal::JsonHashBucketBits(hashCode);
-	const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
+	//const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
 
 	const usize bucketIndex = bucketBits.value % bucketCount;
-	return buckets[bucketIndex].find(name, pairBits);
+	return buckets[bucketIndex].find(name, hashCode);
 }
 
 inline constexpr gk::Option<const gk::JsonValue*> gk::JsonObject::findField(const String& name) const
@@ -965,10 +1026,10 @@ inline constexpr gk::Option<const gk::JsonValue*> gk::JsonObject::findField(cons
 
 	const usize hashCode = name.hash();
 	const internal::JsonHashBucketBits bucketBits = internal::JsonHashBucketBits(hashCode);
-	const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
+	//const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
 
 	const usize bucketIndex = bucketBits.value % bucketCount;
-	return static_cast<const internal::JsonObjectBucket*>(buckets)[bucketIndex].find(name, pairBits);
+	return static_cast<const internal::JsonObjectBucket*>(buckets)[bucketIndex].find(name, hashCode);
 }
 
 inline constexpr gk::Option<gk::JsonValue*> gk::JsonObject::addField(String&& name, JsonValue&& value)
@@ -1088,6 +1149,9 @@ inline constexpr void gk::JsonObject::Iterator::step() {
 		while (true) {
 			_currentElementIndex = 0;
 			_currentBucket++;
+			if (_currentBucket == _object->buckets + _object->bucketCount) {
+				break;
+			}
 			if (_currentBucket->length > 0) {
 				break;
 			}
@@ -1141,6 +1205,9 @@ inline constexpr void gk::JsonObject::ConstIterator::step() {
 		while (true) {
 			_currentElementIndex = 0;
 			_currentBucket++;
+			if (_currentBucket == _object->buckets + _object->bucketCount) {
+				break;
+			}
 			if (_currentBucket->length > 0) {
 				break;
 			}
