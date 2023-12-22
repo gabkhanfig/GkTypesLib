@@ -1,9 +1,16 @@
 #include "json_object.h"
 #include <intrin.h>
 
-// STORE THE HASH CODE IN PLACE 
-
 using gk::usize;
+
+namespace gk {
+#if GK_TYPES_LIB_DEBUG
+	constexpr bool SHOULD_LOG_JSON_FUNCTION_LOADING = true;
+#else
+	constexpr bool SHOULD_LOG_JSON_FUNCTION_LOADING = false;
+#endif
+}
+
 
 /**
 * Allocates the hash masks, and pairs in a single allocation.
@@ -136,14 +143,14 @@ gk::Option<usize> gk::internal::JsonObjectBucket::findIndexOfKeyRuntime(const St
 
 	static FindHashBitsInJsonMaskFunc func = []() {
 		if (gk::x86::isAvx512Supported()) {
-			if (true) {
+			if (SHOULD_LOG_JSON_FUNCTION_LOADING) {
 				std::cout << "[Json function loader]: Using AVX-512 key find\n";
 			}
 
 			return avx512FindHashBitsInJsonMask;
 		}
 		else if (gk::x86::isAvx2Supported()) {
-			if (true) {
+			if (SHOULD_LOG_JSON_FUNCTION_LOADING) {
 				std::cout << "[Json function loader]: Using AVX-2 key find\n";
 			}
 			abort();
@@ -223,12 +230,12 @@ void gk::JsonObject::reallocateRuntime(usize requiredCapacity)
 			if (oldBucket.hashMasks[i] == 0) continue;
 
 			internal::JsonKeyValue& pair = oldBucket.pairs[i];
-			const usize hashCode = pair.key.hash();
-			const internal::JsonHashBucketBits bucketBits = internal::JsonHashBucketBits(hashCode);
-			const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
+			//const usize hashCode = pair.key.hash();
+			const internal::JsonHashBucketBits bucketBits = internal::JsonHashBucketBits(pair.hashCode);
+			//const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
 
 			const usize newBucketIndex = bucketBits.value % newBucketCount;
-			newBuckets[newBucketIndex].insert(std::move(pair.key), std::move(pair.value), pairBits, allocator);
+			newBuckets[newBucketIndex].insert(std::move(pair.key), std::move(pair.value), pair.hashCode, allocator);
 		}
 		oldBucket.length = 0;
 		oldBucket.free(allocator);
@@ -245,14 +252,14 @@ gk::Option<gk::JsonValue*> gk::JsonObject::addFieldRuntime(String&& name, JsonVa
 {
 	const usize hashCode = name.hash();
 	const internal::JsonHashBucketBits bucketBits = internal::JsonHashBucketBits(hashCode);
-	const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
+	//const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
 
 	Option<JsonValue*> found = [&]() {
 		if (elementCount == 0) {
 			return Option<JsonValue*>();
 		}
 		const usize bucketIndex = bucketBits.value % bucketCount;
-		return buckets[bucketIndex].find(name, pairBits);
+		return buckets[bucketIndex].find(name, hashCode);
 	}();
 	if (found.isSome()) {
 		return found;
@@ -264,7 +271,7 @@ gk::Option<gk::JsonValue*> gk::JsonObject::addFieldRuntime(String&& name, JsonVa
 
 	{
 		const usize bucketIndex = bucketBits.value % bucketCount;
-		buckets[bucketIndex].insert(std::move(name), std::move(value), pairBits, gk::globalHeapAllocator());
+		buckets[bucketIndex].insert(std::move(name), std::move(value), hashCode, gk::globalHeapAllocator());
 		elementCount++;
 		return gk::Option<JsonValue*>();
 	}
@@ -274,7 +281,119 @@ bool gk::JsonObject::eraseFieldRuntime(const String& name)
 {
 	const usize hashCode = name.hash();
 	const internal::JsonHashBucketBits bucketBits = internal::JsonHashBucketBits(hashCode);
-	const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
+	//const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
 	const usize bucketIndex = bucketBits.value % bucketCount;
-	return buckets[bucketIndex].erase(name, pairBits, gk::globalHeapAllocator());
+	return buckets[bucketIndex].erase(name, hashCode, gk::globalHeapAllocator());
 }
+
+#if GK_TYPES_LIB_TEST
+
+using gk::JsonObject;
+using gk::JsonValue;
+using gk::ArrayList;
+
+test_case("JsonObject cant find field when empty") {
+	JsonObject obj;
+	check(obj.findField(""_str).none());
+}
+
+comptime_test_case(JsonObject, CantFindFieldWhenEmpty, {
+	JsonObject obj;
+	check(obj.findField(""_str).none());
+});
+
+test_case("JsonObject add field null") {
+	JsonObject obj;
+	obj.addField("some name"_str, JsonValue());
+	check(obj.findField("some name"_str).isSome());
+	check(obj.findField("some name"_str).some()->isNull());
+}
+
+comptime_test_case(JsonObject, AddFieldNull, {
+	JsonObject obj;
+	obj.addField("some name"_str, JsonValue());
+	check(obj.findField("some name"_str).isSome());
+	check(obj.findField("some name"_str).some()->isNull());
+});
+
+test_case("JsonObject add field bool") {
+	JsonObject obj;
+	obj.addField("some name"_str, JsonValue::makeBool(true));
+	check(obj.findField("some name"_str).isSome());
+	check_eq(obj.findField("some name"_str).some()->boolValue(), true);
+}
+
+comptime_test_case(JsonObject, AddFieldBool, {
+	JsonObject obj;
+	obj.addField("some name"_str, JsonValue::makeBool(true));
+	check(obj.findField("some name"_str).isSome());
+	check_eq(obj.findField("some name"_str).some()->boolValue(), true);
+});
+
+test_case("JsonObject add field number") {
+	JsonObject obj;
+	obj.addField("some name"_str, JsonValue::makeNumber(-1.5));
+	check(obj.findField("some name"_str).isSome());
+	check_eq(obj.findField("some name"_str).some()->numberValue(), -1.5);
+}
+
+comptime_test_case(JsonObject, AddFieldNumber, {
+	JsonObject obj;
+	obj.addField("some name"_str, JsonValue::makeNumber(-1.5));
+	check(obj.findField("some name"_str).isSome());
+	check_eq(obj.findField("some name"_str).some()->numberValue(), -1.5);
+});
+
+test_case("JsonObject add field string") {
+	JsonObject obj;
+	obj.addField("some name"_str, JsonValue::makeString("whoa!"_str));
+	check(obj.findField("some name"_str).isSome());
+	check_eq(obj.findField("some name"_str).some()->stringValue(), "whoa!"_str);
+}
+
+comptime_test_case(JsonObject, AddFieldString, {
+	JsonObject obj;
+	obj.addField("some name"_str, JsonValue::makeString("whoa!"_str));
+	check(obj.findField("some name"_str).isSome());
+	check_eq(obj.findField("some name"_str).some()->stringValue(), "whoa!"_str);
+});
+
+test_case("JsonObject add field array") {
+	JsonObject obj;
+	ArrayList<JsonValue> values;
+	values.push(JsonValue::makeBool(true));
+	obj.addField("some name"_str, JsonValue::makeArray(std::move(values)));
+	check(obj.findField("some name"_str).isSome());
+	check_eq(obj.findField("some name"_str).some()->arrayValue()[0].boolValue(), true);
+}
+
+comptime_test_case(JsonObject, AddFieldArray, {
+	JsonObject obj;
+	ArrayList<JsonValue> values;
+	values.push(JsonValue::makeBool(true));
+	obj.addField("some name"_str, JsonValue::makeArray(std::move(values)));
+	check(obj.findField("some name"_str).isSome());
+	check_eq(obj.findField("some name"_str).some()->arrayValue()[0].boolValue(), true);
+});
+
+test_case("JsonObject add field object") {
+	JsonObject obj;
+	JsonObject subobj;
+	subobj.addField("sub field"_str, JsonValue::makeBool(true));
+	obj.addField("some name"_str, JsonValue::makeObject(std::move(subobj)));
+	check(obj.findField("some name"_str).isSome());
+	const JsonObject& subobjRef = obj.findField("some name"_str).some()->objectValue();
+	check_eq(subobjRef.findField("sub field"_str).some()->boolValue(), true);
+}
+
+comptime_test_case(JsonObject, AddFieldObject, {
+	JsonObject obj;
+	JsonObject subobj;
+	subobj.addField("sub field"_str, JsonValue::makeBool(true));
+	obj.addField("some name"_str, JsonValue::makeObject(std::move(subobj)));
+	check(obj.findField("some name"_str).isSome());
+	const JsonObject& subobjRef = obj.findField("some name"_str).some()->objectValue();
+	check_eq(subobjRef.findField("sub field"_str).some()->boolValue(), true);
+});
+
+#endif
