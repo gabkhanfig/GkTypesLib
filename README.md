@@ -17,6 +17,7 @@ Runtime asserts are disabled in Release.
 - [Str](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/string/str.h)
 - [Global String](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/string/global_string.h)
 - [Hash Map](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/hash/hashmap.h)
+- [JSON](https://github.com/gabkhanfig/GkTypesLib/tree/master/gk_types_lib/json)
 - [Option](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/option/option.h)
 - [Result](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/error/result.h)
 - [Fptr](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/function/function_ptr.h)
@@ -77,6 +78,15 @@ Thread safe string compression into 4 byte integer unique ids, that last for the
 
 A replacement to std::unordered_map that's vastly more optimized, using better caching strategies, SIMD hash finding, and custom allocator support.
 It's inspired by this [talk](https://youtube.com/watch?v=ncHmEUmJZf4&), and extended further.
+
+<h2>
+
+[JSON](https://github.com/gabkhanfig/GkTypesLib/tree/master/gk_types_lib/json)
+
+</h2>
+
+Automatic serialization and deserialization of arbitrary structs using C++20's form of reflection.
+Supports json as object representation using name/value pairs.
 
 <h2>
 
