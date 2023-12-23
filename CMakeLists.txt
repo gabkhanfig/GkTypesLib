@@ -69,8 +69,10 @@ target_compile_definitions(GkTypesLib PUBLIC
 	$<$<CONFIG:RelWithDebInfo>:GK_TYPES_LIB_DEBUG>
 	$<$<CONFIG:Release>:GK_TYPES_LIB_SHIPPING>
 )
+
 target_compile_definitions(GkTypesLibTest PUBLIC GK_TYPES_LIB_TEST)
 target_compile_definitions(GkTypesLibTest PUBLIC GK_TYPES_LIB_DEBUG)
+target_compile_definitions(GkTypesLibTest PUBLIC GK_TYPES_LIB_LOCAL_PATH="${CMAKE_CURRENT_SOURCE_DIR}/") 
 
 target_include_directories(GkTypesLib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
