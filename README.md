@@ -87,6 +87,7 @@ It's inspired by this [talk](https://youtube.com/watch?v=ncHmEUmJZf4&), and exte
 
 Automatic serialization and deserialization of arbitrary structs using C++20's form of reflection.
 Supports json as object representation using name/value pairs.
+Can convert strings to/from json objects.
 
 <h2>
 
