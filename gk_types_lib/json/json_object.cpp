@@ -291,6 +291,7 @@ bool gk::JsonObject::eraseFieldRuntime(const String& name)
 using gk::JsonObject;
 using gk::JsonValue;
 using gk::ArrayList;
+using gk::String;
 
 test_case("JsonObject cant find field when empty") {
 	JsonObject obj;
@@ -395,5 +396,335 @@ comptime_test_case(JsonObject, AddFieldObject, {
 	const JsonObject& subobjRef = obj.findField("some name"_str).some()->objectValue();
 	check_eq(subobjRef.findField("sub field"_str).some()->boolValue(), true);
 });
+
+test_case("JsonObject to string empty") {
+	JsonObject obj;
+	String jsonString = obj.toString();
+	check_eq(jsonString, "{}"_str);
+}
+
+comptime_test_case(JsonObject, to_string_empty, {
+	JsonObject obj;
+	String jsonString = obj.toString();
+	check_eq(jsonString, "{}"_str);
+});
+
+test_case("JsonObject to string one null field") {
+	JsonObject obj;
+	obj.addField("someField"_str, JsonValue::makeNull());
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": null").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_one_null_field, {
+	JsonObject obj;
+	obj.addField("someField"_str, JsonValue::makeNull());
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": null").isSome());
+});
+
+test_case("JsonObject to string two null fields") {
+	JsonObject obj;
+	obj.addField("someField1"_str, JsonValue::makeNull());
+	obj.addField("someField2"_str, JsonValue::makeNull());
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": null,").isSome());
+	check(jsonString.find("\"someField2\": null").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_two_null_fields, {
+	JsonObject obj;
+	obj.addField("someField1"_str, JsonValue::makeNull());
+	obj.addField("someField2"_str, JsonValue::makeNull());
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": null,").isSome());
+	check(jsonString.find("\"someField2\": null").isSome());
+});
+
+test_case("JsonObject to string one bool field") {
+	JsonObject obj;
+	obj.addField("someField"_str, JsonValue::makeBool(true));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": true").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_one_bool_field, {
+	JsonObject obj;
+	obj.addField("someField"_str, JsonValue::makeBool(true));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": true").isSome());
+	});
+
+test_case("JsonObject to string two bool fields") {
+	JsonObject obj;
+	obj.addField("someField1"_str, JsonValue::makeBool(true));
+	obj.addField("someField2"_str, JsonValue::makeBool(false));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": true,").isSome());
+	check(jsonString.find("\"someField2\": false").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_two_bool_fields, {
+	JsonObject obj;
+	obj.addField("someField1"_str, JsonValue::makeBool(true));
+	obj.addField("someField2"_str, JsonValue::makeBool(false));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": true,").isSome());
+	check(jsonString.find("\"someField2\": false").isSome());
+});
+
+test_case("JsonObject to string one number field") {
+	JsonObject obj;
+	obj.addField("someField"_str, JsonValue::makeNumber(-15.72));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": -15.72").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_one_number_field, {
+	JsonObject obj;
+	obj.addField("someField"_str, JsonValue::makeNumber(-15.72));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": -15.72").isSome());
+});
+
+test_case("JsonObject to string two number fields") {
+	JsonObject obj;
+	obj.addField("someField1"_str, JsonValue::makeNumber(-15.72));
+	obj.addField("someField2"_str, JsonValue::makeNumber(0));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": -15.72,").isSome());
+	check(jsonString.find("\"someField2\": 0.0").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_two_number_fields, {
+	JsonObject obj;
+	obj.addField("someField1"_str, JsonValue::makeNumber(-15.72));
+	obj.addField("someField2"_str, JsonValue::makeNumber(0));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": -15.72,").isSome());
+	check(jsonString.find("\"someField2\": 0.0").isSome());
+});
+
+test_case("JsonObject to string one string field") {
+	JsonObject obj;
+	obj.addField("someField"_str, JsonValue::makeString("chicken"_str));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": \"chicken\"").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_one_string_field, {
+	JsonObject obj;
+	obj.addField("someField"_str, JsonValue::makeString("chicken"_str));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": \"chicken\"").isSome());
+	});
+
+test_case("JsonObject to string two string fields") {
+	JsonObject obj;
+	obj.addField("someField1"_str, JsonValue::makeString("woa"_str));
+	obj.addField("someField2"_str, JsonValue::makeString(":}"_str));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": \"woa\",").isSome());
+	check(jsonString.find("\"someField2\": \":}\"").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_two_string_fields, {
+	JsonObject obj;
+	obj.addField("someField1"_str, JsonValue::makeString("woa"_str));
+	obj.addField("someField2"_str, JsonValue::makeString(":}"_str));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": \"woa\",").isSome());
+	check(jsonString.find("\"someField2\": \":}\"").isSome());
+});
+
+test_case("JsonObject to string one array field") {
+	JsonObject obj;
+	ArrayList<JsonValue> a;
+	a.push(JsonValue::makeNumber(0));
+	obj.addField("someField"_str, JsonValue::makeArray(std::move(a)));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": [0.0]").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_one_array_field, {
+	JsonObject obj;
+	ArrayList<JsonValue> a;
+	a.push(JsonValue::makeNumber(0));
+	obj.addField("someField"_str, JsonValue::makeArray(std::move(a)));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": [0.0]").isSome());
+	});
+
+test_case("JsonObject to string two array fields") {
+	JsonObject obj;
+	ArrayList<JsonValue> a1;
+	ArrayList<JsonValue> a2;
+	a1.push(JsonValue::makeNumber(0));
+	a2.push(JsonValue::makeNumber(95.7));
+	obj.addField("someField1"_str, JsonValue::makeArray(std::move(a1)));
+	obj.addField("someField2"_str, JsonValue::makeArray(std::move(a2)));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": [0.0]").isSome());
+	check(jsonString.find("\"someField2\": [95.7]").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_two_array_fields, {
+	JsonObject obj;
+	ArrayList<JsonValue> a1;
+	ArrayList<JsonValue> a2;
+	a1.push(JsonValue::makeNumber(0));
+	a2.push(JsonValue::makeNumber(95.7));
+	obj.addField("someField1"_str, JsonValue::makeArray(std::move(a1)));
+	obj.addField("someField2"_str, JsonValue::makeArray(std::move(a2)));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": [0.0]").isSome());
+	check(jsonString.find("\"someField2\": [95.7]").isSome());
+	});
+
+test_case("JsonObject to string one array field multiple array values") {
+	JsonObject obj;
+	ArrayList<JsonValue> a;
+	a.push(JsonValue::makeNumber(0));
+	a.push(JsonValue::makeNumber(1));
+	a.push(JsonValue::makeNumber(10.8));
+	obj.addField("someField"_str, JsonValue::makeArray(std::move(a)));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": [0.0, 1.0, 10.8]").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_one_array_field_multiple_array_values, {
+	JsonObject obj;
+	ArrayList<JsonValue> a;
+	a.push(JsonValue::makeNumber(0));
+	a.push(JsonValue::makeNumber(1));
+	a.push(JsonValue::makeNumber(10.8));
+	obj.addField("someField"_str, JsonValue::makeArray(std::move(a)));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": [0.0, 1.0, 10.8]").isSome());
+	});
+
+test_case("JsonObject to string two array fields multiple array values") {
+	JsonObject obj;
+	ArrayList<JsonValue> a1;
+	ArrayList<JsonValue> a2;
+
+	a1.push(JsonValue::makeNumber(10));
+	a1.push(JsonValue::makeNumber(60));
+	a1.push(JsonValue::makeNumber(123.45));
+
+	a2.push(JsonValue::makeNumber(95.7));
+	a2.push(JsonValue::makeNumber(-10));
+	a2.push(JsonValue::makeNumber(-500));
+
+	obj.addField("someField1"_str, JsonValue::makeArray(std::move(a1)));
+	obj.addField("someField2"_str, JsonValue::makeArray(std::move(a2)));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": [10.0, 60.0, 123.45]").isSome());
+	check(jsonString.find("\"someField2\": [95.7, -10.0, -500.0]").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_two_array_fields_multiple_array_values, {
+	JsonObject obj;
+	ArrayList<JsonValue> a1;
+	ArrayList<JsonValue> a2;
+
+	a1.push(JsonValue::makeNumber(10));
+	a1.push(JsonValue::makeNumber(60));
+	a1.push(JsonValue::makeNumber(123.45));
+
+	a2.push(JsonValue::makeNumber(95.7));
+	a2.push(JsonValue::makeNumber(-10));
+	a2.push(JsonValue::makeNumber(-500));
+
+	obj.addField("someField1"_str, JsonValue::makeArray(std::move(a1)));
+	obj.addField("someField2"_str, JsonValue::makeArray(std::move(a2)));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": [10.0, 60.0, 123.45]").isSome());
+	check(jsonString.find("\"someField2\": [95.7, -10.0, -500.0]").isSome());
+});
+
+test_case("JsonObject to string one object field empty object") {
+	JsonObject obj;
+	obj.addField("someField"_str, JsonValue::makeObject(JsonObject()));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": {}").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_one_object_field_empty_object, {
+	JsonObject obj;
+	obj.addField("someField"_str, JsonValue::makeObject(JsonObject()));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": {}").isSome());
+	});
+
+test_case("JsonObject to string two object fields empty objects") {
+	JsonObject obj;
+	obj.addField("someField1"_str, JsonValue::makeObject(JsonObject()));
+	obj.addField("someField2"_str, JsonValue::makeObject(JsonObject()));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": {},").isSome());
+	check(jsonString.find("\"someField2\": {}").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_two_object_fields_empty_objects, {
+	JsonObject obj;
+	obj.addField("someField1"_str, JsonValue::makeObject(JsonObject()));
+	obj.addField("someField2"_str, JsonValue::makeObject(JsonObject()));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": {},").isSome());
+	check(jsonString.find("\"someField2\": {}").isSome());
+	});
+
+test_case("JsonObject to string one object field subobject") {
+	JsonObject obj;
+	JsonObject subobj;
+	subobj.addField("subField"_str, JsonValue::makeBool(false));
+	obj.addField("someField"_str, JsonValue::makeObject(std::move(subobj)));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": {").isSome());
+	check(jsonString.find("\"subField\": false").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_one_object_field_subobject, {
+	JsonObject obj;
+	JsonObject subobj;
+	subobj.addField("subField"_str, JsonValue::makeBool(false));
+	obj.addField("someField"_str, JsonValue::makeObject(std::move(subobj)));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField\": {").isSome());
+	check(jsonString.find("\"subField\": false").isSome());
+	});
+
+test_case("JsonObject to string two object field subobjects") {
+	JsonObject obj;
+	JsonObject subobj1;
+	JsonObject subobj2;
+	subobj1.addField("subField"_str, JsonValue::makeBool(true));
+	subobj2.addField("subField"_str, JsonValue::makeBool(false));
+	obj.addField("someField1"_str, JsonValue::makeObject(std::move(subobj1)));
+	obj.addField("someField2"_str, JsonValue::makeObject(std::move(subobj2)));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": {").isSome());
+	check(jsonString.find("\"subField\": true").isSome());
+	check(jsonString.find("},").isSome());
+	check(jsonString.find("\"someField2\": {").isSome());
+	check(jsonString.find("\"subField\": false").isSome());
+}
+
+comptime_test_case(JsonObject, to_string_two_object_field_subobjects, {
+	JsonObject obj;
+	JsonObject subobj1;
+	JsonObject subobj2;
+	subobj1.addField("subField"_str, JsonValue::makeBool(true));
+	subobj2.addField("subField"_str, JsonValue::makeBool(false));
+	obj.addField("someField1"_str, JsonValue::makeObject(std::move(subobj1)));
+	obj.addField("someField2"_str, JsonValue::makeObject(std::move(subobj2)));
+	String jsonString = obj.toString();
+	check(jsonString.find("\"someField1\": {").isSome());
+	check(jsonString.find("\"subField\": true").isSome());
+	check(jsonString.find("},").isSome());
+	check(jsonString.find("\"someField2\": {").isSome());
+	check(jsonString.find("\"subField\": false").isSome());
+	});
 
 #endif
