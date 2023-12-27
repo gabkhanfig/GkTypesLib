@@ -292,6 +292,7 @@ using gk::JsonObject;
 using gk::JsonValue;
 using gk::ArrayList;
 using gk::String;
+using gk::Result;
 
 test_case("JsonObject cant find field when empty") {
 	JsonObject obj;
@@ -726,5 +727,53 @@ comptime_test_case(JsonObject, to_string_two_object_field_subobjects, {
 	check(jsonString.find("\"someField2\": {").isSome());
 	check(jsonString.find("\"subField\": false").isSome());
 	});
+
+test_case("JsonObject parse empty json object") {
+	gk::Str jsonString = "{}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	check_eq(res.ok().fieldCount(), 0);
+}
+
+comptime_test_case(JsonObject, parse_empty_json_object, {
+	gk::Str jsonString = "{}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	check_eq(res.ok().fieldCount(), 0);
+});
+
+test_case("JsonObject parse empty json object sanity") {
+	gk::Str jsonString = "  {\n\n\t}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	check_eq(res.ok().fieldCount(), 0);
+}
+
+comptime_test_case(JsonObject, parse_empty_json_object_sanity, {
+	gk::Str jsonString = "  {\n\n\t}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	check_eq(res.ok().fieldCount(), 0);
+});
+
+test_case("JsonObject parse json object one null value") {
+	gk::Str jsonString = "{\"field\": null}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), gk::JsonValueType::Null);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_null_value, {
+	gk::Str jsonString = "{\"field\": null}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), gk::JsonValueType::Null);
+});
+
+
 
 #endif
