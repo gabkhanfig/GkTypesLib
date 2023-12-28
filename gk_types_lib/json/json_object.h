@@ -1451,7 +1451,10 @@ constexpr gk::Result<double> gk::internal::parseNumberValue(usize* valueEnd, usi
 		if (c == '-') {
 			continue;
 		}
-		if (c >= '0' && c <= '9') {
+		else if (c >= '0' && c <= '9') {
+			continue;
+		}
+		else if (c == '.') {
 			continue;
 		}
 		else if (isWhitespaceChar(c) || c == ',' || c == ']' || c == '}') {
