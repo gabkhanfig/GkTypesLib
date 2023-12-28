@@ -873,6 +873,206 @@ comptime_test_case(JsonObject, parse_json_object_one_bool_value_false_sanity, {
 	check_eq(obj.findField("field"_str).some()->boolValue(), false);
 });
 
+test_case("JsonObject parse json object one number value zero") {
+	gk::Str jsonString = "{\"field\": 0}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), 0.0);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_number_value_zero, {
+	gk::Str jsonString = "{\"field\": 0}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), 0.0);
+});
+
+test_case("JsonObject parse json object one number value zero sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n0.0\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), 0.0);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_number_value_zero_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n0.0\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), 0.0);
+});
+
+test_case("JsonObject parse json object one number value random positive integer") {
+	gk::Str jsonString = "{\"field\": 6591}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), 6591.0);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_number_value_random_positive_integer, {
+	gk::Str jsonString = "{\"field\": 6591}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), 6591.0);
+});
+
+test_case("JsonObject parse json object one number value random positive integer sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n6591.0\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), 6591.0);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_number_value_random_positive_integer_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n6591.0\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), 6591.0);
+});
+
+test_case("JsonObject parse json object one number value random negative integer") {
+	gk::Str jsonString = "{\"field\": -6591}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.0);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_number_value_random_negative_integer, {
+	gk::Str jsonString = "{\"field\": -6591}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.0);
+});
+
+test_case("JsonObject parse json object one number value random negative integer sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n-6591.0\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.0);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_number_value_random_negative_integer_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n-6591.0\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.0);
+});
+
+test_case("JsonObject parse json object one number value random positive decimal") {
+	gk::Str jsonString = "{\"field\": 6591.1945}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), 6591.1945);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_number_value_random_positive_decimal, {
+	gk::Str jsonString = "{\"field\": 6591.1945}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), 6591.1945);
+});
+
+test_case("JsonObject parse json object one number value random positive decimal sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n6591.1945\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), 6591.1945);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_number_value_random_positive_decimal_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n6591.1945\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), 6591.1945);
+});
+
+test_case("JsonObject parse json object one number value random negative decimal") {
+	gk::Str jsonString = "{\"field\": -6591.1945}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.1945);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_number_value_random_negative_decimal, {
+	gk::Str jsonString = "{\"field\": -6591.1945}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.1945);
+});
+
+test_case("JsonObject parse json object one number value random negative decimal sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n-6591.1945\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.1945);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_number_value_random_negative_decimal_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n-6591.1945\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Number);
+	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.1945);
+});
+
 
 
 #endif
