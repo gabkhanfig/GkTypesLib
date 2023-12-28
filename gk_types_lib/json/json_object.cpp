@@ -293,6 +293,7 @@ using gk::JsonValue;
 using gk::ArrayList;
 using gk::String;
 using gk::Result;
+using gk::JsonValueType;
 
 test_case("JsonObject cant find field when empty") {
 	JsonObject obj;
@@ -762,7 +763,7 @@ test_case("JsonObject parse json object one null value") {
 	check(res.isOk());
 	JsonObject obj = res.ok();
 	check(obj.findField("field"_str).isSome());
-	check_eq(obj.findField("field"_str).some()->type(), gk::JsonValueType::Null);
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Null);
 }
 
 comptime_test_case(JsonObject, parse_json_object_one_null_value, {
@@ -771,7 +772,105 @@ comptime_test_case(JsonObject, parse_json_object_one_null_value, {
 	check(res.isOk());
 	JsonObject obj = res.ok();
 	check(obj.findField("field"_str).isSome());
-	check_eq(obj.findField("field"_str).some()->type(), gk::JsonValueType::Null);
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Null);
+});
+
+test_case("JsonObject parse json object one null value sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \nnull\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Null);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_null_value_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \nnull\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Null);
+});
+
+test_case("JsonObject parse json object one bool value true") {
+	gk::Str jsonString = "{\"field\": true}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Bool);
+	check_eq(obj.findField("field"_str).some()->boolValue(), true);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_bool_value_true, {
+	gk::Str jsonString = "{\"field\": true}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Bool);
+	check_eq(obj.findField("field"_str).some()->boolValue(), true);
+});
+
+test_case("JsonObject parse json object one bool value true sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \ntrue\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Bool);
+	check_eq(obj.findField("field"_str).some()->boolValue(), true);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_bool_value_true_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \ntrue\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Bool);
+	check_eq(obj.findField("field"_str).some()->boolValue(), true);
+});
+
+test_case("JsonObject parse json object one bool value false") {
+	gk::Str jsonString = "{\"field\": false}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Bool);
+	check_eq(obj.findField("field"_str).some()->boolValue(), false);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_bool_value_false, {
+	gk::Str jsonString = "{\"field\": false}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Bool);
+	check_eq(obj.findField("field"_str).some()->boolValue(), false);
+});
+
+test_case("JsonObject parse json object one bool value false sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \nfalse\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Bool);
+	check_eq(obj.findField("field"_str).some()->boolValue(), false);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_bool_value_false_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \nfalse\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Bool);
+	check_eq(obj.findField("field"_str).some()->boolValue(), false);
 });
 
 
