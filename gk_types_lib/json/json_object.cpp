@@ -1226,4 +1226,49 @@ comptime_test_case(JsonObject, parse_json_object_one_array_value_multiple_elemen
 	check_eq(arr[2].numberValue(), 2);
 	});
 
+test_case("JsonObject parse json object one array value no elements") {
+	gk::Str jsonString = "{\"field\": []}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Array);
+	ArrayList<JsonValue>& arr = field->arrayValue();
+	check_eq(arr.len(), 0);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_array_value_no_elements, {
+	gk::Str jsonString = "{\"field\": []}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Array);
+	ArrayList<JsonValue>& arr = obj.findField("field"_str).some()->arrayValue();
+	check_eq(arr.len(), 0);
+	});
+
+test_case("JsonObject parse json object one array value no elements sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n[]\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Array);
+	ArrayList<JsonValue>& arr = obj.findField("field"_str).some()->arrayValue();
+	check_eq(arr.len(), 0);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_array_value_no_elements_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n[]\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Array);
+	ArrayList<JsonValue>& arr = obj.findField("field"_str).some()->arrayValue();
+	check_eq(arr.len(), 0);
+	});
+
 #endif
