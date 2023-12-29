@@ -1073,6 +1073,44 @@ comptime_test_case(JsonObject, parse_json_object_one_number_value_random_negativ
 	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.1945);
 });
 
+test_case("JsonObject parse json object one string value") {
+	gk::Str jsonString = "{\"field\": \"hello world!\"}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::String);
+	check_eq(obj.findField("field"_str).some()->stringValue(), "hello world!"_str);
+}
 
+comptime_test_case(JsonObject, parse_json_object_one_string_value, {
+	gk::Str jsonString = "{\"field\": \"hello world!\"}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::String);
+	check_eq(obj.findField("field"_str).some()->stringValue(), "hello world!"_str);
+	});
+
+test_case("JsonObject parse json object one string value sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n\"hello world!\"\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::String);
+	check_eq(obj.findField("field"_str).some()->stringValue(), "hello world!"_str);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_string_value_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n\"hello world!\"\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::String);
+	check_eq(obj.findField("field"_str).some()->stringValue(), "hello world!"_str);
+	});
 
 #endif
