@@ -1113,4 +1113,117 @@ comptime_test_case(JsonObject, parse_json_object_one_string_value_sanity, {
 	check_eq(obj.findField("field"_str).some()->stringValue(), "hello world!"_str);
 	});
 
+test_case("JsonObject parse json object one array value one element") {
+	gk::Str jsonString = "{\"field\": [0]}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Array);
+	ArrayList<JsonValue>& arr = field->arrayValue();
+	check_eq(arr.len(), 1);
+	check_eq(arr[0].type(), JsonValueType::Number);
+	check_eq(arr[0].numberValue(), 0);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_array_value_one_element, {
+	gk::Str jsonString = "{\"field\": [0]}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Array);
+	ArrayList<JsonValue>& arr = obj.findField("field"_str).some()->arrayValue();
+	check_eq(arr.len(), 1);
+	check_eq(arr[0].type(), JsonValueType::Number);
+	check_eq(arr[0].numberValue(), 0);
+	});
+
+test_case("JsonObject parse json object one array value one element sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n[0]\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Array);
+	ArrayList<JsonValue>& arr = obj.findField("field"_str).some()->arrayValue();
+	check_eq(arr.len(), 1);
+	check_eq(arr[0].type(), JsonValueType::Number);
+	check_eq(arr[0].numberValue(), 0);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_array_value_one_element_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n[0]\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Array);
+	ArrayList<JsonValue>& arr = obj.findField("field"_str).some()->arrayValue();
+	check_eq(arr.len(), 1);
+	check_eq(arr[0].type(), JsonValueType::Number);
+	check_eq(arr[0].numberValue(), 0);
+	});
+
+test_case("JsonObject parse json object one array value multiple elements") {
+	gk::Str jsonString = "{\"field\": [0, 1, 2]}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Array);
+	ArrayList<JsonValue>& arr = field->arrayValue();
+	check_eq(arr.len(), 3);
+	check_eq(arr[0].numberValue(), 0);
+	check_eq(arr[1].numberValue(), 1);
+	check_eq(arr[2].numberValue(), 2);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_array_value_multiple_elements, {
+	gk::Str jsonString = "{\"field\": [0, 1, 2]}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Array);
+	ArrayList<JsonValue>& arr = field->arrayValue();
+	check_eq(arr.len(), 3);
+	check_eq(arr[0].numberValue(), 0);
+	check_eq(arr[1].numberValue(), 1);
+	check_eq(arr[2].numberValue(), 2);
+	});
+
+test_case("JsonObject parse json object one array value multiple elements sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n[0, 1, 2]\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Array);
+	ArrayList<JsonValue>& arr = field->arrayValue();
+	check_eq(arr.len(), 3);
+	check_eq(arr[0].numberValue(), 0);
+	check_eq(arr[1].numberValue(), 1);
+	check_eq(arr[2].numberValue(), 2);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_array_value_multiple_elements_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n[0, 1, 2]\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Array);
+	ArrayList<JsonValue>& arr = field->arrayValue();
+	check_eq(arr.len(), 3);
+	check_eq(arr[0].numberValue(), 0);
+	check_eq(arr[1].numberValue(), 1);
+	check_eq(arr[2].numberValue(), 2);
+	});
+
 #endif
