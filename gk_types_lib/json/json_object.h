@@ -835,6 +835,9 @@ inline constexpr gk::String gk::JsonValue::toString(usize objectNestCount) const
 			}	
 		case JsonValueType::Object:
 			return objectValue().toString(objectNestCount + 1);
+		default:
+			check(false);
+			return String();
 	}
 }
 
@@ -1415,9 +1418,9 @@ constexpr gk::Result<void> gk::internal::parseNullValue(usize* valueEnd, usize v
 		char c = jsonString.buffer[valueIter];
 
 		if (isWhitespaceChar(c) || c == ',' || c == '}') {
-			*valueEnd = valueIter;
-			const Str value = jsonString.substring(valueStart, *valueEnd);
+			const Str value = jsonString.substring(valueStart, valueIter);
 			if (value == "null"_str) {
+				*valueEnd = valueIter;
 				return ResultOk<void>();
 			}
 			else {
@@ -1586,7 +1589,7 @@ constexpr gk::Result<gk::JsonObject> gk::internal::parseObjectValue(usize* value
 {
 	usize valueIter = valueStart + 1;
 	if (valueIter < jsonString.len && jsonString.buffer[valueIter] == '}') {
-		*valueEnd = valueStart + 2;
+		*valueEnd = valueIter + 1;
 		return ResultOk<JsonObject>();
 	}
 
@@ -1600,6 +1603,7 @@ constexpr gk::Result<gk::JsonObject> gk::internal::parseObjectValue(usize* value
 			continue;
 		}
 		else if (c == '}') { // end of object
+			*valueEnd = valueIter + 1;
 			return ResultOk<JsonObject>(accumulate);
 		}
 		else if (c != '\"') {
