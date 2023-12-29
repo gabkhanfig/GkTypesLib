@@ -577,17 +577,17 @@ namespace gk
 
 		constexpr bool isWhitespaceChar(char c);
 
-		constexpr Result<void> parseNullValue(usize* valueEnd, usize valueStart, const Str& jsonString);
+		constexpr Result<usize> parseNullValue(usize valueStart, const Str& jsonString);
 
-		constexpr Result<bool> parseBoolValue(usize* valueEnd, usize valueStart, const Str& jsonString);
+		constexpr Result<std::tuple<bool, usize>> parseBoolValue(usize valueStart, const Str& jsonString);
 
-		constexpr Result<double> parseNumberValue(usize* valueEnd, usize valueStart, const Str& jsonString);
+		constexpr Result<std::tuple<double, usize>> parseNumberValue(usize valueStart, const Str& jsonString);
 
-		constexpr Result<String> parseStringValue(usize* valueEnd, usize valueStart, const Str& jsonString);
+		constexpr Result<std::tuple<String, usize>> parseStringValue(usize valueStart, const Str& jsonString);
 
-		constexpr Result<ArrayList<JsonValue>> parseArrayValue(usize* valueEnd, usize valueStart, const Str& jsonString);
+		constexpr Result<std::tuple<ArrayList<JsonValue>, usize>> parseArrayValue(usize valueStart, const Str& jsonString);
 
-		constexpr Result<JsonObject> parseObjectValue(usize* valueEnd, usize valueStart, const Str& jsonString);
+		constexpr Result< std::tuple<JsonObject, usize>> parseObjectValue(usize valueStart, const Str& jsonString);
 
 	}
 }
@@ -1140,8 +1140,14 @@ inline constexpr gk::Result<gk::JsonObject> gk::JsonObject::parse(Str jsonString
 	}
 
 	// at this point, jsonString has been isolated to just start with '{' and end with '}'
-	usize _ = ~0;
-	return internal::parseObjectValue(&_, 0, jsonString);
+	auto result = internal::parseObjectValue(0, jsonString);
+	if (result.isError()) {
+		return ResultErr();
+	}
+	else {
+		auto tuple = result.ok();
+		return ResultOk<JsonObject>(std::get<0>(tuple));
+	}
 }
 
 inline constexpr gk::String gk::JsonObject::toString(usize nestCount) const
@@ -1412,7 +1418,7 @@ constexpr bool gk::internal::isWhitespaceChar(char c)
 	return c == NEWLINE || c == CARRIAGE_RETURN || c == TAB || c == SPACE;
 }
 
-constexpr gk::Result<void> gk::internal::parseNullValue(usize* valueEnd, usize valueStart, const Str& jsonString)
+constexpr gk::Result<gk::usize> gk::internal::parseNullValue(usize valueStart, const Str& jsonString)
 {
 	for (usize valueIter = valueStart + 1; valueIter < jsonString.len; valueIter++) {
 		char c = jsonString.buffer[valueIter];
@@ -1420,8 +1426,7 @@ constexpr gk::Result<void> gk::internal::parseNullValue(usize* valueEnd, usize v
 		if (isWhitespaceChar(c) || c == ',' || c == '}') {
 			const Str value = jsonString.substring(valueStart, valueIter);
 			if (value == "null"_str) {
-				*valueEnd = valueIter;
-				return ResultOk<void>();
+				return ResultOk<usize>(valueIter);
 			}
 			else {
 				return ResultErr();
@@ -1431,14 +1436,19 @@ constexpr gk::Result<void> gk::internal::parseNullValue(usize* valueEnd, usize v
 	return ResultErr();
 }
 
-constexpr gk::Result<bool> gk::internal::parseBoolValue(usize* valueEnd, usize valueStart, const Str& jsonString)
+constexpr gk::Result<std::tuple<bool, gk::usize>> gk::internal::parseBoolValue(usize valueStart, const Str& jsonString)
 {
 	for (usize valueIter = valueStart + 1; valueIter < jsonString.len; valueIter++) {
 		char c = jsonString.buffer[valueIter];
 		if (isWhitespaceChar(c) || c == ',' || c == ']' || c == '}') {
-			*valueEnd = valueIter;
-			const Str value = jsonString.substring(valueStart, *valueEnd);
-			return value.parseBool();
+			const Str value = jsonString.substring(valueStart, valueIter);
+			Result<bool> parsedBool = value.parseBool();
+			if (parsedBool.isError()) {
+				return ResultErr();
+			}
+			else {
+				return ResultOk<std::tuple<bool, gk::usize>>(std::make_tuple(parsedBool.ok(), valueIter));
+			}
 		}
 		if (c >= 'a' || c <= 'z') {
 			continue;
@@ -1447,7 +1457,7 @@ constexpr gk::Result<bool> gk::internal::parseBoolValue(usize* valueEnd, usize v
 	return ResultErr();
 }
 
-constexpr gk::Result<double> gk::internal::parseNumberValue(usize* valueEnd, usize valueStart, const Str& jsonString)
+constexpr gk::Result<std::tuple<double, gk::usize>> gk::internal::parseNumberValue(usize valueStart, const Str& jsonString)
 {
 	for (usize valueIter = valueStart + 1; valueIter < jsonString.len; valueIter++) {
 		char c = jsonString.buffer[valueIter];
@@ -1461,34 +1471,37 @@ constexpr gk::Result<double> gk::internal::parseNumberValue(usize* valueEnd, usi
 			continue;
 		}
 		else if (isWhitespaceChar(c) || c == ',' || c == ']' || c == '}') {
-			*valueEnd = valueIter;
-			const Str value = jsonString.substring(valueStart, *valueEnd);
-			return value.parseFloat();
+			const Str value = jsonString.substring(valueStart, valueIter);
+			Result<double> parsedFloat = value.parseFloat();
+			if (parsedFloat.isError()) {
+				return ResultErr();
+			}
+			else {
+				return ResultOk<std::tuple<double, gk::usize>>(std::make_tuple(parsedFloat.ok(), valueIter));
+			}
 		}
 	}
 	return ResultErr();
 }
 
-constexpr gk::Result<gk::String> gk::internal::parseStringValue(usize* valueEnd, usize valueStart, const Str& jsonString)
+constexpr gk::Result<std::tuple<gk::String, gk::usize>> gk::internal::parseStringValue(usize valueStart, const Str& jsonString)
 {
 	for (usize valueIter = valueStart + 1; valueIter < jsonString.len; valueIter++) {
 		char c = jsonString.buffer[valueIter];
 		
 		if (c == '\"' && jsonString.buffer[valueIter - 1] != '\\') {
-			*valueEnd = valueIter + 1;
-			const Str value = jsonString.substring(valueStart + 1, *valueEnd - 1);
-			return ResultOk<String>(String(value));
+			const Str value = jsonString.substring(valueStart + 1, valueIter);
+			return ResultOk<std::tuple<gk::String, gk::usize>>(std::make_tuple(String(value), valueIter + 1));
 		}
 	}
 	return ResultErr();
 }
 
-constexpr gk::Result<gk::ArrayList<gk::JsonValue>> gk::internal::parseArrayValue(usize* valueEnd, usize valueStart, const Str& jsonString)
+constexpr gk::Result<std::tuple<gk::ArrayList<gk::JsonValue>, gk::usize>> gk::internal::parseArrayValue(usize valueStart, const Str& jsonString)
 {
 	usize valueIter = valueStart + 1;
 	if (valueIter < jsonString.len && jsonString.buffer[valueIter] == ']') {
-		*valueEnd = valueStart + 2;
-		return ResultOk<ArrayList<JsonValue>>();
+		return ResultOk<std::tuple<gk::ArrayList<gk::JsonValue>, gk::usize>>(std::make_tuple(ArrayList<JsonValue>(), valueStart + 2));
 	}
 
 	ArrayList<JsonValue> accumulate;
@@ -1509,55 +1522,103 @@ constexpr gk::Result<gk::ArrayList<gk::JsonValue>> gk::internal::parseArrayValue
 
 		if (c == 'n') {
 			hint = JsonValueType::Null;
-			Result<void> value = parseNullValue(&currentValueEnd, currentValueStart, jsonString);
+			//Result<void> value = parseNullValue(&currentValueEnd, currentValueStart, jsonString);
+			//if (!value.isError()) {
+			//	accumulate.push(JsonValue::makeNull());
+			//	didParseCurrentValue = true;
+			//}
+			auto value = parseNullValue(currentValueStart, jsonString);
 			if (!value.isError()) {
+				auto end = value.ok();
 				accumulate.push(JsonValue::makeNull());
+				currentValueEnd = end;
 				didParseCurrentValue = true;
 			}
 		}
 		else if (c == 't' || c == 'f') {
 			hint = JsonValueType::Bool;
-			Result<bool> value = parseBoolValue(&currentValueEnd, currentValueStart, jsonString);
+			//Result<bool> value = parseBoolValue(&currentValueEnd, currentValueStart, jsonString);
+			//if (!value.isError()) {
+			//	accumulate.push(JsonValue::makeBool(value.ok()));
+			//	didParseCurrentValue = true;
+			//}
+			auto value = parseBoolValue(currentValueStart, jsonString);
 			if (!value.isError()) {
-				accumulate.push(JsonValue::makeBool(value.ok()));
+				auto tuple = value.ok();
+				accumulate.push(JsonValue::makeBool(std::get<0>(tuple)));
+				currentValueEnd = std::get<1>(tuple);
 				didParseCurrentValue = true;
 			}
 		}
 		else if (c >= '0' && c <= '9') {
 			hint = JsonValueType::Number;
-			Result<double> value = parseNumberValue(&currentValueEnd, currentValueStart, jsonString);
+			//Result<double> value = parseNumberValue(&currentValueEnd, currentValueStart, jsonString);
+			//if (!value.isError()) {
+			//	accumulate.push(JsonValue::makeNumber(value.ok()));
+			//	didParseCurrentValue = true;
+			//}
+			auto value = parseNumberValue(currentValueStart, jsonString);
 			if (!value.isError()) {
-				accumulate.push(JsonValue::makeNumber(value.ok()));
+				auto tuple = value.ok();
+				accumulate.push(JsonValue::makeNumber(std::get<0>(tuple)));
+				currentValueEnd = std::get<1>(tuple);
 				didParseCurrentValue = true;
 			}
 		}
 		else if (c == '-') {
-			hint = JsonValueType::Number;
-			Result<double> value = parseNumberValue(&currentValueEnd, currentValueStart, jsonString);
+			//hint = JsonValueType::Number;
+			//Result<double> value = parseNumberValue(&currentValueEnd, currentValueStart, jsonString);
+			//if (!value.isError()) {
+			//	accumulate.push(JsonValue::makeNumber(value.ok()));
+			//	didParseCurrentValue = true;
+			//}
+			auto value = parseNumberValue(currentValueStart, jsonString);
 			if (!value.isError()) {
-				accumulate.push(JsonValue::makeNumber(value.ok()));
+				auto tuple = value.ok();
+				accumulate.push(JsonValue::makeNumber(std::get<0>(tuple)));
+				currentValueEnd = std::get<1>(tuple);
 				didParseCurrentValue = true;
 			}
 		}
 		else if (c == '\"') {
 			hint = JsonValueType::String;
-			Result<String> value = parseStringValue(&currentValueEnd, currentValueStart, jsonString);
+			//Result<String> value = parseStringValue(&currentValueEnd, currentValueStart, jsonString);
+			//if (!value.isError()) {
+			//	accumulate.push(JsonValue::makeString(value.ok()));
+			//	didParseCurrentValue = true;
+			//}
+			auto value = parseStringValue(currentValueStart, jsonString);
 			if (!value.isError()) {
-				accumulate.push(JsonValue::makeString(value.ok()));
+				auto tuple = value.ok();
+				accumulate.push(JsonValue::makeString(std::move(std::get<0>(tuple))));
+				currentValueEnd = std::get<1>(tuple);
 				didParseCurrentValue = true;
 			}
 		}
 		else if (c == '[') {
 			hint = JsonValueType::Array;
-			Result<ArrayList<JsonValue>> value = parseArrayValue(&currentValueEnd, currentValueStart, jsonString);
+			//Result<ArrayList<JsonValue>> value = parseArrayValue(&currentValueEnd, currentValueStart, jsonString);
+			//if (!value.isError()) {
+			//	accumulate.push(JsonValue::makeArray(value.ok()));
+			//	didParseCurrentValue = true;
+			//}
+			auto value = parseArrayValue(currentValueStart, jsonString);
 			if (!value.isError()) {
-				accumulate.push(JsonValue::makeArray(value.ok()));
+				auto tuple = value.ok();
+				accumulate.push(JsonValue::makeArray(std::move(std::get<0>(tuple))));
+				currentValueEnd = std::get<1>(tuple);
 				didParseCurrentValue = true;
 			}
 		}
 		else if (c == '{') {
 			hint = JsonValueType::Object;
-			check(false);
+			auto value = parseObjectValue(currentValueStart, jsonString);
+			if (!value.isError()) {
+				auto tuple = value.ok();
+				accumulate.push(JsonValue::makeObject(std::move(std::get<0>(tuple))));
+				currentValueEnd = std::get<1>(tuple);
+				didParseCurrentValue = true;
+			}
 			break;
 		}
 
@@ -1575,8 +1636,7 @@ constexpr gk::Result<gk::ArrayList<gk::JsonValue>> gk::internal::parseArrayValue
 				break;
 			}
 			if (jsonString.buffer[nextValueIter] == ']') {
-				*valueEnd = nextValueIter + 1;
-				return ResultOk<ArrayList<JsonValue>>(std::move(accumulate));
+				return ResultOk<std::tuple<ArrayList<JsonValue>, usize>>(std::make_tuple(std::move(accumulate), nextValueIter + 1));
 			}
 
 			return ResultErr();		
@@ -1585,12 +1645,12 @@ constexpr gk::Result<gk::ArrayList<gk::JsonValue>> gk::internal::parseArrayValue
 	return ResultErr();
 }
 
-constexpr gk::Result<gk::JsonObject> gk::internal::parseObjectValue(usize* valueEnd, usize valueStart, const Str& jsonString)
+constexpr gk::Result<std::tuple<gk::JsonObject, gk::usize>> gk::internal::parseObjectValue(usize valueStart, const Str& jsonString)
 {
 	usize valueIter = valueStart + 1;
 	if (valueIter < jsonString.len && jsonString.buffer[valueIter] == '}') {
-		*valueEnd = valueIter + 1;
-		return ResultOk<JsonObject>();
+		//*valueEnd = valueIter + 1;
+		return ResultOk<std::tuple<JsonObject, usize>>(std::make_tuple(JsonObject(), valueIter + 1));
 	}
 
 	JsonObject accumulate;
@@ -1603,8 +1663,8 @@ constexpr gk::Result<gk::JsonObject> gk::internal::parseObjectValue(usize* value
 			continue;
 		}
 		else if (c == '}') { // end of object
-			*valueEnd = valueIter + 1;
-			return ResultOk<JsonObject>(accumulate);
+			//*valueEnd = valueIter + 1;
+			return ResultOk<std::tuple<JsonObject, usize>>(std::make_tuple(std::move(accumulate), valueIter + 1));
 		}
 		else if (c != '\"') {
 			return ResultErr();
@@ -1697,36 +1757,41 @@ constexpr gk::Result<gk::JsonObject> gk::internal::parseObjectValue(usize* value
 
 		case JsonValueType::Null:
 		{
-			Result<void> value = internal::parseNullValue(&currentValueEnd, currentValueStart, jsonString);
+			auto value = internal::parseNullValue(currentValueStart, jsonString);
 			if (value.isError()) {
 				return ResultErr();
 			}
 			else {
 				accumulate.addField(String(name), JsonValue::makeNull());
+				currentValueEnd = value.ok();
 			}
 		}
 		break;
 
 		case JsonValueType::Bool:
 		{
-			Result<bool> value = internal::parseBoolValue(&currentValueEnd, currentValueStart, jsonString);
+			auto value = internal::parseBoolValue(currentValueStart, jsonString);
 			if (value.isError()) {
 				return ResultErr();
 			}
 			else {
-				accumulate.addField(String(name), JsonValue::makeBool(value.ok()));
+				auto tuple = value.ok();
+				accumulate.addField(String(name), JsonValue::makeBool(std::get<0>(tuple)));
+				currentValueEnd = std::get<1>(tuple);
 			}
 		}
 		break;
 
 		case JsonValueType::Number:
 		{
-			Result<double> value = internal::parseNumberValue(&currentValueEnd, currentValueStart, jsonString);
+			auto value = internal::parseNumberValue(currentValueStart, jsonString);
 			if (value.isError()) {
 				return ResultErr();
 			}
 			else {
-				accumulate.addField(String(name), JsonValue::makeNumber(value.ok()));
+				auto tuple = value.ok();
+				accumulate.addField(String(name), JsonValue::makeNumber(std::get<0>(tuple)));
+				currentValueEnd = std::get<1>(tuple);
 			}
 		}
 		break;
@@ -1734,36 +1799,42 @@ constexpr gk::Result<gk::JsonObject> gk::internal::parseObjectValue(usize* value
 
 		case JsonValueType::String:
 		{
-			Result<String> value = internal::parseStringValue(&currentValueEnd, currentValueStart, jsonString);
+			auto value = internal::parseStringValue(currentValueStart, jsonString);
 			if (value.isError()) {
 				return ResultErr();
 			}
 			else {
-				accumulate.addField(String(name), JsonValue::makeString(value.ok()));
+				auto tuple = value.ok();
+				accumulate.addField(String(name), JsonValue::makeString(std::move(std::get<0>(tuple))));
+				currentValueEnd = std::get<1>(tuple);
 			}
 		}
 		break;
 
 		case JsonValueType::Array:
 		{
-			Result<ArrayList<JsonValue>> value = internal::parseArrayValue(&currentValueEnd, currentValueStart, jsonString);
+			auto value = internal::parseArrayValue(currentValueStart, jsonString);
 			if (value.isError()) {
 				return ResultErr();
 			}
 			else {
-				accumulate.addField(String(name), JsonValue::makeArray(value.ok()));
+				auto tuple = value.ok();
+				accumulate.addField(String(name), JsonValue::makeArray(std::move(std::get<0>(tuple))));
+				currentValueEnd = std::get<1>(tuple);
 			}
 		}
 		break;
 
 		case JsonValueType::Object:
 		{
-			Result<JsonObject> value = internal::parseObjectValue(&currentValueEnd, currentValueStart, jsonString);
+			auto value = internal::parseObjectValue(currentValueStart, jsonString);
 			if (value.isError()) {
 				return ResultErr();
 			}
 			else {
-				accumulate.addField(String(name), JsonValue::makeObject(value.ok()));
+				auto tuple = value.ok();
+				accumulate.addField(String(name), JsonValue::makeObject(std::move(std::get<0>(tuple))));
+				currentValueEnd = std::get<1>(tuple);
 			}
 		}
 		break;
@@ -1783,8 +1854,9 @@ constexpr gk::Result<gk::JsonObject> gk::internal::parseObjectValue(usize* value
 				break;
 			}
 			else if (c == '}') {
-				*valueEnd = nextStart + 1;
-				return ResultOk<JsonObject>(accumulate);
+				//*valueEnd = nextStart + 1;
+				//return ResultOk<JsonObject>(accumulate);
+				return ResultOk<std::tuple<JsonObject, usize>>(std::make_tuple(std::move(accumulate), nextStart + 1));
 			}
 			else {
 				return ResultErr();
