@@ -1482,9 +1482,14 @@ constexpr gk::Result<gk::String> gk::internal::parseStringValue(usize* valueEnd,
 
 constexpr gk::Result<gk::ArrayList<gk::JsonValue>> gk::internal::parseArrayValue(usize* valueEnd, usize valueStart, const Str& jsonString)
 {
+	usize valueIter = valueStart + 1;
+	if (valueIter < jsonString.len && jsonString.buffer[valueIter] == ']') {
+		*valueEnd = valueStart + 2;
+		return ResultOk<ArrayList<JsonValue>>();
+	}
+
 	ArrayList<JsonValue> accumulate;
 
-	usize valueIter = valueStart + 1;
 	while (valueIter < jsonString.len) {
 		char c = jsonString.buffer[valueIter];
 
@@ -1579,9 +1584,14 @@ constexpr gk::Result<gk::ArrayList<gk::JsonValue>> gk::internal::parseArrayValue
 
 constexpr gk::Result<gk::JsonObject> gk::internal::parseObjectValue(usize* valueEnd, usize valueStart, const Str& jsonString)
 {
+	usize valueIter = valueStart + 1;
+	if (valueIter < jsonString.len && jsonString.buffer[valueIter] == '}') {
+		*valueEnd = valueStart + 2;
+		return ResultOk<JsonObject>();
+	}
+
 	JsonObject accumulate;
 
-	usize valueIter = valueStart + 1;
 	while (valueIter < jsonString.len) {
 		char c = jsonString.buffer[valueIter];
 
