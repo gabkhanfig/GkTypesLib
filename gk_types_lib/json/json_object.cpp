@@ -1271,4 +1271,105 @@ comptime_test_case(JsonObject, parse_json_object_one_array_value_no_elements_san
 	check_eq(arr.len(), 0);
 	});
 
+test_case("JsonObject parse json object one object value empty") {
+	gk::Str jsonString = "{\"field\": {}}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Object);
+	JsonObject& subobj = field->objectValue();
+	check_eq(subobj.fieldCount(), 0);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_object_value_empty, {
+	gk::Str jsonString = "{\"field\": {}}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Object);
+	JsonObject& subobj = field->objectValue();
+	check_eq(subobj.fieldCount(), 0);
+	});
+
+test_case("JsonObject parse json object one object value empty sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n{ }\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Object);
+	JsonObject& subobj = field->objectValue();
+	check_eq(subobj.fieldCount(), 0);
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_array_object_value_empty_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n{ }\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Object);
+	JsonObject& subobj = field->objectValue();
+	check_eq(subobj.fieldCount(), 0);
+	});
+
+
+test_case("JsonObject parse json object one object value null subfield") {
+	gk::Str jsonString = "{\"field\": {\"sub\": null}}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Object);
+	JsonObject& subobj = field->objectValue();
+	auto sub = subobj.findField("sub"_str).some();
+	check(sub->isNull());
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_object_value_null_subfield, {
+	gk::Str jsonString = "{\"field\": { \"sub\": null}}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Object);
+	JsonObject& subobj = field->objectValue();
+	auto sub = subobj.findField("sub"_str).some();
+	check(sub->isNull());
+	});
+
+test_case("JsonObject parse json object one object value null subfield sanity") {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n{\t\t\n\"sub\":    null\n}\n}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Object);
+	JsonObject& subobj = field->objectValue();
+	auto sub = subobj.findField("sub"_str).some();
+	check(sub->isNull());
+}
+
+comptime_test_case(JsonObject, parse_json_object_one_array_object_value_null_subfield_sanity, {
+	gk::Str jsonString = "{\n \"field\"  \n\t: \n{\t\t\n\"sub\":    null\n}\n}}";
+	Result<JsonObject> res = JsonObject::parse(jsonString);
+	check(res.isOk());
+	JsonObject obj = res.ok();
+	check(obj.findField("field"_str).isSome());
+	auto field = obj.findField("field"_str).some();
+	check_eq(field->type(), JsonValueType::Object);
+	JsonObject& subobj = field->objectValue();
+	auto sub = subobj.findField("sub"_str).some();
+	check(sub->isNull());
+	});
+
 #endif
