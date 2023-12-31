@@ -1359,7 +1359,7 @@ test_case("JsonObject parse json object one object value null subfield sanity") 
 	check(sub->isNull());
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_array_object_value_null_subfield_sanity, {
+comptime_test_case(JsonObject, parse_json_object_one_object_value_null_subfield_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \n{\t\t\n\"sub\":    null\n}\n}}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1371,5 +1371,94 @@ comptime_test_case(JsonObject, parse_json_object_one_array_object_value_null_sub
 	auto sub = subobj.findField("sub"_str).some();
 	check(sub->isNull());
 	});
+
+namespace gk {
+	namespace unitTests {
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldBoolTrue() {
+			Str jsonString = "{\"field\": {\"sub\": true}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->boolValue(), true);
+		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldBoolFalse() {
+			Str jsonString = "{\"field\": {\"sub\": false}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->boolValue(), false);
+		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldNumberZero() {
+			Str jsonString = "{\"field\": {\"sub\": 0}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->numberValue(), 0);
+		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldNumberZeroDecimal() {
+			Str jsonString = "{\"field\": {\"sub\": 0}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->numberValue(), 0);
+		}
+	}
+}
+
+test_case("JsonObject parse one object value subfield bool true") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldBoolTrue();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_bool_true, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldBoolTrue();
+});
+
+test_case("JsonObject parse one object value subfield bool false") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldBoolFalse();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_bool_false, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldBoolFalse();
+});
+
+test_case("JsonObject parse one object value subfield number zero") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberZero();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_number_zero, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberZero();
+});
+
+test_case("JsonObject parse one object value subfield number zero decimal") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberZeroDecimal();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_number_zero_decimal, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberZeroDecimal();
+});
+
 
 #endif
