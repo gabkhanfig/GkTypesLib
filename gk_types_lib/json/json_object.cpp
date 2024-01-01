@@ -1425,6 +1425,58 @@ namespace gk {
 			auto sub = subobj.findField("sub"_str).some();
 			check_eq(sub->numberValue(), 0);
 		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldNumberPositiveInteger() {
+			Str jsonString = "{\"field\": {\"sub\": 156259}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->numberValue(), 156259);
+		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldNumberPositiveDecimal() {
+			Str jsonString = "{\"field\": {\"sub\": 910.56}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->numberValue(), 910.56);
+		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldNumberNegativeInteger() {
+			Str jsonString = "{\"field\": {\"sub\": -156259}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->numberValue(), -156259);
+		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldNumberNegativeDecimal() {
+			Str jsonString = "{\"field\": {\"sub\": -910.56}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->numberValue(), -910.56);
+		}
 	}
 }
 
@@ -1458,6 +1510,38 @@ test_case("JsonObject parse one object value subfield number zero decimal") {
 
 comptime_test_case(JsonObject, parse_one_object_value_subfield_number_zero_decimal, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberZeroDecimal();
+});
+
+test_case("JsonObject parse one object value subfield number positive integer") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberPositiveInteger();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_number_positive_integer, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberPositiveInteger();
+});
+
+test_case("JsonObject parse one object value subfield number positive decimal") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberPositiveDecimal();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_number_positive_decimal, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberPositiveDecimal();
+});
+
+test_case("JsonObject parse one object value subfield number negative integer") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberNegativeInteger();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_number_negative_integer, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberNegativeInteger();
+});
+
+test_case("JsonObject parse one object value subfield number negative decimal") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberNegativeDecimal();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_number_negative_decimal, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberNegativeDecimal();
 });
 
 
