@@ -1414,7 +1414,7 @@ namespace gk {
 		}
 
 		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldNumberZeroDecimal() {
-			Str jsonString = "{\"field\": {\"sub\": 0}}";
+			Str jsonString = "{\"field\": {\"sub\": 0.0}}";
 			Result<JsonObject> res = JsonObject::parse(jsonString);
 			check(res.isOk());
 			JsonObject obj = res.ok();
