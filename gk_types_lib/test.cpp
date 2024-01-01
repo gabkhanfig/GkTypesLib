@@ -26,11 +26,17 @@ namespace gk {
 		}
 		return balls;
 	}
+
+	static void runTests(int argc, char** argv) {
+		doctest::Context context;
+		context.applyCommandLine(argc, argv);
+		context.setOption("no-breaks", true);
+		int res = context.run();
+	}
 }
 
+gk::Str j = "{\"field\": []}"_str;
+
 int main(int argc, char** argv) {
-	doctest::Context context;
-	context.applyCommandLine(argc, argv);
-	context.setOption("no-breaks", true);
-	int res = context.run();
+	gk::runTests(argc, argv);
 }
