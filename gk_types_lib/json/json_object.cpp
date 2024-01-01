@@ -1675,7 +1675,45 @@ comptime_test_case(JsonObject, parse_one_object_value_subfield_object_nested_nes
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldObjectNullValue();
 });
 
+namespace gk {
+	namespace unitTests {
+		constexpr void testJsonObjectParseMultipleFields() {
+			Str jsonString = "{\n\"nullField\": null,\n\"boolField\": true,\n\"numberField\": -15.6,\n\"stringField\": \"whoa!\",\n\"arrayField\": [],\n\"objectField\": {},\n\"lastField\": false}";
 
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
 
+			auto nullField = obj.findField("nullField"_str).some();
+			check(nullField->isNull());
+
+			auto boolField = obj.findField("boolField"_str).some();
+			check_eq(boolField->boolValue(), true);
+
+			auto numberField = obj.findField("numberField"_str).some();
+			check_eq(numberField->numberValue(), -15.6);
+
+			auto stringField = obj.findField("stringField"_str).some();
+			check_eq(stringField->stringValue(), "whoa!"_str);
+
+			auto arrayField = obj.findField("arrayField"_str).some();
+			check_eq(arrayField->arrayValue().len(), 0);
+
+			auto objectField = obj.findField("objectField"_str).some();
+			check_eq(objectField->objectValue().fieldCount(), 0);
+
+			auto lastField = obj.findField("lastField"_str).some();
+			check_eq(lastField->boolValue(), false);
+		}
+	}
+}
+
+test_case("JsonObject parse multiple fields") {
+	gk::unitTests::testJsonObjectParseMultipleFields();
+}
+
+comptime_test_case(JsonObject, parse_multiple_fields, {
+	gk::unitTests::testJsonObjectParseMultipleFields();
+});
 
 #endif
