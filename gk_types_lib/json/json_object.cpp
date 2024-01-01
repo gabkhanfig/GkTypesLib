@@ -1477,6 +1477,89 @@ namespace gk {
 			auto sub = subobj.findField("sub"_str).some();
 			check_eq(sub->numberValue(), -910.56);
 		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldString() {
+			Str jsonString = "{\"field\": {\"sub\": \"hello world!\"}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->stringValue(), "hello world!"_str);
+		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldArrayEmpty() {
+			Str jsonString = "{\"field\": {\"sub\": []}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->arrayValue().len(), 0);
+		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldArrayOneElement() {
+			Str jsonString = "{\"field\": {\"sub\": [10]}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->arrayValue().len(), 1);
+			check_eq(sub->arrayValue()[0].numberValue(), 10);
+		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldArrayMultipleElements() {
+			Str jsonString = "{\"field\": {\"sub\": [0, 1, 2]}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->arrayValue().len(), 3);
+			check_eq(sub->arrayValue()[0].numberValue(), 0);
+			check_eq(sub->arrayValue()[1].numberValue(), 1);
+			check_eq(sub->arrayValue()[2].numberValue(), 2);
+		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldObjectEmpty() {
+			Str jsonString = "{\"field\": {\"sub\": {}}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			check_eq(sub->objectValue().fieldCount(), 0);
+		}
+
+		constexpr void testJsonObjectParseObjectOneObjectValueSubfieldObjectNullValue() {
+			Str jsonString = "{\"field\": {\"sub\": {\"subsub\": null}}}";
+			Result<JsonObject> res = JsonObject::parse(jsonString);
+			check(res.isOk());
+			JsonObject obj = res.ok();
+			check(obj.findField("field"_str).isSome());
+			auto field = obj.findField("field"_str).some();
+			check_eq(field->type(), JsonValueType::Object);
+			JsonObject& subobj = field->objectValue();
+			auto sub = subobj.findField("sub"_str).some();
+			auto& subsubobj = sub->objectValue();
+			check(subsubobj.findField("subsub"_str).some()->isNull());
+		}
 	}
 }
 
@@ -1543,6 +1626,56 @@ test_case("JsonObject parse one object value subfield number negative decimal") 
 comptime_test_case(JsonObject, parse_one_object_value_subfield_number_negative_decimal, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberNegativeDecimal();
 });
+
+test_case("JsonObject parse one object value subfield string") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldString();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_string, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldString();
+});
+
+test_case("JsonObject parse one object value subfield array empty") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldArrayEmpty();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_array_empty, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldArrayEmpty();
+});
+
+test_case("JsonObject parse one object value subfield array one element") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldArrayOneElement();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_array_one_element, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldArrayOneElement();
+});
+
+test_case("JsonObject parse one object value subfield array multiple elements") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldArrayMultipleElements();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_array_multiple_elements, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldArrayMultipleElements();
+});
+
+test_case("JsonObject parse one object value subfield object empty") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldObjectEmpty();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_object_empty, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldObjectEmpty();
+});
+
+test_case("JsonObject parse one object value subfield object nested nested") {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldObjectNullValue();
+}
+
+comptime_test_case(JsonObject, parse_one_object_value_subfield_object_nested_nested, {
+	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldObjectNullValue();
+});
+
+
 
 
 #endif
