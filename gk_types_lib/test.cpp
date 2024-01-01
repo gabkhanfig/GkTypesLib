@@ -35,8 +35,6 @@ namespace gk {
 	}
 }
 
-gk::Str j = "{\"field\": []}"_str;
-
 int main(int argc, char** argv) {
 	gk::runTests(argc, argv);
 }
