@@ -7,8 +7,8 @@
 
 namespace gk {
 	static std::vector<gk::String> loadEnglishWords() {
-		std::vector<gk::String> balls;
-		balls.reserve(480000);
+		std::vector<gk::String> words;
+		words.reserve(480000);
 
 		std::ifstream t(GK_TYPES_LIB_LOCAL_PATH "words.txt");
 		const std::string str((std::istreambuf_iterator<char>(t)),
@@ -22,9 +22,9 @@ namespace gk {
 
 			gk::Str slice = gk::Str::fromNullTerminated(sub.c_str());
 			gk::String word = slice;
-			balls.push_back(word);
+			words.push_back(word);
 		}
-		return balls;
+		return words;
 	}
 
 	static void runTests(int argc, char** argv) {
