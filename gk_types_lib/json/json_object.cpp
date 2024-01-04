@@ -1,5 +1,6 @@
 #include "json_object.h"
 #include <intrin.h>
+#include "../cpu_features/cpu_feature_detector.h"
 
 using gk::usize;
 
