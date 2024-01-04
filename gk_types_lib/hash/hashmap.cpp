@@ -177,24 +177,48 @@ static size_t gk::hash<std::string>(const std::string& key) {
 	return hasher(key);
 }
 
-test_case("DefaultConstruct") {
+static constexpr void hashMapDefaultConstruct() {
 	HashMap<int, int> map;
 	check_eq(map.size(), 0);
 }
 
-test_case("InsertIntSize") {
+test_case("DefaultConstruct") {
+	hashMapDefaultConstruct();
+}
+
+comptime_test_case(hashmap, DefaultConstruct, {
+	hashMapDefaultConstruct();
+});
+
+static constexpr void hashMapInsertIntSize() {
 	HashMap<int, int> map;
 	map.insert(1, 5);
 	check_eq(map.size(), 1);
 }
 
-test_case("InsertMultipleIntsSize") {
+test_case("InsertIntSize") {
+	hashMapInsertIntSize();
+}
+
+comptime_test_case(hashmap, InsertIntSize, {
+	hashMapInsertIntSize();
+});
+
+static constexpr void hashMapInsertMultipleIntsSize() {
 	HashMap<int, int> map;
 	for (int i = 0; i < 20; i++) {
 		map.insert(i, 100);
 	}
 	check_eq(map.size(), 20);
 }
+
+test_case("InsertMultipleIntsSize") {
+	hashMapInsertMultipleIntsSize();
+}
+
+comptime_test_case(hashmap, InsertMultipleIntsSize, {
+	hashMapInsertMultipleIntsSize();
+});
 
 test_case("InsertStringSize") {
 	HashMap<std::string, int> map;
@@ -250,21 +274,37 @@ test_case("InsertMultipleWithDuplicateKeysSize") {
 	check_eq(map.size(), 20);
 }
 
-test_case("FindIntSize1") {
+static constexpr void testHashMapFindIntSize1() {
 	HashMap<int, int> map;
 	map.insert(5, 100);
 	auto found = map.find(5);
 	check_eq(*found.some(), 100);
 }
 
-test_case("DontFindIntSize1") {
+test_case("FindIntSize1") {
+	testHashMapFindIntSize1();
+}
+
+comptime_test_case(hashmap, FindIntSize1, {
+	testHashMapFindIntSize1();
+});
+
+static constexpr void testhashMapDontFindIntSize1() {
 	HashMap<int, int> map;
 	map.insert(5, 100);
 	auto found = map.find(13);
 	check(found.none());
 }
 
-test_case("FindIntSizeMultiple") {
+test_case("DontFindIntSize1") {
+	testhashMapDontFindIntSize1();
+}
+
+comptime_test_case(hashmap, DontFindIntSize1, {
+	testhashMapDontFindIntSize1();
+});
+
+static constexpr void testHashMapFindIntSizeMultiple() {
 	HashMap<int, int> map;
 	for (int i = 0; i < 20; i++) {
 		map.insert(i, 100);
@@ -273,7 +313,15 @@ test_case("FindIntSizeMultiple") {
 	check_eq(*found.some(), 100);
 }
 
-test_case("DontFindIntSizeMultiple") {
+test_case("FindIntSizeMultiple") {
+	testHashMapFindIntSizeMultiple();
+}
+
+comptime_test_case(hashmap, FindIntSizeMultiple, {
+	testHashMapFindIntSizeMultiple();
+});
+
+static constexpr void testHashMapDontFindIntSizeMultiple() {
 	HashMap<int, int> map;
 	for (int i = 0; i < 20; i++) {
 		map.insert(i, 100);
@@ -281,6 +329,14 @@ test_case("DontFindIntSizeMultiple") {
 	auto found = map.find(21);
 	check(found.none());
 }
+
+test_case("DontFindIntSizeMultiple") {
+	testHashMapDontFindIntSizeMultiple();
+}
+
+comptime_test_case(hashmap, DontFindIntSizeMultiple, {
+	testHashMapFindIntSizeMultiple();
+});
 
 test_case("FindStringSize1") {
 	HashMap<std::string, int> map;
