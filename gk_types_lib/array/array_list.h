@@ -26,7 +26,7 @@ namespace gk
 		Option<usize> doSimdArrayElementFind8Byte(const i64* arrayListData, usize length, i64 toFind);
 
 		template<typename T>
-		forceinline static gk::Option<size_t> doSimdArrayElementFind(const T* arrayListData, size_t length, T toFind) {
+		forceinline static gk::Option<usize> doSimdArrayElementFind(const T* arrayListData, usize length, T toFind) {
 			if constexpr (sizeof(T) == 1) {
 				return doSimdArrayElementFind1Byte(reinterpret_cast<const i8*>(arrayListData), length, static_cast<i8>(toFind));
 			}
@@ -49,7 +49,7 @@ namespace gk
 	private:
 
 		constexpr static bool IS_T_SIMD = (std::is_arithmetic_v<T> || std::is_pointer_v<T> || std::is_enum_v<T>);
-		constexpr static size_t SIMD_T_MALLOC_ALIGN = 64;
+		constexpr static usize SIMD_T_MALLOC_ALIGN = 64;
 
 	private:
 
@@ -91,11 +91,11 @@ namespace gk
 				return;
 			}
 
-			size_t requiredCapacity = _length;
+			usize requiredCapacity = _length;
 			_data = mallocArrayListBuffer(&requiredCapacity, _allocator);
 			_capacity = requiredCapacity;
 
-			for (size_t i = 0; i < _length; i++) {
+			for (usize i = 0; i < _length; i++) {
 				_data[i] = other._data[i];
 			}
 		}
@@ -137,11 +137,11 @@ namespace gk
 				return *this;
 			}
 
-			size_t requiredCapacity = _length;
+			usize requiredCapacity = _length;
 			_data = mallocArrayListBuffer(&requiredCapacity, _allocator);
 			_capacity = requiredCapacity;
 
-			for (size_t i = 0; i < _length; i++) {
+			for (usize i = 0; i < _length; i++) {
 				_data[i] = other._data[i];
 			}
 			return *this;
@@ -213,10 +213,10 @@ namespace gk
 				return out;
 			}
 
-			size_t requiredCapacity = out._length;
+			usize requiredCapacity = out._length;
 			out._data = mallocArrayListBuffer(&requiredCapacity, out._allocator);
 			out._capacity = requiredCapacity;
-			for (size_t i = 0; i < out._length; i++) {
+			for (usize i = 0; i < out._length; i++) {
 				//out._data[i] = other._data[i];
 				new (out._data + i) T(other._data[i]);
 			}
@@ -250,11 +250,11 @@ namespace gk
 				return out;
 			}
 
-			size_t requiredCapacity = out._length;
+			usize requiredCapacity = out._length;
 			out._data = mallocArrayListBuffer(&requiredCapacity, out._allocator);
 			out._capacity = requiredCapacity;
 
-			size_t i = 0;
+			usize i = 0;
 			for (const auto& elem : initializerList) {
 				//out._data[i] = elem;
 				new (out._data + i) T(elem);
@@ -271,7 +271,7 @@ namespace gk
 		* @param ptr: Start of buffer of elements to copy
 		* @param elementsToCopy: Number to copy. Accessing beyond the bounds of `ptr` is undefined behaviour.
 		*/
-		static ArrayList init(const Allocator& inAllocator, const T* ptr, size_t elementsToCopy)
+		static ArrayList init(const Allocator& inAllocator, const T* ptr, usize elementsToCopy)
 		requires(std::is_copy_constructible_v<T>) {
 			return ArrayList::init(inAllocator.clone(), ptr, elementsToCopy);
 		}
@@ -284,7 +284,7 @@ namespace gk
 		* @param ptr: Start of buffer of elements to copy
 		* @param elementsToCopy: Number to copy. Accessing beyond the bounds of `ptr` is undefined behaviour.
 		*/
-		static ArrayList init(Allocator&& inAllocator, const T* ptr, size_t elementsToCopy)
+		static ArrayList init(Allocator&& inAllocator, const T* ptr, usize elementsToCopy)
 		requires(std::is_copy_constructible_v<T>) {
 			ArrayList out = ArrayList(std::move(inAllocator));
 
@@ -295,10 +295,10 @@ namespace gk
 				return out;
 			}
 
-			size_t requiredCapacity = out._length;
+			usize requiredCapacity = out._length;
 			out._data = mallocArrayListBuffer(&requiredCapacity, out._allocator);
 			out._capacity = requiredCapacity;
-			for (size_t i = 0; i < elementsToCopy; i++) {
+			for (usize i = 0; i < elementsToCopy; i++) {
 				//out._data[i] = ptr[i];
 				new (out._data + i) T(ptr[i]);
 			}
@@ -317,7 +317,7 @@ namespace gk
 		* @param inAllocator: Allocator to clone
 		* @param minCapacity: Minimum allocation size
 		*/
-		static ArrayList withCapacity(const Allocator& inAllocator, size_t minCapacity) {
+		static ArrayList withCapacity(const Allocator& inAllocator, usize minCapacity) {
 			return ArrayList::withCapacity(inAllocator.clone(), minCapacity);
 		}
 		
@@ -328,7 +328,7 @@ namespace gk
 		* @param inAllocator: Allocator to to take ownership of
 		* @param minCapacity: Minimum allocation size
 		*/
-		static ArrayList withCapacity(Allocator&& inAllocator, size_t minCapacity) {
+		static ArrayList withCapacity(Allocator&& inAllocator, usize minCapacity) {
 			ArrayList out = ArrayList(std::move(inAllocator));
 			if (minCapacity == 0) [[unlikely]] {
 				return out;
@@ -349,7 +349,7 @@ namespace gk
 		* @param minCapacity: Minimum allocation size
 		* @param other: other ArrayList to copy from
 		*/
-		static ArrayList withCapacity(const Allocator& inAllocator, size_t minCapacity, const ArrayList& other)
+		static ArrayList withCapacity(const Allocator& inAllocator, usize minCapacity, const ArrayList& other)
 		requires(std::is_copy_constructible_v<T>) {
 			return ArrayList::withCapacity(inAllocator, minCapacity, other);
 		}
@@ -364,7 +364,7 @@ namespace gk
 		* @param minCapacity: Minimum allocation size
 		* @param other: other ArrayList to copy from
 		*/
-		static ArrayList withCapacity(Allocator&& inAllocator, size_t minCapacity, const ArrayList& other)
+		static ArrayList withCapacity(Allocator&& inAllocator, usize minCapacity, const ArrayList& other)
 		requires(std::is_copy_constructible_v<T>) {
 			ArrayList out = ArrayList(std::move(inAllocator));
 			out._length = other._length;
@@ -375,10 +375,10 @@ namespace gk
 				return out;
 			}
 
-			size_t requiredCapacity = out._length > minCapacity ? out._length : minCapacity;
+			usize requiredCapacity = out._length > minCapacity ? out._length : minCapacity;
 			out._data = mallocArrayListBuffer(&requiredCapacity, out._allocator);
 			out._capacity = requiredCapacity;
-			for (size_t i = 0; i < out._length; i++) {
+			for (usize i = 0; i < out._length; i++) {
 				//out._data[i] = other._data[i];
 				new (out._data + i) T(other._data[i]);
 			}
@@ -395,7 +395,7 @@ namespace gk
 		* @param minCapacity: Minimum allocation size
 		* @param initializerList: Elements to copy
 		*/
-		static ArrayList withCapacity(const Allocator& inAllocator, size_t minCapacity, const std::initializer_list<T>& initializerList)
+		static ArrayList withCapacity(const Allocator& inAllocator, usize minCapacity, const std::initializer_list<T>& initializerList)
 		requires(std::is_copy_constructible_v<T>) {
 			return ArrayList::withCapacity(inAllocator, minCapacity, initializerList);
 		}
@@ -410,7 +410,7 @@ namespace gk
 		* @param minCapacity: Minimum allocation size
 		* @param initializerList: Elements to copy
 		*/
-		static ArrayList withCapacity(Allocator&& inAllocator, size_t minCapacity, const std::initializer_list<T>& initializerList)
+		static ArrayList withCapacity(Allocator&& inAllocator, usize minCapacity, const std::initializer_list<T>& initializerList)
 		requires(std::is_copy_constructible_v<T>) {
 			ArrayList out = ArrayList(std::move(inAllocator));
 			out._length = initializerList.size();
@@ -421,11 +421,11 @@ namespace gk
 				return out;
 			}
 
-			size_t requiredCapacity = out._length > minCapacity ? out._length : minCapacity;
+			usize requiredCapacity = out._length > minCapacity ? out._length : minCapacity;
 			out._data = mallocArrayListBuffer(&requiredCapacity, out._allocator);
 			out._capacity = requiredCapacity;
 
-			size_t i = 0;
+			usize i = 0;
 			for (const auto& elem : initializerList) {
 				//out._data[i] = elem;
 				new (out._data + i) T(elem);
@@ -445,7 +445,7 @@ namespace gk
 		* @param ptr: Start of buffer of elements to copy
 		* @param elementsToCopy: Number to copy. Accessing beyond the bounds of `ptr` is undefined behaviour.
 		*/
-		static ArrayList withCapacity(const Allocator& inAllocator, size_t minCapacity, const T* ptr, size_t elementsToCopy)
+		static ArrayList withCapacity(const Allocator& inAllocator, usize minCapacity, const T* ptr, usize elementsToCopy)
 		requires(std::is_copy_constructible_v<T>) {
 			return ArrayList::withCapacity(inAllocator, minCapacity, ptr, elementsToCopy);
 		}
@@ -461,7 +461,7 @@ namespace gk
 		* @param ptr: Start of buffer of elements to copy
 		* @param elementsToCopy: Number to copy. Accessing beyond the bounds of `ptr` is undefined behaviour.
 		*/
-		static ArrayList withCapacity(Allocator&& inAllocator, size_t minCapacity, const T* ptr, size_t elementsToCopy)
+		static ArrayList withCapacity(Allocator&& inAllocator, usize minCapacity, const T* ptr, usize elementsToCopy)
 		requires(std::is_copy_constructible_v<T>) {
 			ArrayList out = ArrayList(std::move(inAllocator));
 			out._length = elementsToCopy;
@@ -472,10 +472,10 @@ namespace gk
 				return out;
 			}
 
-			size_t requiredCapacity = out._length > minCapacity ? out._length : minCapacity;
+			usize requiredCapacity = out._length > minCapacity ? out._length : minCapacity;
 			out._data = mallocArrayListBuffer(&requiredCapacity, out._allocator);
 			out._capacity = requiredCapacity;
-			for (size_t i = 0; i < elementsToCopy; i++) {
+			for (usize i = 0; i < elementsToCopy; i++) {
 				//out._data[i] = ptr[i];
 				new (out._data + i) T(ptr[i]);
 			}
@@ -490,12 +490,12 @@ namespace gk
 		/**
 		* The number of elements contained in the ArrayList.
 		*/
-		constexpr size_t len() const { return _length; }
+		constexpr usize len() const { return _length; }
 
 		/**
 		* The number of elements this ArrayList can store without reallocation.
 		*/
-		constexpr size_t capacity() const { return _capacity; }
+		constexpr usize capacity() const { return _capacity; }
 
 		/**
 		* A mutable pointer to the data held by this ArrayList. Accessing beyond len() is undefined behaviour.
@@ -518,7 +518,7 @@ namespace gk
 		* 
 		* @param index: The element to get. Asserts that is less than len().
 		*/
-		[[nodiscard]] constexpr T& operator [] (size_t index) {
+		[[nodiscard]] constexpr T& operator [] (usize index) {
 			check_message(index < _length, "Index out of bounds! Attempted to access index ", index, " from ArrayList of length ", _length);
 			return _data[index];
 		}
@@ -529,7 +529,7 @@ namespace gk
 		*
 		* @param index: The element to get. Asserts that is less than len().
 		*/
-		[[nodiscard]] constexpr const T& operator [] (size_t index) const {
+		[[nodiscard]] constexpr const T& operator [] (usize index) const {
 			check_message(index < _length, "Index out of bounds! Attempted to access index ", index, " from ArrayList of length ", _length);
 			return _data[index];
 		}
@@ -584,12 +584,12 @@ namespace gk
 		* 
 		* @param additional: Minimum amount to increase the capacity by
 		*/
-		void reserve(size_t additional) {
-			const size_t addedLength = _length + additional;
+		void reserve(usize additional) {
+			const usize addedLength = _length + additional;
 			if (addedLength <= _capacity || addedLength == 0) return;
 
-			const size_t standardCapacityIncrease = (_capacity + 1) * 2;
-			size_t newCapacity = addedLength < standardCapacityIncrease ? standardCapacityIncrease : addedLength;
+			const usize standardCapacityIncrease = (_capacity + 1) * 2;
+			usize newCapacity = addedLength < standardCapacityIncrease ? standardCapacityIncrease : addedLength;
 			
 			reallocate(newCapacity);
 		}
@@ -601,8 +601,8 @@ namespace gk
 		* 
 		* @param additional: Minimum amount to increase the capacity by
 		*/
-		void reserveExact(size_t additional) {
-			const size_t newCapacity = _length + additional;
+		void reserveExact(usize additional) {
+			const usize newCapacity = _length + additional;
 			if (newCapacity <= _capacity || newCapacity == 0) return;
 
 			reallocate(newCapacity);
@@ -615,30 +615,30 @@ namespace gk
 		* @param element: Element to check if in the ArrayList.
 		* @return The found index, or None
 		*/
-		constexpr gk::Option<size_t> find(const T& element) const {
+		constexpr gk::Option<usize> find(const T& element) const {
 			if (std::is_constant_evaluated() || !IS_T_SIMD) { // constexpr and/or NOT simd
-				for (size_t i = 0; i < _length; i++) {
+				for (usize i = 0; i < _length; i++) {
 					if (_data[i] == element) {
-						return gk::Option<size_t>(i);
+						return gk::Option<usize>(i);
 					}
 				}
-				return gk::Option<size_t>();
+				return gk::Option<usize>();
 			}
 
 			return internal::doSimdArrayElementFind(_data, _length, element);
 		}
 
-		//constexpr T remove(size_t index);
-		//constexpr T swapRemove(size_t index);
-		//constexpr void insert(size_t index, const T& element);
-		//constexpr void insert(size_t index, T&& element);
+		//constexpr T remove(usize index);
+		//constexpr T swapRemove(usize index);
+		//constexpr void insert(usize index, const T& element);
+		//constexpr void insert(usize index, T&& element);
 		//constexpr void shrinkToFit();
-		//constexpr void shrinkTo(size_t minCapacity);
-		//constexpr void truncate(size_t newLength);
+		//constexpr void shrinkTo(usize minCapacity);
+		//constexpr void truncate(usize newLength);
 		//constexpr void retain(bool(*compFunc)(const T&));
 		//constexpr void retain(bool(*compFunc)(T&));
 		//constexpr void extend(const ArrayList& other);
-		//constexpr void resize(size_t newLength, const T& fill);
+		//constexpr void resize(usize newLength, const T& fill);
 
 #pragma region Iterator
 
@@ -651,7 +651,7 @@ namespace gk
 		constexpr void deleteExistingBuffer() {
 			if (_data == nullptr) return;
 
-			for (size_t i = 0; i < _length; i++) {
+			for (usize i = 0; i < _length; i++) {
 				_data[i].~T();
 			}
 			freeArrayListBuffer(_data, _capacity, _allocator);
@@ -661,16 +661,16 @@ namespace gk
 		* At runtime, creates a 0 initialized buffer.
 		* At comptime, just makes a new heap array.
 		*/
-		constexpr static T* mallocArrayListBuffer(size_t* requiredCapacity, Allocator& allocatorToUse) {
+		constexpr static T* mallocArrayListBuffer(usize* requiredCapacity, Allocator& allocatorToUse) {
 			if (std::is_constant_evaluated()) {
-				const size_t capacity = *requiredCapacity;
+				const usize capacity = *requiredCapacity;
 				return new T[capacity];
 			}
 
 			T* outBuffer;
 			if constexpr (IS_T_SIMD) {
-				constexpr size_t numPerSimd = 64 / sizeof(T);
-				const size_t remainder = *requiredCapacity % numPerSimd;
+				constexpr usize numPerSimd = 64 / sizeof(T);
+				const usize remainder = *requiredCapacity % numPerSimd;
 				if (remainder != 0) {
 					*requiredCapacity = *requiredCapacity + (numPerSimd - remainder);
 				}
@@ -685,7 +685,7 @@ namespace gk
 			return outBuffer;
 		}
 
-		constexpr static void freeArrayListBuffer(T*& buffer, size_t bufferCapacity, Allocator& allocatorToUse) {
+		constexpr static void freeArrayListBuffer(T*& buffer, usize bufferCapacity, Allocator& allocatorToUse) {
 			if (std::is_constant_evaluated()) {
 				delete[] buffer;
 				return;
@@ -698,11 +698,11 @@ namespace gk
 			allocatorToUse.freeBuffer(buffer, bufferCapacity);
 		}
 
-		constexpr void reallocate(size_t capacity) {
-			const size_t currentLength = len();
+		constexpr void reallocate(usize capacity) {
+			const usize currentLength = len();
 			T* newData = mallocArrayListBuffer(&capacity, _allocator);
 
-			for (size_t i = 0; i < currentLength; i++) {
+			for (usize i = 0; i < currentLength; i++) {
 				// TODO see if assignment is better.
 				if (std::is_constant_evaluated()) {
 					newData[i] = std::move(_data[i]);
@@ -722,8 +722,8 @@ namespace gk
 	private:
 
 		T* _data;
-		size_t _length;
-		size_t _capacity;
+		usize _length;
+		usize _capacity;
 		Allocator _allocator;
 		
 	};
