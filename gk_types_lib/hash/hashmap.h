@@ -579,6 +579,9 @@ inline constexpr void gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::
 
 	if (std::is_constant_evaluated()) {
 		hashMasks = new i8[GROUP_ALLOC_SIZE];
+		for (usize i = 0; i < GROUP_ALLOC_SIZE; i++) {
+			hashMasks[i] = 0;
+		}
 		pairs = new PairT[GROUP_ALLOC_SIZE];
 		capacity = GROUP_ALLOC_SIZE;
 	}
@@ -811,6 +814,9 @@ inline constexpr void gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::
 
 	if (std::is_constant_evaluated()) {
 		i8* newHashMasks = new i8[newCapacity];
+		for (usize i = 0; i < newCapacity; i++) {
+			newHashMasks[i] = 0;
+		}
 		PairT* newPairs = new PairT[newCapacity];
 
 		usize newIter = 0;
@@ -1285,7 +1291,11 @@ inline constexpr void gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::reallocate(usiz
 
 	GroupT* newGroupCollection = [&]() {
 		if (std::is_constant_evaluated()) {
-			return new GroupT[newGroupCount];
+			GroupT* newGroups = new GroupT[newGroupCount];
+			for (usize i = 0; i < newGroupCount; i++) {
+				newGroups[i].defaultInit(nullptr);
+			}
+			return newGroups;
 		}
 		else {
 			GroupT* memory = _allocator.mallocBuffer<GroupT>(newGroupCount).ok();
