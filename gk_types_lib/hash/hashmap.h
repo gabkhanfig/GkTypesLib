@@ -660,9 +660,7 @@ inline constexpr gk::Option<Value*> gk::internal::HashMapGroup<Key, Value, GROUP
 
 	usize availableIndex = firstAvailableGroupSlot().some();
 	pairs[availableIndex].insert(std::move(key), std::move(value), hashCode, allocator);
-	if (!std::is_constant_evaluated()) {
-		hashMasks[availableIndex] = internal::HashMapPairBitmask(hashCode).value;
-	}
+	hashMasks[availableIndex] = internal::HashMapPairBitmask(hashCode).value;
 	pairCount++;
 	return Option<Value*>();
 }
