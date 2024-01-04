@@ -1,144 +1,194 @@
 #include "hashmap.h"
-#include "../cpu_features/cpu_feature_detector.h"
 #include <intrin.h>
+#include "../cpu_features/cpu_feature_detector.h"
 
-#pragma intrinsic(_BitScanForward64)
-
-using gk::i8;
-using gk::u64;
-using gk::internal::PairHashBits;
 using gk::Option;
 using gk::usize;
+using gk::u64;
 
-
-constexpr bool SHOULD_LOG_HASHMAP_DYNAMICALLY_LOADED_FUNCTIONS = false;
-
-
-typedef u64 (*FuncFindEqualHashCodeBitmask)(const i8*, PairHashBits);
-typedef Option<i8>(*FuncFindFirstZeroSlot)(const i8*);
-
-
-static u64 avx512FindHashCode(const i8* buffer, PairHashBits hashCode) {
-	const __m512i bufferVec = *reinterpret_cast<const __m512i*>(buffer);
-	const __m512i hashCodeVec = _mm512_set1_epi8(hashCode.value);
-	return _mm512_cmpeq_epi8_mask(bufferVec, hashCodeVec);
-}
-
-static u64 avx2FindHashCode(const i8* buffer, PairHashBits hashCode) {
-	const __m256i* bufferVec = reinterpret_cast<const __m256i*>(buffer);
-	const __m256i hashCodeVec = _mm256_set1_epi8(hashCode.value);
-	const u64 out =
-		static_cast<u64>(_mm256_cmpeq_epi8_mask(bufferVec[0], hashCodeVec))
-		| (static_cast<u64>(_mm256_cmpeq_epi8_mask(bufferVec[1], hashCodeVec)) << 32);
-	return out;
-}
-
-static Option<i8> avx512FindFirstZeroSlot(const i8* buffer) {
-	const __m512i bufferVec = *reinterpret_cast<const __m512i*>(buffer);
-	const __m512i zeroVec = _mm512_set1_epi8(0);
-	const u64 result = _mm512_cmpeq_epi8_mask(bufferVec, zeroVec);
-	unsigned long index;
-	if (!_BitScanForward64(&index, result)) return Option<i8>();
-	return Option<i8>(static_cast<i8>(index));
-}
-
-static Option<i8> avx2FindFirstZeroSlot(const i8* buffer) {
-	const __m256i* bufferVec = reinterpret_cast<const __m256i*>(buffer);
-	const __m256i zeroVec = _mm256_set1_epi8(0);
-	const u64 result =
-		static_cast<u64>(_mm256_cmpeq_epi8_mask(bufferVec[0], zeroVec))
-		| (static_cast<u64>(_mm256_cmpeq_epi8_mask(bufferVec[1], zeroVec)) << 32);
-	unsigned long index;
-	if (!_BitScanForward64(&index, result)) return Option<i8>();
-	return Option<i8>(static_cast<i8>(index));
-}
-
-u64 gk::internal::hashMapSimdFindEqualHashCodesBitmask(const i8* buffer, PairHashBits hashCode)
+Option<usize> gk::internal::firstAvailableGroupSlot16(const i8* buffer, usize capacity)
 {
-	static FuncFindEqualHashCodeBitmask func = []() {
+	// can use 128bit SIMD instructions
+	check_message(capacity % 16 == 0, "capacity must be a multiple of 16");
+	check_message(usize(buffer) % 16 == 0, "buffer must be 16 byte aligned");
+
+	const __m128i zeroVec = _mm_set1_epi8(0);
+	const __m128i* bufferVec = reinterpret_cast<const __m128i*>(buffer);
+
+	const usize iterationCount = capacity / 16;
+	for (usize i = 0; i < iterationCount; i++) {
+		u64 bitmask = _mm_cmpeq_epi8_mask(zeroVec, bufferVec[i]);
+
+		Option<usize> index = bitscanForwardNext(&bitmask);
+		if (index.none()) {
+			continue;
+		}
+		return Option<usize>(index.someCopy() + (i * 16));
+	}
+	return Option<usize>();
+}
+
+Option<usize> gk::internal::firstAvailableGroupSlot32(const i8* buffer, usize capacity)
+{
+	// can use 256bit AVX2 instructions
+	check_message(capacity % 32 == 0, "capacity must be a multiple of 32");
+	check_message(usize(buffer) % 32 == 0, "buffer must be 32 byte aligned");
+
+	const __m256i zeroVec = _mm256_set1_epi8(0);
+	const __m256i* bufferVec = reinterpret_cast<const __m256i*>(buffer);
+
+	const usize iterationCount = capacity / 32;
+	for (usize i = 0; i < iterationCount; i++) {
+		u64 bitmask = _mm256_cmpeq_epi8_mask(zeroVec, bufferVec[i]);
+
+		Option<usize> index = bitscanForwardNext(&bitmask);
+		if (index.none()) {
+			continue;
+		}
+		return Option<usize>(index.someCopy() + (i * 32));
+	}
+	return Option<usize>();
+}
+
+static Option<usize> hashAvx512FindFirstAvailableGroupSlot64(const gk::i8* buffer, gk::usize capacity)
+{
+	using namespace gk;
+
+	const __m512i zeroVec = _mm512_set1_epi8(0);
+	const __m512i* bufferVec = reinterpret_cast<const __m512i*>(buffer);
+
+	const usize iterationCount = capacity / 32;
+	for (usize i = 0; i < iterationCount; i++) {
+		u64 bitmask = _mm512_cmpeq_epi8_mask(zeroVec, bufferVec[i]);
+
+		Option<usize> index = bitscanForwardNext(&bitmask);
+		if (index.none()) {
+			continue;
+		}
+		return Option<usize>(index.someCopy() + (i * 64));
+	}
+	return Option<usize>();
+}
+
+Option<usize> gk::internal::firstAvailableGroupSlot64(const i8* buffer, usize capacity)
+{
+	// dynamic dispatch for either 512bit AVX512, or 256bit AVX2 instructions
+	check_message(capacity % 64 == 0, "capacity must be a multiple of 64");
+	check_message(usize(buffer) % 64 == 0, "buffer must be 64 byte aligned");
+
+	typedef Option<usize>(*HashFuncFindFirstZeroSlot64Byte)(const i8*, const usize);
+
+	HashFuncFindFirstZeroSlot64Byte func = []() {
 		if (gk::x86::isAvx512Supported()) {
-			if (SHOULD_LOG_HASHMAP_DYNAMICALLY_LOADED_FUNCTIONS) {
+			if (true) {
+				std::cout << "[gk::HashMap function loader]: Using AVX-512 hash empty find\n";
+			}
+
+			return hashAvx512FindFirstAvailableGroupSlot64;
+		}
+		else if (gk::x86::isAvx2Supported()) {
+			if (true) {
+				std::cout << "[gk::HashMap function loader]: Using AVX-2 hash empty find\n";
+			}
+			return firstAvailableGroupSlot32;
+		}
+		else {
+			std::cout << "[gk::HashMap function loader]: ERROR\nCannot load hashmap hash empty find function if AVX-512 or AVX-2 aren't supported\n";
+			abort();
+		}
+	}();
+
+	return func(buffer, capacity);
+}
+
+u64 gk::internal::simdFindEqualHashCodeBitmaskIteration16(const i8* bufferOffsetIter, HashMapPairBitmask hashBits)
+{
+	check_message(usize(bufferOffsetIter) % 16 == 0, "buffer must be 16 byte aligned");
+
+	const __m128i hashCodeVec = _mm_set1_epi8(hashBits.value);
+	const __m128i bufferVec = *reinterpret_cast<const __m128i*>(bufferOffsetIter);
+	return _mm_cmpeq_epi8_mask(hashCodeVec, bufferVec);
+}
+
+u64 gk::internal::simdFindEqualHashCodeBitmaskIteration32(const i8* bufferOffsetIter, HashMapPairBitmask hashBits)
+{
+	check_message(usize(bufferOffsetIter) % 32 == 0, "buffer must be 32 byte aligned");
+
+	const __m256i hashCodeVec = _mm256_set1_epi8(hashBits.value);
+	const __m256i bufferVec = *reinterpret_cast<const __m256i*>(bufferOffsetIter);
+	return _mm256_cmpeq_epi8_mask(hashCodeVec, bufferVec);
+}
+
+static u64 avx512FindEqualHashCodeBitmaskIteration64(const gk::i8* bufferOffsetIter, gk::internal::HashMapPairBitmask hashBits) {
+	check_message(gk::usize(bufferOffsetIter) % 64 == 0, "buffer must be 64 byte aligned");
+
+	const __m512i hashCodeVec = _mm512_set1_epi8(hashBits.value);
+	const __m512i bufferVec = *reinterpret_cast<const __m512i*>(bufferOffsetIter);
+	return _mm512_cmpeq_epi8_mask(hashCodeVec, bufferVec);
+}
+
+static u64 avx2FindEqualHashCodeBitmaskIteration64(const gk::i8* bufferOffsetIter, gk::internal::HashMapPairBitmask hashBits) {
+	check_message(gk::usize(bufferOffsetIter) % 64 == 0, "buffer must be 64 byte aligned");
+
+	const __m256i hashCodeVec = _mm256_set1_epi8(hashBits.value);
+	const __m256i* bufferVec = reinterpret_cast<const __m256i*>(bufferOffsetIter);
+	return static_cast<gk::u64>(_mm256_cmpeq_epi8_mask(hashCodeVec, bufferVec[0])) |
+		(static_cast<gk::u64>(_mm256_cmpeq_epi8_mask(hashCodeVec, bufferVec[1])) << 32);
+}
+
+
+u64 gk::internal::simdFindEqualHashCodeBitmaskIteration64(const i8* bufferOffsetIter, HashMapPairBitmask hashBits)
+{
+	typedef u64(*HashFuncFindEqualHashBitmaskIteration)(const i8*, HashMapPairBitmask);
+
+	static HashFuncFindEqualHashBitmaskIteration func = []() {
+		if (gk::x86::isAvx512Supported()) {
+			if (true) {
 				std::cout << "[gk::HashMap function loader]: Using AVX-512 hash equality comparison\n";
 			}
 
-			return avx512FindHashCode;
+			return avx512FindEqualHashCodeBitmaskIteration64;
 		}
 		else if (gk::x86::isAvx2Supported()) {
-			if (SHOULD_LOG_HASHMAP_DYNAMICALLY_LOADED_FUNCTIONS) {
+			if (true) {
 				std::cout << "[gk::HashMap function loader]: Using AVX-2 hash equality comparison\n";
 			}
-			return avx2FindHashCode;
+			return avx2FindEqualHashCodeBitmaskIteration64;
 		}
 		else {
 			std::cout << "[gk::HashMap function loader]: ERROR\nCannot load hashmap hash equality comparison function if AVX-512 or AVX-2 aren't supported\n";
 			abort();
 		}
 	}();
-	return func(buffer, hashCode);
+
+	return func(bufferOffsetIter, hashBits);
 }
-
-Option<i8> gk::internal::firstAvailableGroupSlot(const i8* buffer)
-{
-	static FuncFindFirstZeroSlot func = []() {
-		if (gk::x86::isAvx512Supported()) {
-			if (SHOULD_LOG_HASHMAP_DYNAMICALLY_LOADED_FUNCTIONS) {
-				std::cout << "[gk::HashMap function loader]: Using AVX-512 empty find check\n";
-			}
-
-			return avx512FindFirstZeroSlot;
-		}
-		else if (gk::x86::isAvx2Supported()) {
-			if (SHOULD_LOG_HASHMAP_DYNAMICALLY_LOADED_FUNCTIONS) {
-				std::cout << "[gk::HashMap function loader]: Using AVX-2 empty find check\n";
-			}
-			return avx2FindFirstZeroSlot;
-		}
-		else {
-			std::cout << "[gk::HashMap function loader]: ERROR\nCannot load hashmap empty find check function if AVX-512 or AVX-2 aren't supported\n";
-			abort();
-		}
-	}();
-
-	return func(buffer);
-}
-
-Option<usize> gk::internal::bitscanForwardNext(u64* bitmask)
-{
-	unsigned long index;
-	if (!_BitScanForward64(&index, *bitmask)) return Option<usize>();
-	*bitmask = (*bitmask & ~(1ULL << index)) & 63;
-	return Option<u64>(index);
-}
-
 
 #if GK_TYPES_LIB_TEST
 #include <string>
 
 template<typename Key, typename Value>
-using HashMap = gk::HashMap<Key, Value>;
+using HashMap = gk::HashMap<Key, Value, 32>;
 
 // Example of making a custom hash
 template<>
-size_t gk::hash<std::string>(const std::string& key) {
+static size_t gk::hash<std::string>(const std::string& key) {
 	std::hash<std::string> hasher;
 	return hasher(key);
 }
 
 test_case("DefaultConstruct") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<int, int> map;
 	check_eq(map.size(), 0);
 }
 
 test_case("InsertIntSize") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<int, int> map;
 	map.insert(1, 5);
 	check_eq(map.size(), 1);
 }
 
 test_case("InsertMultipleIntsSize") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<int, int> map;
 	for (int i = 0; i < 20; i++) {
 		map.insert(i, 100);
@@ -147,14 +197,12 @@ test_case("InsertMultipleIntsSize") {
 }
 
 test_case("InsertStringSize") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	map.insert(std::string("hello"), 5);
 	check_eq(map.size(), 1);
 }
 
 test_case("InsertMultipleStringsSize") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 20; i++) {
 		map.insert(std::to_string(i), 100);
@@ -163,7 +211,6 @@ test_case("InsertMultipleStringsSize") {
 }
 
 test_case("SanityCheckCopyKeyAndValueSize") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 20; i++) {
 		std::string numStr = std::to_string(i);
@@ -174,7 +221,6 @@ test_case("SanityCheckCopyKeyAndValueSize") {
 }
 
 test_case("SanityCheckCopyKeyAndMoveValueSize") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 20; i++) {
 		std::string numStr = std::to_string(i);
@@ -184,7 +230,6 @@ test_case("SanityCheckCopyKeyAndMoveValueSize") {
 }
 
 test_case("SanityCheckMoveKeyAndCopyValueSize") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 20; i++) {
 		int value = 100;
@@ -194,7 +239,6 @@ test_case("SanityCheckMoveKeyAndCopyValueSize") {
 }
 
 test_case("InsertMultipleWithDuplicateKeysSize") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 20; i++) {
 		int value = 100;
@@ -207,7 +251,6 @@ test_case("InsertMultipleWithDuplicateKeysSize") {
 }
 
 test_case("FindIntSize1") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<int, int> map;
 	map.insert(5, 100);
 	auto found = map.find(5);
@@ -215,7 +258,6 @@ test_case("FindIntSize1") {
 }
 
 test_case("DontFindIntSize1") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<int, int> map;
 	map.insert(5, 100);
 	auto found = map.find(13);
@@ -223,7 +265,6 @@ test_case("DontFindIntSize1") {
 }
 
 test_case("FindIntSizeMultiple") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<int, int> map;
 	for (int i = 0; i < 20; i++) {
 		map.insert(i, 100);
@@ -233,7 +274,6 @@ test_case("FindIntSizeMultiple") {
 }
 
 test_case("DontFindIntSizeMultiple") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<int, int> map;
 	for (int i = 0; i < 20; i++) {
 		map.insert(i, 100);
@@ -243,7 +283,6 @@ test_case("DontFindIntSizeMultiple") {
 }
 
 test_case("FindStringSize1") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	map.insert(std::to_string(5), 100);
 	auto found = map.find("5");
@@ -251,7 +290,6 @@ test_case("FindStringSize1") {
 }
 
 test_case("DontFindStringSize1") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	map.insert(std::to_string(5), 100);
 	auto found = map.find("13");
@@ -259,7 +297,6 @@ test_case("DontFindStringSize1") {
 }
 
 test_case("FindStringSizeMultiple") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 20; i++) {
 		map.insert(std::to_string(i), 100);
@@ -269,7 +306,6 @@ test_case("FindStringSizeMultiple") {
 }
 
 test_case("DontFindStringSizeMultiple") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 20; i++) {
 		map.insert(std::to_string(i), 100);
@@ -279,7 +315,6 @@ test_case("DontFindStringSizeMultiple") {
 }
 
 test_case("ConstFindStringSize1") {
-	//MemoryLeakDetector leakDetector;
 	const HashMap<std::string, int> map = []() {
 		HashMap<std::string, int> outMap;
 		outMap.insert(std::to_string(5), 100);
@@ -290,7 +325,6 @@ test_case("ConstFindStringSize1") {
 }
 
 test_case("ConstDontFindStringSize1") {
-	//MemoryLeakDetector leakDetector;
 	const HashMap<std::string, int> map = []() {
 		HashMap<std::string, int> outMap;
 		outMap.insert(std::to_string(5), 100);
@@ -301,7 +335,6 @@ test_case("ConstDontFindStringSize1") {
 }
 
 test_case("ConstFindStringSizeMultiple") {
-	//MemoryLeakDetector leakDetector;
 	const HashMap<std::string, int> map = []() {
 		HashMap<std::string, int> outMap;
 		for (int i = 0; i < 20; i++) {
@@ -314,7 +347,6 @@ test_case("ConstFindStringSizeMultiple") {
 }
 
 test_case("ConstDontFindStringSizeMultiple") {
-	//MemoryLeakDetector leakDetector;
 	const HashMap<std::string, int> map = []() {
 		HashMap<std::string, int> outMap;
 		for (int i = 0; i < 20; i++) {
@@ -327,7 +359,6 @@ test_case("ConstDontFindStringSizeMultiple") {
 }
 
 test_case("EraseSingleElement") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	map.insert(std::to_string(5), 100);
 	map.erase(std::to_string(5));
@@ -337,7 +368,6 @@ test_case("EraseSingleElement") {
 }
 
 test_case("EraseSingleElementFromMultiple") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 20; i++) {
 		map.insert(std::to_string(i), 100);
@@ -349,7 +379,6 @@ test_case("EraseSingleElementFromMultiple") {
 }
 
 test_case("EraseAllElements") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 20; i++) {
 		map.insert(std::to_string(i), 100);
@@ -370,7 +399,6 @@ test_case("EraseAllElements") {
 }
 
 test_case("Reserve") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	map.reserve(100);
 	check_eq(map.size(), 0);
@@ -381,7 +409,6 @@ test_case("Reserve") {
 }
 
 test_case("Iterator") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 100; i++) {
 		map.insert(std::to_string(i), -1);
@@ -389,13 +416,12 @@ test_case("Iterator") {
 	int iterCount = 0;
 	for (auto pair : map) {
 		iterCount++;
-		check_eq(*pair.value, -1);
+		check_eq(pair.value, -1);
 	}
 	check_eq(iterCount, 100);
 }
 
 test_case("ConstIterator") {
-	//MemoryLeakDetector leakDetector;
 	const HashMap<std::string, int> map = []() {
 		HashMap<std::string, int> mapOut;
 		for (int i = 0; i < 100; i++) {
@@ -406,13 +432,12 @@ test_case("ConstIterator") {
 	int iterCount = 0;
 	for (auto pair : map) {
 		iterCount++;
-		check_eq(*pair.value, -1);
+		check_eq(pair.value, -1);
 	}
 	check_eq(iterCount, 100);
 }
 
 test_case("CopyConstruct") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 100; i++) {
 		map.insert(std::to_string(i), -1);
@@ -422,13 +447,12 @@ test_case("CopyConstruct") {
 	int iterCount = 0;
 	for (auto pair : otherMap) {
 		iterCount++;
-		check_eq(*pair.value, -1);
+		check_eq(pair.value, -1);
 	}
 	check_eq(iterCount, 100);
 }
 
 test_case("MoveConstruct") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 100; i++) {
 		map.insert(std::to_string(i), -1);
@@ -438,13 +462,12 @@ test_case("MoveConstruct") {
 	int iterCount = 0;
 	for (auto pair : otherMap) {
 		iterCount++;
-		check_eq(*pair.value, -1);
+		check_eq(pair.value, -1);
 	}
 	check_eq(iterCount, 100);
 }
 
 test_case("CopyAssign") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 100; i++) {
 		map.insert(std::to_string(i), -1);
@@ -456,13 +479,12 @@ test_case("CopyAssign") {
 	int iterCount = 0;
 	for (auto pair : otherMap) {
 		iterCount++;
-		check_eq(*pair.value, -1);
+		check_eq(pair.value, -1);
 	}
 	check_eq(iterCount, 100);
 }
 
 test_case("MoveAssign") {
-	//MemoryLeakDetector leakDetector;
 	HashMap<std::string, int> map;
 	for (int i = 0; i < 100; i++) {
 		map.insert(std::to_string(i), -1);
@@ -474,11 +496,9 @@ test_case("MoveAssign") {
 	int iterCount = 0;
 	for (auto pair : otherMap) {
 		iterCount++;
-		check_eq(*pair.value, -1);
+		check_eq(pair.value, -1);
 	}
 	check_eq(iterCount, 100);
 }
 
 #endif
-
-

@@ -1,689 +1,95 @@
 #pragma once
 
-#include "../basic_types.h"
-#include "../utility.h"
-#include "../doctest/doctest_proxy.h"
-//#include "../Utility.h"
 #include "hash.h"
-#include <intrin.h>
+#include "../doctest/doctest_proxy.h"
 #include "../option/option.h"
-#include "../cpu_features/cpu_feature_detector.h"
-#include <iostream>
 #include "../allocator/allocator.h"
 #include "../allocator/heap_allocator.h"
+#include "../utility.h"
 
-namespace gk 
+namespace gk
 {
-	namespace internal
-	{
-		/**
-		* Determines the bucket index. It's the 57 highest bits, right shifted.
-		*/
-		struct HashBucketBits {
-			static constexpr size_t BITMASK = ~0b01111111ULL;
-			size_t value;
-
-			HashBucketBits(const size_t hashCode)
-				: value((hashCode& BITMASK) >> 7) {}
-		};
-
-		/**
-		* Determines the key's index within a group. It's the lowest 7 bits, or'ed with 0b10000000.
-		*/
-		struct PairHashBits {
-			static constexpr i8 BITMASK = 0b01111111;
-			i8 value;
-
-			PairHashBits(const size_t hashCode)
-				: value((hashCode& BITMASK) | 0b10000000) {}
-		};
-
-		u64 hashMapSimdFindEqualHashCodesBitmask(const i8* buffer, PairHashBits hashCode);
-		Option<i8> firstAvailableGroupSlot(const i8* buffer);
-		Option<usize> bitscanForwardNext(u64* bitmask);
-	} // namespace internal
-
-	template<typename Key, typename Value>
-	struct HashIterPair {
-		const Key* key;
-		Value* value;
-	};
+	namespace internal {
+		template<typename Key, typename Value, usize GROUP_ALLOC_SIZE>
+		struct HashMapGroup;
+	}
 
 	/**
 	* A general purpose HashMap implementation, utilizing SIMD, and compile time chosen
-	* in-place entry storage for fundamental and pointer types for optimal cache access.
+	* in-place entry storage for appropriate types for optimal cache access.
 	* Supports custom allocators.
-	* 
+	*
 	* Requires that template type `Key` satisfies the concept `Hashable`. This means:
 	* 1. Has an overload for gk::hash<> OR is a pointer type.
 	* 2. Is equality comparible using const Key&.
-	* 
+	*
 	* NOTE: The key value pairs do not have pointer stability. Any mutation to the hashmap
 	* may modify the location where the values are stored, so they should not be directly stored
 	* as references.
-	* 
+	*
 	* @param Key: Must satisy the `Hashable` concept.
 	* @param Value: Has no restrictions.
+	* @param GROUP_ALLOC_SIZE: Amount of pairs to reserve per group of pairs.
+	* Must be a multiple of 16
 	*/
-	template<typename Key, typename Value>
-		requires Hashable<Key>
+	template<typename Key, typename Value, usize GROUP_ALLOC_SIZE = 32>
+		requires (GROUP_ALLOC_SIZE % 16 == 0 && Hashable<Key>)
 	struct HashMap
 	{
-		static usize hashKey(const Key& key) {
-			if constexpr (!std::is_pointer<Key>::value) {
-				return gk::hash<Key>(key);
-			}
-			else {
-				const usize ptrAsNum = reinterpret_cast<usize>(key);
-				return ptrAsNum;
-			}
-		}
-
-#pragma region Entry_Containers
-
 	private:
 
-		/**
-		* Holds the keys and values, and uses SIMD to look up.
-		*/
-		struct alignas(64) Group
-		{
-			static constexpr usize ELEMENTS_PER_GROUP = 64;
+		using GroupT = internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>;
 
-		private:
-
-			struct GroupPairsInPlace
-			{
-				GroupPairsInPlace() : keys{ 0 }, values{ 0 } {}
-				GroupPairsInPlace(const GroupPairsInPlace&) = delete;
-				GroupPairsInPlace& operator = (const GroupPairsInPlace&) = delete;
-				GroupPairsInPlace(GroupPairsInPlace&& other) noexcept {
-					memcpy(this->keys, other.keys, sizeof(GroupPairsInPlace::keys));
-					memcpy(this->values, other.values, sizeof(GroupPairsInPlace::values));
-				}
-				GroupPairsInPlace& operator = (GroupPairsInPlace&& other) noexcept {
-					memcpy(this->keys, other.keys, sizeof(GroupPairsInPlace::keys));
-					memcpy(this->values, other.values, sizeof(GroupPairsInPlace::values));
-					return *this;
-				}
-				~GroupPairsInPlace() = default;
-
-				Key* getKey(usize index) { return &keys[index]; }
-				Value* getValue(usize index) { return &values[index]; }
-				const Key* getKey(usize index) const { return &keys[index]; }
-				const Value* getValue(usize index) const { return &values[index]; }
-				void eraseEntry(usize index, Allocator* allocator) {}
-				void insertEntry(Key&& key, Value&& value, usize index, Allocator* allocator) {
-					keys[index] = key;
-					values[index] = value;
-				}
-			private:
-				Key keys[ELEMENTS_PER_GROUP];
-				Value values[ELEMENTS_PER_GROUP];
-			};
-
-			struct GroupPairsKeysInPlaceValuesHeap
-			{
-				GroupPairsKeysInPlaceValuesHeap() : keys{ 0 }, values{ nullptr } {}
-				GroupPairsKeysInPlaceValuesHeap(const GroupPairsKeysInPlaceValuesHeap&) = delete;
-				GroupPairsKeysInPlaceValuesHeap& operator = (const GroupPairsKeysInPlaceValuesHeap&) = delete;
-				GroupPairsKeysInPlaceValuesHeap(GroupPairsKeysInPlaceValuesHeap&& other) noexcept {
-					memcpy(this->keys, other.keys, sizeof(GroupPairsKeysInPlaceValuesHeap::keys));
-					memcpy(this->values, other.values, sizeof(GroupPairsKeysInPlaceValuesHeap::values));
-					memset(other.values, 0, sizeof(GroupPairsKeysInPlaceValuesHeap::values));
-				}
-				GroupPairsKeysInPlaceValuesHeap& operator = (GroupPairsKeysInPlaceValuesHeap&& other) noexcept {
-					this->~GroupPairsKeysInPlaceValuesHeap();
-					memcpy(this->keys, other.keys, sizeof(GroupPairsKeysInPlaceValuesHeap::keys));
-					memcpy(this->values, other.values, sizeof(GroupPairsKeysInPlaceValuesHeap::values));
-					memset(other.values, 0, sizeof(GroupPairsKeysInPlaceValuesHeap::values));
-					return *this;
-				}
-				~GroupPairsKeysInPlaceValuesHeap() {
-					for (usize i = 0; i < ELEMENTS_PER_GROUP; i++) {
-						if (values[i] != nullptr) delete values[i];
-					}
-				}
-
-				Key* getKey(usize index) { return &keys[index]; }
-				Value* getValue(usize index) { return values[index]; }
-				const Key* getKey(usize index) const { return &keys[index]; }
-				const Value* getValue(usize index) const { return values[index]; }
-				void eraseEntry(usize index, Allocator* allocator) {
-					if (values[index] == nullptr) return;
-					values[index].~Value();
-					allocator->freeObject(values[index]);
-					//values[index] = nullptr;
-				}
-				void insertEntry(Key&& key, Value&& value, usize index, Allocator* allocator) {
-					keys[index] = key;
-					Value* newValueMem = allocator->mallocObject<Value>().ok();
-					new (newValueMem) Value(std::move(value)); // move into
-					values[index] = newValueMem;
-				}
-			private:
-				Key keys[ELEMENTS_PER_GROUP];
-				Value* values[ELEMENTS_PER_GROUP];
-			};
-
-			struct GroupPairsBothHeap 
-			{
-			private:
-				struct Pairs {
-					Key key;
-					Value value;
-				};
-			public:
-				GroupPairsBothHeap() : pairs{ nullptr } {}
-				GroupPairsBothHeap(const GroupPairsBothHeap&) = delete;
-				GroupPairsBothHeap& operator = (const GroupPairsBothHeap&) = delete;
-				GroupPairsBothHeap(GroupPairsBothHeap&& other) noexcept {
-					memcpy(this->pairs, other.pairs, sizeof(GroupPairsBothHeap::pairs));
-					memset(other.pairs, 0, sizeof(GroupPairsBothHeap::pairs));
-				}
-				GroupPairsBothHeap& operator = (GroupPairsBothHeap&& other) noexcept {
-					this->~GroupPairsBothHeap();
-					memcpy(this->pairs, other.pairs, sizeof(GroupPairsBothHeap::pairs));
-					memset(other.pairs, 0, sizeof(GroupPairsBothHeap::pairs));
-					return *this;
-				}
-				~GroupPairsBothHeap() {
-					for (usize i = 0; i < ELEMENTS_PER_GROUP; i++) {
-						if (pairs[i] != nullptr) delete pairs[i];
-					}
-				}
-
-				Key* getKey(usize index) { return &pairs[index]->key; }
-				Value* getValue(usize index) { return &pairs[index]->value; }
-				const Key* getKey(usize index) const { return &pairs[index]->key; }
-				const Value* getValue(usize index) const { return &pairs[index]->value; }
-				void eraseEntry(usize index, Allocator* allocator) {
-					if (pairs[index] == nullptr) return;
-					pairs[index]->~Pairs();
-					allocator->freeObject(pairs[index]);
-					//pairs[index] = nullptr;
-				}
-				void insertEntry(Key&& key, Value&& value, usize index, Allocator* allocator) {
-					Pairs* newPairsMem = allocator->mallocObject<Pairs>().ok();
-					new (&newPairsMem->key) Key(std::move(key)); // move into
-					new (&newPairsMem->value) Value(std::move(value));
-					pairs[index] = newPairsMem;
-				}
-			private:
-				Pairs* pairs[ELEMENTS_PER_GROUP];
-			};
-			
-			template<typename T>
-			inline static constexpr bool CanTInPlace = std::is_fundamental<T>::value || std::is_pointer<T>::value;
-
-			// It doesn't make sense to store the value in place, if the key is on the heap, since the memory access pattern would be functionally identical.
-			using PairT = std::conditional_t<CanTInPlace<Key> && CanTInPlace<Value>, GroupPairsInPlace,			// Keys and values in place
-				std::conditional_t<CanTInPlace<Key> && !CanTInPlace<Value>, GroupPairsKeysInPlaceValuesHeap,	// Keys in place, Values in heap
-				GroupPairsBothHeap>>;																																					// Keys and values in heap
-
-		public:
-
-			Group() : hashMasks{ 0 } { /*std::cout << "group instantiation\n";*/ }
-			Group(const Group&) = delete;
-			Group& operator = (const Group&) = delete;
-			Group(Group&& other) noexcept {
-				memcpy(this->hashMasks, other.hashMasks, sizeof(Group::hashMasks));
-				//memset(other.hashMasks, 0, sizeof(Group::hashMasks));
-				this->pairs = std::move(other.pairs);
-			}
-			Group& operator = (Group&& other) = delete;
-			~Group() {};
-
-			/**
-			*/
-			void free(Allocator* allocator) {
-				for (usize i = 0; i < ELEMENTS_PER_GROUP; i++) {
-					pairs.eraseEntry(i, allocator);
-				}
-			}
-
-			/**
-			*/
-			Option<Value*> find(const Key& key, internal::PairHashBits hashCode) {
-				// Yeah it returns mutable pointers but the Bucket interface will take care of that
-				using OptionT = Option<Value*>;
-
-				u64 bitmask = internal::hashMapSimdFindEqualHashCodesBitmask(this->hashMasks, hashCode);
-				Option<usize> firstOption = internal::bitscanForwardNext(&bitmask);
-				if (firstOption.none()) return OptionT();
-				usize index = firstOption.some();
-				const Key* pairKey = this->pairs.getKey(index);
-				if (*pairKey == key) {
-					return OptionT(this->pairs.getValue(index));
-				}
-				while (true) { // if first hash doesn't match, loop until there is no other.
-					Option<usize> option = internal::bitscanForwardNext(&bitmask);
-					if (option.none()) return OptionT();
-					index = option.some();
-					const Key* pairKey = this->pairs.getKey(index);
-					if (*pairKey == key) {
-						return OptionT(this->pairs.getValue(index));
-					}
-				}
-			}
-
-			/**
-			*/
-			Option<const Value*> findConst(const Key& key, internal::PairHashBits hashCode) const {
-				// Yeah it returns mutable pointers but the Bucket interface will take care of that
-				using OptionT = Option<const Value*>;
-
-				u64 bitmask = internal::hashMapSimdFindEqualHashCodesBitmask(this->hashMasks, hashCode);
-				Option<usize> firstOption = internal::bitscanForwardNext(&bitmask);
-				if (firstOption.none()) return OptionT();
-				usize index = firstOption.some();
-				const Key* pairKey = this->pairs.getKey(index);
-				if (*pairKey == key) {
-					return OptionT(this->pairs.getValue(index));
-				}
-				while (true) { // if first hash doesn't match, loop until there is no other.
-					Option<usize> option = internal::bitscanForwardNext(&bitmask);
-					if (option.none()) return OptionT();
-					index = option.some();
-					const Key* pairKey = this->pairs.getKey(index);
-					if (*pairKey == key) {
-						return OptionT(this->pairs.getValue(index));
-					}
-				}
-			}
-
-			/** 
-			* If the entire thing is full, returns false, otherwise inserts the pair and lower hash bits. 
-			*/
-			bool insert(Key& key, Value& value, internal::PairHashBits hashCode, Allocator* allocator) {
-				Option<i8> opt = internal::firstAvailableGroupSlot(this->hashMasks);
-				if (opt.none()) return false;
-
-				const usize index = opt.some();
-				pairs.insertEntry(std::move(key), std::move(value), index, allocator);
-				hashMasks[index] = hashCode.value;
-				return true;
-			}
-
-			/**
-			* If the entry does not exist, returns false, otherwise erases the entry and frees all associated memory of it.
-			*/
-			bool erase(const Key& key, internal::PairHashBits hashCode, Allocator* allocator) {
-				u64 bitmask = internal::hashMapSimdFindEqualHashCodesBitmask(this->hashMasks, hashCode);
-				Option<usize> firstOption = internal::bitscanForwardNext(&bitmask);
-				if (firstOption.none()) return false;
-				usize index = firstOption.some();
-				Key* pairKey = pairs.getKey(index);
-				if (*pairKey == key) {
-					hashMasks[index] = 0;
-					pairs.eraseEntry(index, allocator);
-					return true;
-				}
-				while (true) { // if first hash doesn't match, loop until there is no other.
-					Option<usize> option = internal::bitscanForwardNext(&bitmask);
-					if (option.none()) return false;
-					index = option.some();
-					Key* pairKey = this->pairs.getKey(index);
-					if (*pairKey == key) {
-						hashMasks[index] = 0;
-						pairs.eraseEntry(index, allocator);
-						return true;
-					}
-				}
-			}
-
-
-
-			i8 hashMasks[64]; // __m512i
-			PairT pairs;
-
-		}; // struct Group
-
-		/**
-		* Holds 1 or more groups
-		*/
-		struct Bucket
-		{
-			Bucket(Allocator* allocator) : groupCount(1)
-			{
-				groups = allocator->mallocBuffer<Group>(1).ok();
-				new (groups) Group();
-			}
-
-			Bucket(const Bucket&) = delete;
-			Bucket& operator = (const Bucket&) = delete;
-			Bucket(Bucket&& other) noexcept {
-				groups = other.groups;
-				groupCount = other.groupCount;
-				other.groups = nullptr;
-				other.groupCount = 0;
-			}
-			Bucket& operator = (Bucket&& other) = delete;
-
-			~Bucket() {}
-
-			void free(Allocator* allocator) {
-				for (usize i = 0; i < groupCount; i++) {
-					Group& group = groups[i];
-					group.free(allocator);
-					//group.~Group();
-				}
-				allocator->freeBuffer(groups, groupCount);
-				groupCount = 0;
-			}
-
-			Option<Value*> find(const Key& key, internal::PairHashBits hashCode) {
-				for (usize i = 0; i < groupCount; i++) {
-					Group& group = groups[i];
-					Option<Value*> foundOpt = group.find(key, hashCode);
-					if (foundOpt.isSome()) return foundOpt;
-				}
-				return Option<Value*>();
-			}
-
-			Option<const Value*> findConst(const Key& key, internal::PairHashBits hashCode) const {
-				for (usize i = 0; i < groupCount; i++) {
-					Group& group = groups[i];
-					Option<const Value*> foundOpt = group.findConst(key, hashCode);
-					if (foundOpt.isSome()) return foundOpt;
-				}
-				return Option<const Value*>();
-			}
-
-			void insert(Key&& key, Value&& value, internal::PairHashBits hashCode, Allocator* allocator) {
-				for (usize i = 0; i < groupCount; i++) {
-					if (groups[i].insert(key, value, hashCode, allocator)) {
-						return; // successfully inserted
-					}
-				}
-				const usize newGroupCount = groupCount + 1;
-				Group* newGroups = allocator->mallocBuffer<Group>(1).ok();
-
-				for (usize i = 0; i < groupCount; i++) {
-					new (newGroups + i) Group(std::move(groups[i]));
-				}
-				allocator->freeBuffer(groups, groupCount);
-				groups = newGroups;
-				groupCount = newGroupCount;
-
-				const bool success = groups[newGroupCount - 1].insert(key, value, hashCode, allocator);
-				check_message(success, "this shouldn't ever fail");
-			}
-
-			bool erase(const Key& key, internal::PairHashBits hashCode, Allocator* allocator) {
-				for (usize i = 0; i < groupCount; i++) {
-					if (groups[i].erase(key, hashCode, allocator)) {
-						return true;
-					}
-				}
-				return false;
-			}
-
-
-			Group* groups;
-			usize groupCount;
-		};
-
-#pragma endregion
-
-#pragma region Iterator
-
-		friend class Iterator;
-		friend class ConstIterator;
-
-		class Iterator {
-		public:
-
-			static Iterator iterBegin(HashMap* map) {
-				Iterator iter;
-				iter._map = map;
-				iter._currentBucket = map->_buckets;
-				if (map->_buckets != nullptr) {
-					iter.step();
-				}		
-				return iter;
-			}
-
-			static Iterator iterEnd(HashMap* map) {
-				Iterator iter;
-				iter._map = map;
-				iter._currentBucket = map->_buckets + map->_bucketCount;
-				return iter;
-			}
-
-			Iterator& operator++() {
-				step();
-				return *this;
-			}
-
-			bool operator !=(const Iterator& other) const {
-				return _currentBucket != other._currentBucket;
-			}
-
-			HashIterPair<Key, Value> operator*() const {
-				Group& group = _currentBucket->groups[_currentGroupIndex];
-				//if (group.hashMasks[_currentElementIndex] == 0) {
-				//	std::cout << "first in hashmap is not a valid element\n";
-				//	for (int i = 0; i < 64; i++) {
-				//		std::cout << int(group.hashMasks[_currentElementIndex]) << ", ";
-				//	}
-				//	abort();
-				//}
-				HashIterPair<Key, Value> pair;
-				pair.key = group.pairs.getKey(_currentElementIndex);
-				pair.value = group.pairs.getValue(_currentElementIndex);
-				return pair;
-			}
-
-			void step() {
-				while (true) {
-					_currentElementIndex++;
-					if (_currentElementIndex == Group::ELEMENTS_PER_GROUP) {
-						_currentElementIndex = 0;
-						_currentGroupIndex++;
-					}
-
-					if (_currentGroupIndex == _currentBucket->groupCount) {
-						_currentBucket++;
-						_currentElementIndex = 0;
-						_currentGroupIndex = 0;
-					}
-
-					if (_currentBucket == _map->_buckets + _map->_bucketCount) {
-						return;
-					}
-
-					Group& group = _currentBucket->groups[_currentGroupIndex];
-					if (group.hashMasks[_currentElementIndex] != 0) {
-						return;
-					}
-				}
-			}
-
-		private:
-			Iterator() : _map(nullptr), _currentBucket(nullptr), _currentGroupIndex(0), _currentElementIndex(0) {}
-			HashMap* _map;
-			Bucket* _currentBucket;
-			usize _currentGroupIndex;
-			usize _currentElementIndex;
-		};
-
-		class ConstIterator {
-		public:
-
-			static ConstIterator iterBegin(const HashMap* map) {
-				ConstIterator iter;
-				iter._map = map;
-				iter._currentBucket = map->_buckets;
-				if (map->_buckets != nullptr) {
-					iter.step();
-				}
-				return iter;
-			}
-
-			static ConstIterator iterEnd(const HashMap* map) {
-				ConstIterator iter;
-				iter._map = map;
-				iter._currentBucket = map->_buckets + map->_bucketCount;
-				return iter;
-			}
-
-			ConstIterator& operator++() {
-				step();
-				return *this;
-			}
-
-			bool operator !=(const ConstIterator& other) const {
-				return _currentBucket != other._currentBucket;
-			}
-
-			HashIterPair<Key, const Value> operator*() const {
-				Group& group = _currentBucket->groups[_currentGroupIndex];
-				HashIterPair<Key, const Value> pair;
-				pair.key = group.pairs.getKey(_currentElementIndex);
-				pair.value = group.pairs.getValue(_currentElementIndex);
-				return pair;
-			}
-
-			void step() {
-				while (true) {
-					_currentElementIndex++;
-					if (_currentElementIndex == Group::ELEMENTS_PER_GROUP) {
-						_currentElementIndex = 0;
-						_currentGroupIndex++;
-					}
-
-					if (_currentGroupIndex == _currentBucket->groupCount) {
-						_currentBucket++;
-						_currentElementIndex = 0;
-						_currentGroupIndex = 0;
-					}
-
-					if (_currentBucket == _map->_buckets + _map->_bucketCount) {
-						return;
-					}
-
-					Group& group = _currentBucket->groups[_currentGroupIndex];
-					if (group.hashMasks[_currentElementIndex] != 0) {
-						return;
-					}
-				}
-			}
-
-		private:
-			ConstIterator() : _map(nullptr), _currentBucket(nullptr), _currentGroupIndex(0), _currentElementIndex(0) {}
-			const HashMap* _map;
-			const Bucket* _currentBucket;
-			usize _currentGroupIndex;
-			usize _currentElementIndex;
-		};
-		
-#pragma endregion
+		static constexpr usize hashKey(const Key& key);
 
 	public:
 
-		HashMap() 
-			: _buckets(nullptr), _bucketCount(0), _elementCount(0), _allocator(globalHeapAllocator()->clone()) 
-		{}
+		/**
+		* Create a new instance of `HashMap`.
+		* At runtime, uses the `gk::globalHeapAllocator()`.
+		* For using custom allocators, see `init()` and `withCapacity()` functions.
+		*/
+		constexpr HashMap();
 
-		HashMap(const HashMap& other) 
-			: _buckets(nullptr), _bucketCount(0), _elementCount(0), _allocator(other._allocator.clone())
-		{
-			if (other._elementCount == 0) {
-				return;
-			}
+		/**
+		*/
+		constexpr HashMap(const HashMap& other);
 
-			reallocate(other._elementCount);
-			for (auto pair : other) {
-				insert(Key(*pair.key), Value(*pair.value));
-			}
-		}
+		/**
+		*/
+		constexpr HashMap(HashMap&& other) noexcept;
 
-		HashMap(HashMap&& other) noexcept
-			: _buckets(other._buckets), _bucketCount(other._bucketCount), _elementCount(other._elementCount), _allocator(std::move(other._allocator))
-		{
-			other._buckets = nullptr;
-		}
+		constexpr ~HashMap();
 
-		HashMap& operator = (const HashMap& other) {
-			if (_buckets != nullptr) {
-				for (usize i = 0; i < _bucketCount; i++) {
-					_buckets[i].free(&_allocator);
-				}
-				_bucketCount = 0;
-				// DONT free the actual buckets buffer yet
-			}
+		/**
+		*/
+		constexpr HashMap& operator = (const HashMap& other);
 
-			_elementCount = 0;
-			if (other._elementCount == 0) {
-				return *this;
-			}
-
-			reallocate(other._elementCount);
-			for (auto pair : other) {
-				insert(Key(*pair.key), Value(*pair.value));
-			}
-			return *this;
-		}
-
-		HashMap& operator = (HashMap&& other) noexcept {
-			if (_buckets != nullptr) {
-				for (usize i = 0; i < _bucketCount; i++) {
-					_buckets[i].free(&_allocator);
-				}
-				_allocator.freeBuffer(_buckets, _bucketCount);
-			}
-
-			_buckets = other._buckets;
-			_bucketCount = other._bucketCount;
-			_elementCount = other._elementCount;
-			_allocator = std::move(other._allocator);
-			other._buckets = nullptr;
-			return *this;
-		}
-
-		~HashMap() {
-			if (_buckets == nullptr) return;
-
-			for (usize i = 0; i < _bucketCount; i++) {
-				_buckets[i].free(&_allocator);
-			}
-			_allocator.freeBuffer(_buckets, _bucketCount);
-		}
+		/**
+		*/
+		constexpr HashMap& operator = (HashMap&& other) noexcept;
 
 		/**
 		* @return Number of elements stored in the HashMap
 		*/
-		[[nodiscard]] usize size() const { return _elementCount; }
+		[[nodiscard]] constexpr usize size() const { return _elementCount; }
 
 		/**
-		* @return Immutable reference to the allocator used by this HashMap
+		* In constexpr, a custom allocator is not used, and thus this function is invalid in constexpr.
+		*
+		* @return Immutable reference to the allocator used by this HashMap.
 		*/
 		[[nodiscard]] const Allocator& allocator() const { return _allocator; }
 
 		/**
 		* Finds an entry within the HashMap, returning an optional mutable value.
-		* 
+		*
 		* NOTE: The HashMap does not have pointer stability. Subsequent mutation operations on the HashMap may
 		* invalidate the returned Some pointer due to the underlying data being moved to a new location.
-		* 
+		*
 		* @return Some if the key exists in the map, or None if it doesn't
 		*/
-		[[nodiscard]] Option<Value*> find(const Key& key) {
-			if (_elementCount == 0) {
-				return gk::Option<Value*>();
-			}
-			check_message(_buckets != nullptr, "Buckets of groups array should be valid after the above check");
-			check_message(_bucketCount > 0, "After this check, bucket count should be greater than 0");
-
-			const usize hashCode = hashKey(key);
-			const internal::HashBucketBits bucketBits = internal::HashBucketBits(hashCode);
-			const internal::PairHashBits pairBits = internal::PairHashBits(hashCode);
-
-			const usize bucketIndex = bucketBits.value % _bucketCount;
-
-			return _buckets[bucketIndex].find(key, pairBits);
-		}
+		[[nodiscard]] constexpr Option<Value*> find(const Key& key);
 
 		/**
 		* Finds an entry within the HashMap, returning an optional immutable value.
@@ -693,76 +99,7 @@ namespace gk
 		*
 		* @return Some if the key exists in the map, or None if it doesn't
 		*/
-		[[nodiscard]] Option<const Value*> find(const Key& key) const {
-			if (_elementCount == 0) {
-				return gk::Option<const Value*>();
-			}
-			check_message(_buckets != nullptr, "Buckets of groups array should be valid after the above check");
-			check_message(_bucketCount > 0, "After this check, bucket count should be greater than 0");
-
-			const usize hashCode = hashKey(key);
-			const internal::HashBucketBits bucketBits = internal::HashBucketBits(hashCode);
-			const internal::PairHashBits pairBits = internal::PairHashBits(hashCode);
-
-			const usize bucketIndex = bucketBits.value % _bucketCount;
-
-			return _buckets[bucketIndex].findConst(key, pairBits);
-		}
-
-		/**
-		* Invalidates any iterators.
-		* Inserts an entry into the HashMap if it DOES NOT exist.
-		* If it does exist, an option containing the existing value will be returned, which can be modified.
-		* 
-		* NOTE: The HashMap does not have pointer stability. Subsequent mutation operations on the HashMap may
-		* invalidate the returned Some pointer due to the underlying data being moved to a new location.
-		* 
-		* @return The entry if it already exists in the HashMap, or a None option if it didn't exist and thus was added.
-		* Can be ignored.
-		*/
-		Option<Value*> insert(Key&& key, Value&& value) {
-			Key tempKey = std::move(key);
-			const usize hashCode = hashKey(tempKey);
-			const internal::HashBucketBits bucketBits = internal::HashBucketBits(hashCode);
-			const internal::PairHashBits pairBits = internal::PairHashBits(hashCode);
-
-			if (_bucketCount > 0) {			
-				const usize bucketIndex = bucketBits.value % _bucketCount;
-				Option<Value*> found = _buckets[bucketIndex].find(tempKey, pairBits);
-
-				if (found.isSome()) return found;
-			}
-			
-			performInsert(std::move(tempKey), std::move(value), hashCode, pairBits);
-			return Option<Value*>();
-		}
-
-		/**
-		* Invalidates any iterators.
-		* Inserts an entry into the HashMap if it DOES NOT exist.
-		* If it does exist, an option containing the existing value will be returned, which can be modified.
-		* 
-		* NOTE: The HashMap does not have pointer stability. Subsequent mutation operations on the HashMap may
-		* invalidate the returned Some pointer due to the underlying data being moved to a new location.
-		* 
-		* @return The entry if it already exists in the HashMap, or a None option if it didn't exist and thus was added.
-		* Can be ignored.
-		*/
-		Option<Value*> insert(const Key& key, Value&& value) {
-			const usize hashCode = hashKey(key);
-			const internal::HashBucketBits bucketBits = internal::HashBucketBits(hashCode);
-			const internal::PairHashBits pairBits = internal::PairHashBits(hashCode);
-
-			if (_bucketCount > 0) {			
-				const usize bucketIndex = bucketBits.value % _bucketCount;
-				Option<Value*> found = _buckets[bucketIndex].find(key, pairBits);
-
-				if (found.isSome()) return found;
-			}
-			
-			performInsert(Key(key), std::move(value), hashCode, pairBits);
-			return Option<Value*>();
-		}
+		[[nodiscard]] constexpr Option<const Value*> find(const Key& key) const;
 
 		/**
 		* Invalidates any iterators.
@@ -775,22 +112,7 @@ namespace gk
 		* @return The entry if it already exists in the HashMap, or a None option if it didn't exist and thus was added.
 		* Can be ignored.
 		*/
-		Option<Value*> insert(Key&& key, const Value& value) {
-			Key tempKey = std::move(key);
-			const usize hashCode = hashKey(tempKey);
-			const internal::HashBucketBits bucketBits = internal::HashBucketBits(hashCode);
-			const internal::PairHashBits pairBits = internal::PairHashBits(hashCode);
-
-			if (_bucketCount > 0) {
-				const usize bucketIndex = bucketBits.value % _bucketCount;
-				Option<Value*> found = _buckets[bucketIndex].find(tempKey, pairBits);
-
-				if (found.isSome()) return found;
-			}
-
-			performInsert(std::move(tempKey), Value(value), hashCode, pairBits);
-			return Option<Value*>();
-		}
+		constexpr Option<Value*> insert(Key&& key, Value&& value);
 
 		/**
 		* Invalidates any iterators.
@@ -803,63 +125,65 @@ namespace gk
 		* @return The entry if it already exists in the HashMap, or a None option if it didn't exist and thus was added.
 		* Can be ignored.
 		*/
-		Option<Value*> insert(const Key& key, const Value& value) {
-			const usize hashCode = hashKey(key);
-			const internal::HashBucketBits bucketBits = internal::HashBucketBits(hashCode);
-			const internal::PairHashBits pairBits = internal::PairHashBits(hashCode);
+		constexpr Option<Value*> insert(const Key& key, Value&& value);
 
-			if (_bucketCount > 0) {
-				const usize bucketIndex = bucketBits.value % _bucketCount;
-				Option<Value*> found = _buckets[bucketIndex].find(key, pairBits);
+		/**
+		* Invalidates any iterators.
+		* Inserts an entry into the HashMap if it DOES NOT exist.
+		* If it does exist, an option containing the existing value will be returned, which can be modified.
+		*
+		* NOTE: The HashMap does not have pointer stability. Subsequent mutation operations on the HashMap may
+		* invalidate the returned Some pointer due to the underlying data being moved to a new location.
+		*
+		* @return The entry if it already exists in the HashMap, or a None option if it didn't exist and thus was added.
+		* Can be ignored.
+		*/
+		constexpr Option<Value*> insert(Key&& key, const Value& value);
 
-				if (found.isSome()) return found;
-			}
-
-			performInsert(Key(key), Value(value), hashCode, pairBits);
-			return Option<Value*>();
-		}
+		/**
+		* Invalidates any iterators.
+		* Inserts an entry into the HashMap if it DOES NOT exist.
+		* If it does exist, an option containing the existing value will be returned, which can be modified.
+		*
+		* NOTE: The HashMap does not have pointer stability. Subsequent mutation operations on the HashMap may
+		* invalidate the returned Some pointer due to the underlying data being moved to a new location.
+		*
+		* @return The entry if it already exists in the HashMap, or a None option if it didn't exist and thus was added.
+		* Can be ignored.
+		*/
+		constexpr Option<Value*> insert(const Key& key, const Value& value);
 
 		/**
 		* Invalidates any iterators.
 		* Erases an entry from the HashMap.
-		* 
+		*
 		* @return `true` if the key exists and was erased, or `false` if it wasn't in the HashMap.
 		* Can be ignored.
 		*/
-		bool erase(const Key& key) {
-			const usize hashCode = hashKey(key);
-			const internal::HashBucketBits bucketBits = internal::HashBucketBits(hashCode);
-			const internal::PairHashBits pairBits = internal::PairHashBits(hashCode);
-			const usize bucketIndex = bucketBits.value % _bucketCount;
-
-			_elementCount--;
-			return _buckets[bucketIndex].erase(key, pairBits, &_allocator);
-		}
+		constexpr bool erase(const Key& key);
 
 		/**
 		* Reserves additional capacity in the HashMap. If it decides to reallocate,
-		* all keys will be rehashed. The HashMap will be able to store at LEAST 
+		* all keys will be rehashed. The HashMap will be able to store at LEAST
 		* `size()` + additional entries.
-		* 
+		*
 		* @param additional: Minimum amount of elements to reserve extra capacity for
 		*/
-		void reserve(usize additional) {
-			const usize requiredCapacity = _elementCount + additional;
-			if (shouldReallocate(requiredCapacity)) {
-				reallocate(requiredCapacity);
-			}
-		}
+		constexpr void reserve(usize additional);
+
+		struct Iterator;
+		struct ConstIterator;
 
 		/**
-		* Begin of an Iterator with immutable keys, and mutable values, over 
+		* Begin of an Iterator with immutable keys, and mutable values, over
 		* each entry in the HashMap.
-		* 
+		*
 		* `insert()`, `erase()`, `reserve()`, `std::move()` and other mutation operations
 		* can be assumed to invalidate the iterator.
-		* 
+		*
 		* @return Begin of mutable iterator
 		*/
-		Iterator begin() { return Iterator::iterBegin(this); }
+		constexpr Iterator begin();
 
 		/**
 		* End of an Iterator with immutable keys, and mutable values, over
@@ -870,7 +194,7 @@ namespace gk
 		*
 		* @return End of mutable iterator
 		*/
-		Iterator end() { return Iterator::iterEnd(this); }
+		constexpr Iterator end();
 
 		/**
 		* Begin of an Iterator with immutable keys, and immutable values, over
@@ -881,7 +205,7 @@ namespace gk
 		*
 		* @return Begin of immutable iterator
 		*/
-		ConstIterator begin() const { return ConstIterator::iterBegin(this); }
+		constexpr ConstIterator begin() const;
 
 		/**
 		* End of an Iterator with immutable keys, and immutable values, over
@@ -892,89 +216,1262 @@ namespace gk
 		*
 		* @return End of immutable iterator
 		*/
-		ConstIterator end() const { return ConstIterator::iterEnd(this); }
+		constexpr ConstIterator end() const;
+
+		struct Iterator {
+			struct Pair {
+				const Key& key;
+				Value& value;
+			};
+
+			static constexpr Iterator iterBegin(HashMap* map);
+
+			static constexpr Iterator iterEnd(HashMap* map);
+
+			constexpr bool operator ==(const Iterator& other) const;
+
+			constexpr Pair operator*() const;
+
+			constexpr Iterator& operator++();
+
+		private:
+
+			constexpr Iterator() : _map(nullptr), _currentGroup(nullptr), _currentElementIndex(0) {}
+			HashMap* _map;
+			internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>* _currentGroup;
+			usize _currentElementIndex;
+		}; // struct Iterator
+
+		struct ConstIterator {
+			struct Pair {
+				const Key& key;
+				const Value& value;
+			};
+
+			static constexpr ConstIterator iterBegin(const HashMap* map);
+
+			static constexpr ConstIterator iterEnd(const HashMap* map);
+
+			constexpr bool operator ==(const ConstIterator& other) const;
+
+			constexpr Pair operator*() const;
+
+			constexpr ConstIterator& operator++();
+
+		private:
+
+			constexpr ConstIterator() : _map(nullptr), _currentGroup(nullptr), _currentElementIndex(0) {}
+			const HashMap* _map;
+			const internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>* _currentGroup;
+			usize _currentElementIndex;
+		}; // struct ConstIterator
 
 	private:
 
-		usize calculateNewBucketCount(usize requiredCapacity) {
-			return requiredCapacity <= Group::ELEMENTS_PER_GROUP ?
-				1 :
-				static_cast<usize>(gk::upperPowerOfTwo(requiredCapacity * (Group::ELEMENTS_PER_GROUP / 2)));
-		}
+		static constexpr usize calculateNewGroupCount(usize requiredCapacity);
 
-		bool shouldReallocate(usize requiredCapacity) const {
-			// load factor is 0.75
-			if (_bucketCount == 0) {
-				return true;
-			}
-			const usize loadFactorScaledPairCount = (_elementCount >> 2) * 3; // multiply by 0.75
-			return requiredCapacity > loadFactorScaledPairCount;
-		}
+		constexpr bool shouldReallocate(usize requiredCapacity) const;
 
-		void reallocate(usize requiredCapacity) {
-			const usize newBucketCount = calculateNewBucketCount(requiredCapacity);
-			if (newBucketCount <= _bucketCount) {
-				return;
-			}
-
-			// Construct the new buckets
-			Bucket* newBuckets = _allocator.mallocBuffer<Bucket>(newBucketCount).ok();
-			for (usize i = 0; i < newBucketCount; i++) {
-				new (newBuckets + i) Bucket(&_allocator);
-			}
-
-			// Loop through the old buckets, and move their data to the new buckets
-			// Rehashes all keys
-			for (usize oldBucketIndex = 0; oldBucketIndex < _bucketCount; oldBucketIndex++) {
-				Bucket& bucket = _buckets[oldBucketIndex];
-				for (usize groupIndex = 0; groupIndex < bucket.groupCount; groupIndex++) {
-					Group& group = bucket.groups[groupIndex];
-					for (usize i = 0; i < Group::ELEMENTS_PER_GROUP; i++) {
-						// Does not contain anything
-						if (group.hashMasks[i] == 0) continue;
-
-						Key* key = group.pairs.getKey(i);
-						Value* value = group.pairs.getValue(i);
-
-						const usize hashCode = hashKey(*key);
-						const internal::HashBucketBits bucketBits = internal::HashBucketBits(hashCode);
-						const internal::PairHashBits pairBits = internal::PairHashBits(hashCode);
-						const usize newBucketIndex = bucketBits.value % newBucketCount;
-
-						newBuckets[newBucketIndex].insert(std::move(*key), std::move(*value), pairBits, &_allocator);
-					}
-				}
-
-				// Free existing buckets
-				bucket.free(&_allocator);
-			}
-			if (_buckets) {
-				_allocator.freeBuffer(_buckets, _bucketCount);
-			}
-			
-			_buckets = newBuckets;
-			_bucketCount = newBucketCount;
-		}
-
-		void performInsert(Key&& key, Value&& value, internal::HashBucketBits bucketBits, internal::PairHashBits pairBits) {
-			const usize requiredCapacity = _elementCount + 1;
-			if (shouldReallocate(requiredCapacity)) {
-				reallocate(requiredCapacity);
-			}
-
-			const usize bucketIndex = bucketBits.value % _bucketCount;
-			_buckets[bucketIndex].insert(std::move(key), std::move(value), pairBits, &_allocator);
-			_elementCount++;
-		}
+		constexpr void reallocate(usize requiredCapacity);
 
 	private:
 
-		Bucket* _buckets;
-		usize _bucketCount;
+		GroupT* _groups;
+		usize _groupCount;
 		usize _elementCount;
 		Allocator _allocator;
+	};
 
-	}; // struct HashMap
+	namespace internal
+	{
+		/**
+		* Determines the bucket index. It's the 57 highest bits, right shifted.
+		*/
+		struct HashMapGroupBitmask {
+			static constexpr usize BITMASK = ~0b01111111ULL;
+			usize value;
+
+			constexpr HashMapGroupBitmask(const usize hashCode)
+				: value((hashCode& BITMASK) >> 7) {}
+		};
+
+		/**
+		* Determines the key's index within a group. It's the lowest 7 bits, or'ed with 0b10000000.
+		*/
+		struct HashMapPairBitmask {
+			static constexpr i8 BITMASK = 0b01111111;
+			i8 value;
+
+			constexpr HashMapPairBitmask(const usize hashCode)
+				: value((hashCode& BITMASK) | 0b10000000) {}
+		};
+
+#pragma region Pair_Containers
+
+		template<typename Key, typename Value>
+		struct HashPairInPlace
+		{
+			constexpr HashPairInPlace() = default;
+			constexpr HashPairInPlace(const HashPairInPlace&) = delete;
+			constexpr HashPairInPlace(HashPairInPlace&&) noexcept = default;
+			constexpr HashPairInPlace& operator = (const HashPairInPlace&) = delete;
+			constexpr HashPairInPlace& operator = (HashPairInPlace&&) noexcept = default;
+			constexpr ~HashPairInPlace() = default;
+
+			constexpr Key* getKey() { return &key; }
+			constexpr Value* getValue() { return &value; }
+			constexpr const Key* getKey() const { return &key; }
+			constexpr const Value* getValue() const { return &value; }
+			constexpr usize hashCode() const { return gk::hash<Key>(key); }
+
+			constexpr void erase(Allocator* allocator);
+			constexpr void insert(Key&& inKey, Value&& inValue, usize inHashCode, Allocator* allocator);
+
+		private:
+			Key key;
+			Value value;
+		};
+
+		template<typename Key, typename Value>
+		struct HashPairOnHeap
+		{
+			struct Pair {
+				Key key;
+				Value value;
+				usize hashCode;
+			};
+
+			constexpr HashPairOnHeap() : pair(nullptr) {}
+			constexpr HashPairOnHeap(const HashPairOnHeap&) = delete;
+			constexpr HashPairOnHeap(HashPairOnHeap&& other) noexcept;
+			constexpr HashPairOnHeap& operator = (const HashPairOnHeap&) = delete;
+			constexpr HashPairOnHeap& operator = (HashPairOnHeap&& other) noexcept;
+			constexpr ~HashPairOnHeap() = default;
+
+			constexpr Key* getKey() { return &pair->key; }
+			constexpr Value* getValue() { return &pair->value; }
+			constexpr const Key* getKey() const { return &pair->key; }
+			constexpr const Value* getValue() const { return &pair->value; }
+			constexpr usize hashCode() const { return pair->hashCode; }
+
+			constexpr void erase(Allocator* allocator);
+			constexpr void insert(Key&& inKey, Value&& inValue, usize inHashCode, Allocator* allocator);
+
+			Pair* pair;
+		};
+
+#pragma endregion
+
+		template<typename T>
+		inline static constexpr bool CAN_T_IN_PLACE() { return sizeof(T) <= (sizeof(gk::usize) / 2); }
+
+		template<typename Key, typename Value>
+		static constexpr usize calculateGroupAllocAlignment(usize groupAllocSize);
+
+		// Find first available empty slot in a group using 16 byte simd instructions
+		Option<usize> firstAvailableGroupSlot16(const i8* buffer, usize capacity);
+		// Find first available empty slot in a group using 32 byte simd instructions
+		Option<usize> firstAvailableGroupSlot32(const i8* buffer, usize capacity);
+		// Find first available empty slot in a group using 64 OR 32 byte simd instructions, 
+		// depending on what's available to the user's system at runtime.
+		Option<usize> firstAvailableGroupSlot64(const i8* buffer, usize capacity);
+
+		u64 simdFindEqualHashCodeBitmaskIteration16(const i8* bufferOffsetIter, HashMapPairBitmask hashBits);
+		u64 simdFindEqualHashCodeBitmaskIteration32(const i8* bufferOffsetIter, HashMapPairBitmask hashBits);
+		u64 simdFindEqualHashCodeBitmaskIteration64(const i8* bufferOffsetIter, HashMapPairBitmask hashBits);
+
+		template<typename PairT>
+		constexpr usize calculateHashMapGroupRuntimeAllocationSize(usize requiredCapacity);
+
+		template<typename Key, typename Value, usize GROUP_ALLOC_SIZE>
+		struct HashMapGroup {
+
+			using PairT = std::conditional_t<CAN_T_IN_PLACE<Key>() && CAN_T_IN_PLACE<Value>(),
+				HashPairInPlace<Key, Value>,	// Keys and values in place
+				HashPairOnHeap<Key, Value>>;	// Keys and values in heap
+
+			static constexpr usize ALLOC_ALIGNMENT = calculateGroupAllocAlignment<Key, Value>(GROUP_ALLOC_SIZE);
+			static_assert(ALLOC_ALIGNMENT % 16 == 0);
+
+			i8* hashMasks;
+			PairT* pairs;
+			usize pairCount;
+			usize capacity;
+
+			constexpr HashMapGroup() : hashMasks(nullptr), pairs(nullptr), pairCount(0), capacity(0) {}
+			constexpr HashMapGroup(const HashMapGroup&) = delete;
+			constexpr HashMapGroup(HashMapGroup&& other) noexcept;
+			constexpr HashMapGroup& operator = (const HashMapGroup&) = delete;
+			constexpr HashMapGroup& operator = (HashMapGroup&& other) noexcept;
+			constexpr ~HashMapGroup();
+
+			constexpr void defaultInit(Allocator* allocator);
+
+			constexpr void free(Allocator* allocator);
+
+			constexpr Option<Value*> find(const Key& key, usize hashCode);
+
+			constexpr Option<const Value*> find(const Key& key, usize hashCode) const;
+
+			constexpr Option<Value*> insert(Key&& key, Value&& value, usize hashCode, Allocator* allocator);
+
+			constexpr bool erase(const Key& key, usize hashCode, Allocator* allocator);
+
+			//private:
+
+			constexpr Option<usize> findIndexOfKey(const Key& key, usize hashCode) const;
+
+			Option<usize> findIndexOfKeyRuntime(const Key& key, usize hashCode) const;
+
+			Option<usize> findIndexOfKeyRuntime16(const Key& key, usize hashCode) const;
+
+			Option<usize> findIndexOfKeyRuntime32(const Key& key, usize hashCode) const;
+
+			Option<usize> findIndexOfKeyRuntime64(const Key& key, usize hashCode) const;
+
+			constexpr Option<usize> firstAvailableGroupSlot() const;
+
+			constexpr void reallocate(usize newCapacity, Allocator* allocator);
+
+		}; // struct HashMapGroup
+
+	} // namespace internal
 } // namespace gk
 
+template<typename Key, typename Value>
+constexpr gk::usize gk::internal::calculateGroupAllocAlignment(usize groupAllocSize)
+{
+	usize keyValueMinAlignment = alignof(Key) < alignof(Value) ? alignof(Value) : alignof(Key);
+	usize minGroupAlignment = 0;
+	if (groupAllocSize == 16) {
+		minGroupAlignment = 16;
+	}
+	else if (groupAllocSize == 32) {
+		minGroupAlignment = 32;
+	}
+	else {
+		minGroupAlignment = 64;
+	}
+	if (keyValueMinAlignment < minGroupAlignment) {
+		return minGroupAlignment;
+	}
+	else {
+		return keyValueMinAlignment;
+	}
+}
 
+template<typename PairT>
+inline constexpr gk::usize gk::internal::calculateHashMapGroupRuntimeAllocationSize(usize requiredCapacity)
+{
+	check_eq((requiredCapacity % 16), 0);
+
+	return requiredCapacity + (sizeof(PairT) * requiredCapacity);
+}
+
+template<typename Key, typename Value>
+inline constexpr void gk::internal::HashPairInPlace<Key, Value>::erase(Allocator* allocator)
+{
+	key.~Key();
+	value.~Value();
+}
+
+template<typename Key, typename Value>
+inline constexpr void gk::internal::HashPairInPlace<Key, Value>::insert(Key&& inKey, Value&& inValue, usize inHashCode, gk::Allocator* allocator)
+{
+	if (std::is_constant_evaluated()) {
+		key = std::move(inKey);
+		value = std::move(inValue);
+	}
+	else {
+		new (&key) Key(std::move(inKey));
+		new (&value) Value(std::move(inValue));
+	}
+}
+
+template<typename Key, typename Value>
+inline constexpr gk::internal::HashPairOnHeap<Key, Value>::HashPairOnHeap(HashPairOnHeap&& other) noexcept
+{
+	pair = other.pair;
+	other.pair = nullptr;
+}
+
+template<typename Key, typename Value>
+inline constexpr gk::internal::HashPairOnHeap<Key, Value>& gk::internal::HashPairOnHeap<Key, Value>::operator=(HashPairOnHeap&& other) noexcept
+{
+	//check(pair == nullptr);
+	pair = other.pair;
+	other.pair = nullptr;
+	return *this;
+}
+
+template<typename Key, typename Value>
+inline constexpr void gk::internal::HashPairOnHeap<Key, Value>::erase(Allocator* allocator)
+{
+	if (std::is_constant_evaluated()) {
+		delete pair;
+	}
+	else {
+		pair->~Pair();
+		allocator->freeObject(pair);
+	}
+}
+
+template<typename Key, typename Value>
+inline constexpr void gk::internal::HashPairOnHeap<Key, Value>::insert(Key&& inKey, Value&& inValue, usize inHashCode, Allocator* allocator)
+{
+	check(pair == nullptr);
+	if (std::is_constant_evaluated()) {
+		pair = new Pair();
+		pair->key = std::move(inKey);
+		pair->value = std::move(inValue);
+		pair->hashCode = inHashCode;
+	}
+	else {
+		pair = allocator->mallocObject<Pair>().ok();
+		new (&pair->key) Key(std::move(inKey));
+		new (&pair->value) Value(std::move(inValue));
+		pair->hashCode = inHashCode;
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline constexpr gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::HashMapGroup(HashMapGroup&& other) noexcept
+{
+	check_eq(pairs, nullptr);
+
+	hashMasks = other.hashMasks;
+	pairs = other.pairs;
+	pairCount = other.pairCount;
+	capacity = other.capacity;
+	other.hashMasks = nullptr;
+	other.pairs = nullptr;
+	other.pairCount = 0;
+	other.capacity = 0;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline constexpr gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>& gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::operator=(HashMapGroup&& other) noexcept
+{
+	check_eq(pairs, nullptr);
+
+	hashMasks = other.hashMasks;
+	pairs = other.pairs;
+	pairCount = other.pairCount;
+	capacity = other.capacity;
+	other.hashMasks = nullptr;
+	other.pairs = nullptr;
+	other.pairCount = 0;
+	other.capacity = 0;
+
+	return *this;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline constexpr gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::~HashMapGroup()
+{
+	//check_eq(pairs, nullptr);
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline constexpr void gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::defaultInit(Allocator* allocator)
+{
+	check_eq(pairs, nullptr);
+
+	if (std::is_constant_evaluated()) {
+		hashMasks = new i8[GROUP_ALLOC_SIZE];
+		pairs = new PairT[GROUP_ALLOC_SIZE];
+		capacity = GROUP_ALLOC_SIZE;
+	}
+	else {
+		constexpr usize INITIAL_ALLOCATION_SIZE = calculateHashMapGroupRuntimeAllocationSize<PairT>(GROUP_ALLOC_SIZE);
+
+		i8* memory = allocator->mallocAlignedBuffer<i8>(INITIAL_ALLOCATION_SIZE, ALLOC_ALIGNMENT).ok();
+		memset(memory, 0, INITIAL_ALLOCATION_SIZE);
+
+		hashMasks = memory;
+		pairs = reinterpret_cast<PairT*>(memory + GROUP_ALLOC_SIZE);
+		capacity = GROUP_ALLOC_SIZE;
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline constexpr void gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::free(Allocator* allocator)
+{
+	if (std::is_constant_evaluated()) {
+		for (usize i = 0; i < capacity; i++) {
+			if (hashMasks[i] == 0) continue;
+			pairs[i].erase(nullptr);
+		}
+		delete[] hashMasks;
+		delete[] pairs;
+		pairs = nullptr;
+		hashMasks = nullptr;
+		return;
+	}
+
+	for (usize i = 0; i < capacity; i++) {
+		if (hashMasks[i] != 0) {
+			pairs[i].erase(allocator);
+		}
+	}
+
+	const usize currentAllocationSize = calculateHashMapGroupRuntimeAllocationSize<PairT>(capacity);
+	allocator->freeAlignedBuffer<i8>(hashMasks, currentAllocationSize, ALLOC_ALIGNMENT);
+	pairs = nullptr;
+	check_eq(hashMasks, nullptr);
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline constexpr gk::Option<Value*> gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::find(const Key& key, usize hashCode)
+{
+	Option<usize> index = findIndexOfKey(key, hashCode);
+	if (index.none()) {
+		return Option<Value*>();
+	}
+	return Option<Value*>((Value*)pairs[index.someCopy()].getValue());
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline constexpr gk::Option<const Value*> gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::find(const Key& key, usize hashCode) const
+{
+	Option<usize> index = findIndexOfKey(key, hashCode);
+	if (index.none()) {
+		return Option<const Value*>();
+	}
+	return Option<const Value*>((const Value*)pairs[index.someCopy()].getValue());
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline constexpr gk::Option<Value*> gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::insert(Key&& key, Value&& value, usize hashCode, Allocator* allocator)
+{
+	Option<Value*> existingValue = /*((gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>*)this)->*/
+		find(key, hashCode);
+
+	if (existingValue.isSome()) {
+		return existingValue;
+	}
+
+	if (pairCount == capacity) {
+		reallocate(capacity * 2, allocator);
+	}
+
+	usize availableIndex = firstAvailableGroupSlot().some();
+	pairs[availableIndex].insert(std::move(key), std::move(value), hashCode, allocator);
+	if (!std::is_constant_evaluated()) {
+		hashMasks[availableIndex] = internal::HashMapPairBitmask(hashCode).value;
+	}
+	pairCount++;
+	return Option<Value*>();
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline constexpr bool gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::erase(const Key& key, usize hashCode, Allocator* allocator)
+{
+	Option<usize> foundIndex = findIndexOfKey(key, hashCode);
+	if (foundIndex.none()) {
+		return false;
+	}
+
+	const usize index = foundIndex.someCopy();
+	hashMasks[index] = 0;
+	pairs[index].erase(allocator);
+	pairCount--;
+	return true;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline constexpr gk::Option<gk::usize> gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::findIndexOfKey(const Key& key, usize hashCode) const
+{
+	if (!std::is_constant_evaluated()) {
+		return findIndexOfKeyRuntime(key, hashCode);
+	}
+
+	const internal::HashMapPairBitmask hashBitmask = hashCode;
+	for (usize i = 0; i < capacity; i++) {
+		if (hashMasks[i] == hashBitmask.value) {
+			if (*pairs[i].getKey() == key) {
+				return Option<usize>(i);
+			}
+		}
+	}
+	return Option<usize>();
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline gk::Option<gk::usize> gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::findIndexOfKeyRuntime(const Key& key, usize hashCode) const
+{
+	if constexpr (GROUP_ALLOC_SIZE == 16) {
+		return findIndexOfKeyRuntime16(key, hashCode);
+	}
+	else if constexpr (GROUP_ALLOC_SIZE == 32) {
+		return findIndexOfKeyRuntime32(key, hashCode);
+	}
+	else {
+		return findIndexOfKeyRuntime64(key, hashCode);
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline gk::Option<gk::usize> gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::findIndexOfKeyRuntime16(const Key& key, usize hashCode) const
+{
+	const usize iterationCount = capacity / 16;
+
+	for (usize i = 0; i < iterationCount; i++) {
+		u64 bitmask = simdFindEqualHashCodeBitmaskIteration16(hashMasks + (i * 16), HashMapPairBitmask(hashCode));
+		while (true) {
+			Option<usize> indexOption = bitscanForwardNext(&bitmask);
+			if (indexOption.none()) break;
+
+			const usize index = indexOption.someCopy() + (i * 16);
+
+			if (*pairs[index].getKey() == key) {
+				return Option<usize>(index);
+			}
+		}
+	}
+	return Option<usize>();
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline gk::Option<gk::usize> gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::findIndexOfKeyRuntime32(const Key& key, usize hashCode) const
+{
+	const usize iterationCount = capacity / 32;
+
+	for (usize i = 0; i < iterationCount; i++) {
+		u64 bitmask = simdFindEqualHashCodeBitmaskIteration32(hashMasks + (i * 32), HashMapPairBitmask(hashCode));
+		while (true) {
+			Option<usize> indexOption = bitscanForwardNext(&bitmask);
+			if (indexOption.none()) break;
+
+			const usize index = indexOption.someCopy() + (i * 32);
+
+			if (*pairs[index].getKey() == key) {
+				return Option<usize>(index);
+			}
+		}
+	}
+	return Option<usize>();
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline gk::Option<gk::usize> gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::findIndexOfKeyRuntime64(const Key& key, usize hashCode) const
+{
+	const usize iterationCount = capacity / 64;
+
+	for (usize i = 0; i < iterationCount; i++) {
+		u64 bitmask = simdFindEqualHashCodeBitmaskIteration64(hashMasks + (i * 64), HashMapPairBitmask(hashCode));
+		while (true) {
+			Option<usize> indexOption = bitscanForwardNext(&bitmask);
+			if (indexOption.none()) break;
+
+			const usize index = indexOption.someCopy() + (i * 64);
+
+			if (*pairs[index].getKey() == key) {
+				return Option<usize>(index);
+			}
+		}
+	}
+	return Option<usize>();
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline constexpr gk::Option<gk::usize> gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::firstAvailableGroupSlot() const
+{
+	if (std::is_constant_evaluated()) {
+		for (usize i = 0; i < capacity; i++) {
+			if (hashMasks[i] == 0) {
+				return Option<usize>(i);
+			}
+		}
+		return Option<usize>();
+	}
+	else {
+		if constexpr (GROUP_ALLOC_SIZE == 16) {
+			return firstAvailableGroupSlot16(hashMasks, capacity);
+		}
+		else if constexpr (GROUP_ALLOC_SIZE == 32) {
+			return firstAvailableGroupSlot32(hashMasks, capacity);
+		}
+		else {
+			return firstAvailableGroupSlot64(hashMasks, capacity);
+		}
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+inline constexpr void gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::reallocate(usize newCapacity, Allocator* allocator)
+{
+	check_eq((newCapacity % 16), 0);
+	if (newCapacity < capacity) {
+		return;
+	}
+
+	//this->free(allocator);
+	//check_eq(pairs, nullptr);
+
+	if (std::is_constant_evaluated()) {
+		i8* newHashMasks = new i8[newCapacity];
+		PairT* newPairs = new PairT[newCapacity];
+
+		usize newIter = 0;
+		for (usize i = 0; i < capacity; i++) {
+			if (hashMasks[i] == 0) {
+				continue;
+			}
+			newHashMasks[newIter] = hashMasks[i];
+			newPairs[newIter] = std::move(pairs[i]);
+			newIter++;
+		}
+		if (pairs != nullptr) {
+			delete[] pairs;
+			check_ne(hashMasks, nullptr);
+			delete[] hashMasks;
+		}
+
+		hashMasks = newHashMasks;
+		pairs = newPairs;
+		capacity = newCapacity;
+	}
+	else {
+		const usize allocationSize = calculateHashMapGroupRuntimeAllocationSize<PairT>(newCapacity);
+
+		i8* memory = allocator->mallocAlignedBuffer<i8>(allocationSize, ALLOC_ALIGNMENT).ok();
+		memset(memory, 0, allocationSize);
+
+		i8* newHashMasks = memory;
+		PairT* newPairs = reinterpret_cast<PairT*>(memory + newCapacity);
+		usize newIter = 0;
+		for (usize i = 0; i < capacity; i++) {
+			if (hashMasks[i] == 0) {
+				continue;
+			}
+			newHashMasks[newIter] = hashMasks[i];
+			newPairs[newIter] = std::move(pairs[i]);
+			newIter++;
+		}
+
+		const usize currentAllocationSize = calculateHashMapGroupRuntimeAllocationSize<PairT>(capacity);
+		allocator->freeAlignedBuffer<i8>(hashMasks, currentAllocationSize, ALLOC_ALIGNMENT);
+		pairs = nullptr;
+		check_eq(hashMasks, nullptr);
+
+		hashMasks = newHashMasks;
+		pairs = newPairs;
+		capacity = newCapacity;
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::usize gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::hashKey(const Key& key)
+{
+	if constexpr (!std::is_pointer<Key>::value) {
+		return gk::hash<Key>(key);
+	}
+	else {
+		if (std::is_constant_evaluated()) {
+			static_assert(!std::is_pointer<Key>::value, "Cannot use pointer type for HashMap Key in constexpr contexts");
+		}
+		const usize ptrAsNum = reinterpret_cast<usize>(key);
+		return ptrAsNum;
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::HashMap()
+	: _groups(nullptr), _groupCount(0), _elementCount(0)
+{
+	if (!std::is_constant_evaluated()) {
+		new (&_allocator) Allocator(globalHeapAllocator()->clone());
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::HashMap(const HashMap& other)
+	: _groups(nullptr), _groupCount(0), _elementCount(0)
+{
+	if (!std::is_constant_evaluated()) {
+		new (&_allocator) Allocator(globalHeapAllocator()->clone());
+	}
+	if (other._groupCount == 0) {
+		return;
+	}
+
+	reallocate(other._elementCount);
+
+	for (usize i = 0; i < other._groupCount; i++) {
+		const GroupT& otherGroup = other._groups[i];
+
+		for (usize groupPairIter = 0; groupPairIter < otherGroup.capacity; groupPairIter++) {
+			if (otherGroup.hashMasks[groupPairIter] == 0) {
+				continue;
+			}
+
+			typename GroupT::PairT& pair = otherGroup.pairs[groupPairIter];
+
+			const usize hashCode = pair.hashCode();
+			const Key* key = pair.getKey();
+			const Value* value = pair.getValue();
+
+			const internal::HashMapGroupBitmask groupBitmask = internal::HashMapGroupBitmask(hashCode);
+			const usize groupIndex = groupBitmask.value % _groupCount;
+			GroupT& group = _groups[groupIndex];
+			group.insert(Key(*key), Value(*value), hashCode, &_allocator);
+			_elementCount++;
+		}
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::HashMap(HashMap&& other) noexcept
+	: _groups(other._groups), _groupCount(other._groupCount), _elementCount(other._elementCount), _allocator(std::move(other._allocator))
+{
+	other._groups = nullptr;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::~HashMap()
+{
+	if (_groups == nullptr) return;
+
+	for (usize i = 0; i < _groupCount; i++) {
+		_groups[i].free(&_allocator);
+	}
+	if (std::is_constant_evaluated()) {
+		delete[] _groups;
+	}
+	else {
+		_allocator.freeBuffer<GroupT>(_groups, _groupCount);
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>& gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::operator=(const HashMap& other)
+{
+	if (_groups != nullptr) {
+		for (usize i = 0; i < _groupCount; i++) {
+			GroupT& group = _groups[i];
+			for (usize pairIter = 0; pairIter < group.capacity; pairIter++) {
+				if (group.hashMasks[pairIter] != 0) {
+					group.pairs[i].erase(&_allocator);
+					group.hashMasks[i] = 0;
+				}
+			}
+		}
+		if (other._elementCount == 0) {
+			for (usize i = 0; i < _groupCount; i++) {
+				_groups[i].free(&_allocator);
+			}
+			if (std::is_constant_evaluated()) {
+				delete[] _groups;
+			}
+			else {
+				_allocator.freeBuffer<GroupT>(_groups, _groupCount);
+			}
+			return *this;
+		}
+	}
+	_elementCount = 0;
+
+	if (shouldReallocate(other._elementCount)) {
+		reallocate(other._elementCount);
+	}
+
+	for (usize i = 0; i < other._groupCount; i++) {
+		const GroupT& otherGroup = other._groups[i];
+
+		for (usize groupPairIter = 0; groupPairIter < otherGroup.capacity; groupPairIter++) {
+			if (otherGroup.hashMasks[groupPairIter] == 0) {
+				continue;
+			}
+
+			typename GroupT::PairT& pair = otherGroup.pairs[groupPairIter];
+
+			const usize hashCode = pair.hashCode();
+			const Key* key = pair.getKey();
+			const Value* value = pair.getValue();
+
+			const internal::HashMapGroupBitmask groupBitmask = internal::HashMapGroupBitmask(hashCode);
+			const usize groupIndex = groupBitmask.value % _groupCount;
+			GroupT& group = _groups[groupIndex];
+			group.insert(Key(*key), Value(*value), hashCode, &_allocator);
+			_elementCount++;
+		}
+	}
+	return *this;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>& gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::operator=(HashMap&& other) noexcept
+{
+	if (_groups != nullptr) {
+		for (usize i = 0; i < _groupCount; i++) {
+			_groups[i].free(&_allocator);
+		}
+		if (std::is_constant_evaluated()) {
+			delete[] _groups;
+		}
+		else {
+			_allocator.freeBuffer<GroupT>(_groups, _groupCount);
+		}
+	}
+
+	_groups = other._groups;
+	_groupCount = other._groupCount;
+	_elementCount = other._elementCount;
+	_allocator = std::move(other._allocator);
+	other._groups = nullptr;
+	return *this;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::Option<Value*> gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::find(const Key& key)
+{
+	if (_elementCount == 0) {
+		return Option<Value*>();
+	}
+
+	const usize hashCode = hashKey(key);
+	const internal::HashMapGroupBitmask groupBitmask = internal::HashMapGroupBitmask(hashCode);
+	const usize groupIndex = groupBitmask.value % _groupCount;
+
+	GroupT& group = _groups[groupIndex];
+	return group.find(key, hashCode);
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::Option<const Value*> gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::find(const Key& key) const
+{
+	if (_elementCount == 0) {
+		return Option<const Value*>();
+	}
+
+	const usize hashCode = hashKey(key);
+	const internal::HashMapGroupBitmask groupBitmask = internal::HashMapGroupBitmask(hashCode);
+	const usize groupIndex = groupBitmask.value % _groupCount;
+
+	const GroupT& group = _groups[groupIndex];
+	return group.find(key, hashCode);
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::Option<Value*> gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::insert(Key&& key, Value&& value)
+{
+	const usize hashCode = hashKey(key);
+	const internal::HashMapGroupBitmask groupBitmask = internal::HashMapGroupBitmask(hashCode);
+
+	if (_elementCount != 0) {
+		const usize groupIndex = groupBitmask.value % _groupCount;
+		GroupT& group = _groups[groupIndex];
+		Option<Value*> foundValue = group.insert(std::move(key), std::move(value), hashCode, &_allocator);
+		if (foundValue.isSome()) {
+			return foundValue; // already exists
+		}
+		else {
+			_elementCount++;
+			return Option<Value*>();
+		}
+	}
+
+	if (shouldReallocate(_elementCount + 1)) {
+		reallocate(_elementCount + 1); // reallocate handles allocating extra space
+	}
+
+	{
+		const usize groupIndex = groupBitmask.value % _groupCount;
+		GroupT& group = _groups[groupIndex];
+		group.insert(std::move(key), std::move(value), hashCode, &_allocator);
+		_elementCount++;
+		return Option<Value*>();
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::Option<Value*> gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::insert(const Key& key, Value&& value)
+{
+	const usize hashCode = hashKey(key);
+	const internal::HashMapGroupBitmask groupBitmask = internal::HashMapGroupBitmask(hashCode);
+
+	if (_elementCount != 0) {
+		const usize groupIndex = groupBitmask.value % _groupCount;
+		GroupT& group = _groups[groupIndex];
+		Option<Value*> foundValue = group.insert(Key(key), std::move(value), hashCode, &_allocator);
+		if (foundValue.isSome()) {
+			return foundValue; // already exists
+		}
+		else {
+			_elementCount++;
+			return Option<Value*>();
+		}
+	}
+
+	if (shouldReallocate(_elementCount + 1)) {
+		reallocate(_elementCount + 1); // reallocate handles allocating extra space
+	}
+
+	{
+		const usize groupIndex = groupBitmask.value % _groupCount;
+		GroupT& group = _groups[groupIndex];
+		group.insert(Key(key), std::move(value), hashCode, &_allocator);
+		_elementCount++;
+		return Option<Value*>();
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::Option<Value*> gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::insert(Key&& key, const Value& value)
+{
+	const usize hashCode = hashKey(key);
+	const internal::HashMapGroupBitmask groupBitmask = internal::HashMapGroupBitmask(hashCode);
+
+	if (_elementCount != 0) {
+		const usize groupIndex = groupBitmask.value % _groupCount;
+		GroupT& group = _groups[groupIndex];
+		Option<Value*> foundValue = group.insert(std::move(key), Value(value), hashCode, &_allocator);
+		if (foundValue.isSome()) {
+			return foundValue; // already exists
+		}
+		else {
+			_elementCount++;
+			return Option<Value*>();
+		}
+	}
+
+	if (shouldReallocate(_elementCount + 1)) {
+		reallocate(_elementCount + 1); // reallocate handles allocating extra space
+	}
+
+	{
+		const usize groupIndex = groupBitmask.value % _groupCount;
+		GroupT& group = _groups[groupIndex];
+		group.insert(std::move(key), Value(value), hashCode, &_allocator);
+		_elementCount++;
+		return Option<Value*>();
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::Option<Value*> gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::insert(const Key& key, const Value& value)
+{
+	const usize hashCode = hashKey(key);
+	const internal::HashMapGroupBitmask groupBitmask = internal::HashMapGroupBitmask(hashCode);
+
+	if (_elementCount != 0) {
+		const usize groupIndex = groupBitmask.value % _groupCount;
+		GroupT& group = _groups[groupIndex];
+		Option<Value*> foundValue = group.insert(Key(key), Value(value), hashCode, &_allocator);
+		if (foundValue.isSome()) {
+			return foundValue; // already exists
+		}
+		else {
+			_elementCount++;
+			return Option<Value*>();
+		}
+	}
+
+	if (shouldReallocate(_elementCount + 1)) {
+		reallocate(_elementCount + 1); // reallocate handles allocating extra space
+	}
+
+	{
+		const usize groupIndex = groupBitmask.value % _groupCount;
+		GroupT& group = _groups[groupIndex];
+		group.insert(Key(key), Value(value), hashCode, &_allocator);
+		_elementCount++;
+		return Option<Value*>();
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr bool gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::erase(const Key& key)
+{
+	if (_elementCount == 0) {
+		return false;
+	}
+
+	const usize hashCode = hashKey(key);
+	const internal::HashMapGroupBitmask groupBitmask = internal::HashMapGroupBitmask(hashCode);
+	const usize groupIndex = groupBitmask.value % _groupCount;
+
+	GroupT& group = _groups[groupIndex];
+	_elementCount--;
+	return group.erase(key, hashCode, &_allocator);
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr void gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::reserve(usize additional)
+{
+	const usize requiredCapacity = _elementCount + additional;
+	if (shouldReallocate(requiredCapacity)) {
+		reallocate(requiredCapacity);
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::Iterator gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::begin()
+{
+	return Iterator::iterBegin(this);
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::Iterator gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::end()
+{
+	return Iterator::iterEnd(this);
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::ConstIterator gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::begin() const
+{
+	return ConstIterator::iterBegin(this);
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::ConstIterator gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::end() const
+{
+	return ConstIterator::iterEnd(this);
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::usize gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::calculateNewGroupCount(usize requiredCapacity)
+{
+	if (requiredCapacity <= GROUP_ALLOC_SIZE) {
+		return 1;
+	}
+	else {
+		const usize out = gk::upperPowerOfTwo(requiredCapacity / (GROUP_ALLOC_SIZE / 8));
+		check_gt(out, 1);
+		return out;
+	}
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr bool gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::shouldReallocate(usize requiredCapacity) const
+{
+	if (_groupCount == 0) {
+		return true;
+	}
+	const usize loadFactorScaledPairCount = (_elementCount >> 2) * 3; // multiply by 0.75
+	return requiredCapacity > loadFactorScaledPairCount;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr void gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::reallocate(usize requiredCapacity)
+{
+	const usize newGroupCount = calculateNewGroupCount(requiredCapacity);
+	if (newGroupCount <= _groupCount) {
+		return;
+	}
+
+	GroupT* newGroupCollection = [&]() {
+		if (std::is_constant_evaluated()) {
+			return new GroupT[newGroupCount];
+		}
+		else {
+			GroupT* memory = _allocator.mallocBuffer<GroupT>(newGroupCount).ok();
+			for (usize i = 0; i < newGroupCount; i++) {
+				new (memory + i) GroupT();
+				memory[i].defaultInit(&_allocator);
+			}
+			return memory;
+		}
+	}();
+
+	// Loop through the old buckets, and move their data to the new buckets
+	// For non-in-place stored pairs, their hash code is already stored.
+	// For in-place stored pairs, their hash codes need to be recalculated, 
+	// but it should be very cheap for those types
+	for (usize oldGroupIndex = 0; oldGroupIndex < _groupCount; oldGroupIndex++) {
+		GroupT& oldGroup = _groups[oldGroupIndex];
+		for (usize i = 0; i < oldGroup.capacity; i++) {
+			if (oldGroup.hashMasks[i] == 0) {
+				continue;
+			}
+
+			typename GroupT::PairT& pair = oldGroup.pairs[i];
+
+			const usize hashCode = pair.hashCode();
+			const internal::HashMapGroupBitmask groupBitmask = internal::HashMapGroupBitmask(hashCode);
+			const usize newGroupIndex = groupBitmask.value % newGroupCount;
+
+			GroupT& newGroup = newGroupCollection[newGroupIndex];
+			if (newGroup.pairCount == newGroup.capacity) {
+				newGroup.reallocate(newGroup.capacity * 2, &_allocator);
+			}
+			check_lt(newGroup.pairCount, newGroup.capacity);
+
+			newGroup.hashMasks[newGroup.pairCount] = oldGroup.hashMasks[i];
+			if (std::is_constant_evaluated()) {
+				newGroup.pairs[newGroup.pairCount] = std::move(pair);
+			}
+			else {
+				new (newGroup.pairs + newGroup.pairCount) typename GroupT::PairT(std::move(pair));
+			}
+
+			newGroup.pairCount++;
+			oldGroup.hashMasks[i] = 0;
+		}
+		oldGroup.free(&_allocator);
+	}
+	if (_groups) {
+		if (std::is_constant_evaluated()) {
+			delete[] _groups;
+		}
+		else {
+			_allocator.freeBuffer<GroupT>(_groups, _groupCount);
+		}
+	}
+
+	_groups = newGroupCollection;
+	_groupCount = newGroupCount;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::Iterator gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::Iterator::iterBegin(HashMap* map)
+{
+	Iterator iter;
+	iter._map = map;
+	iter._currentGroup = map->_groups;
+	if (iter._currentGroup != nullptr) {
+		if (iter._currentGroup->hashMasks[0] == 0) { // step forward if slot doesnt have an entry
+			iter.operator++();
+		}
+	}
+	return iter;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::Iterator gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::Iterator::iterEnd(HashMap* map)
+{
+	Iterator iter;
+	iter._map = map;
+	iter._currentGroup = map->_groups + map->_groupCount;
+	return iter;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr bool gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::Iterator::operator==(const Iterator& other) const
+{
+	return _currentGroup == other._currentGroup && _currentElementIndex == other._currentElementIndex;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::Iterator::Pair gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::Iterator::operator*() const
+{
+	auto& pair = _currentGroup->pairs[_currentElementIndex];
+	Pair out = {
+		.key = *pair.getKey(), .value = *pair.getValue()
+	};
+	return out;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::Iterator& gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::Iterator::operator++()
+{
+	while (true) {
+		_currentElementIndex++;
+		if (_currentElementIndex == _currentGroup->capacity) {
+			_currentElementIndex = 0;
+			_currentGroup++;
+		}
+
+		if (_currentGroup == _map->_groups + _map->_groupCount) {
+			return *this;
+		}
+
+		if (_currentGroup->hashMasks[_currentElementIndex] != 0) {
+			return *this;
+		}
+	}
+}
+
+
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::ConstIterator gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::ConstIterator::iterBegin(const HashMap* map)
+{
+	ConstIterator iter;
+	iter._map = map;
+	iter._currentGroup = map->_groups;
+	if (iter._currentGroup != nullptr) {
+		if (iter._currentGroup->hashMasks[0] == 0) { // step forward if slot doesnt have an entry
+			iter.operator++();
+		}
+	}
+	return iter;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::ConstIterator gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::ConstIterator::iterEnd(const HashMap* map)
+{
+	ConstIterator iter;
+	iter._map = map;
+	iter._currentGroup = map->_groups + map->_groupCount;
+	return iter;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr bool gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::ConstIterator::operator==(const ConstIterator& other) const
+{
+	return _currentGroup == other._currentGroup && _currentElementIndex == other._currentElementIndex;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::ConstIterator::Pair gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::ConstIterator::operator*() const
+{
+	const auto& pair = _currentGroup->pairs[_currentElementIndex];
+	Pair out = {
+		.key = *pair.getKey(), .value = *pair.getValue()
+	};
+	return out;
+}
+
+template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
+	requires (GROUP_ALLOC_SIZE % 16 == 0 && gk::Hashable<Key>)
+inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::ConstIterator& gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::ConstIterator::operator++()
+{
+	while (true) {
+		_currentElementIndex++;
+		if (_currentElementIndex == _currentGroup->capacity) {
+			_currentElementIndex = 0;
+			_currentGroup++;
+		}
+
+		if (_currentGroup == _map->_groups + _map->_groupCount) {
+			return *this;
+		}
+
+		if (_currentGroup->hashMasks[_currentElementIndex] != 0) {
+			return *this;
+		}
+	}
+}
