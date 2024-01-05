@@ -310,7 +310,7 @@ test_case("Default Construct") {
 	check_eq(a.len(), 0);
 	check_eq(a.capacity(), 0);
 	check_eq(a.data(), nullptr); // ensure no allocation when not necessary
-	check_eq(a.allocator(), *globalHeapAllocator());
+	check_eq(a.allocator(), globalHeapAllocator());
 }
 
 test_case("Copy Construct") {
@@ -356,7 +356,7 @@ test_case("Move Assign") {
 }
 
 test_case("Init") {
-	ArrayList<int> a = ArrayList<int>::init(globalHeapAllocator()->clone());
+	ArrayList<int> a = ArrayList<int>::init(globalHeapAllocator());
 	a.push(1);
 	check_eq(a[0], 1);
 }
@@ -364,12 +364,12 @@ test_case("Init") {
 test_case("Init And Copy") {
 	ArrayList<int> a;
 	a.push(1);
-	ArrayList<int> b = ArrayList<int>::init(globalHeapAllocator()->clone(), a);
+	ArrayList<int> b = ArrayList<int>::init(globalHeapAllocator(), a);
 	check_eq(b[0], 1);
 }
 
 test_case("Init And Initialize List") {
-	ArrayList<int> a = ArrayList<int>::init(globalHeapAllocator()->clone(), { 0, 1, 2 });
+	ArrayList<int> a = ArrayList<int>::init(globalHeapAllocator(), { 0, 1, 2 });
 	check_eq(a[0], 0);
 	check_eq(a[1], 1);
 	check_eq(a[2], 2);
@@ -377,14 +377,14 @@ test_case("Init And Initialize List") {
 
 test_case("Init And Ptr") {
 	int buf[] = { 0, 1, 2 };
-	ArrayList<int> a = ArrayList<int>::init(globalHeapAllocator()->clone(), buf, 3);
+	ArrayList<int> a = ArrayList<int>::init(globalHeapAllocator(), buf, 3);
 	check_eq(a[0], 0);
 	check_eq(a[1], 1);
 	check_eq(a[2], 2);
 }
 
 test_case("With Capacity") {
-	ArrayList<int> a = ArrayList<int>::withCapacity(globalHeapAllocator()->clone(), 10);
+	ArrayList<int> a = ArrayList<int>::withCapacity(globalHeapAllocator(), 10);
 	a.push(1);
 	check(a.capacity() >= 10);
 	check_eq(a[0], 1);
@@ -393,13 +393,13 @@ test_case("With Capacity") {
 test_case("With Capacity Copy") {
 	ArrayList<int> a;
 	a.push(1);
-	ArrayList<int> b = ArrayList<int>::withCapacity(globalHeapAllocator()->clone(), 10, a);
+	ArrayList<int> b = ArrayList<int>::withCapacity(globalHeapAllocator(), 10, a);
 	check(a.capacity() >= 10);
 	check_eq(b[0], 1);
 }
 
 test_case("With Capacity Initializer List") {
-	ArrayList<int> a = ArrayList<int>::withCapacity(globalHeapAllocator()->clone(), 10, { 0, 1, 2 });
+	ArrayList<int> a = ArrayList<int>::withCapacity(globalHeapAllocator(), 10, { 0, 1, 2 });
 	check(a.capacity() >= 10);
 	check_eq(a[0], 0);
 	check_eq(a[1], 1);
@@ -408,7 +408,7 @@ test_case("With Capacity Initializer List") {
 
 test_case("With Capacity Ptr") {
 	int buf[] = { 0, 1, 2 };
-	ArrayList<int> a = ArrayList<int>::withCapacity(globalHeapAllocator()->clone(), 10, buf, 3);
+	ArrayList<int> a = ArrayList<int>::withCapacity(globalHeapAllocator(), 10, buf, 3);
 	check(a.capacity() >= 10);
 	check_eq(a[0], 0);
 	check_eq(a[1], 1);

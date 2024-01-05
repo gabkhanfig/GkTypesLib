@@ -123,37 +123,37 @@ test_case("toString from global string") {
 }
 
 test_case("toString from array list of int one value") {
-	ArrayList<int> a = ArrayList<int>::init(gk::globalHeapAllocator()->clone(), { 500 });
+	ArrayList<int> a = ArrayList<int>::init(gk::globalHeapAllocator(), { 500 });
 	String s = toString(a);
 	check_eq(s, "[500]"_str);
 }
 
 test_case("toString from array list of int two values") {
-	ArrayList<int> a = ArrayList<int>::init(gk::globalHeapAllocator()->clone(), { -20, 35 });
+	ArrayList<int> a = ArrayList<int>::init(gk::globalHeapAllocator(), { -20, 35 });
 	String s = toString(a);
 	check_eq(s, "[-20, 35]"_str);
 }
 
 test_case("toString from array list of int many values") {
-	ArrayList<int> a = ArrayList<int>::init(gk::globalHeapAllocator()->clone(), { -20, 35, 1234, -6, 0, 14 });
+	ArrayList<int> a = ArrayList<int>::init(gk::globalHeapAllocator(), { -20, 35, 1234, -6, 0, 14 });
 	String s = toString(a);
 	check_eq(s, "[-20, 35, 1234, -6, 0, 14]"_str);
 }
 
 test_case("toString from array list of string one value") {
-	ArrayList<String> a = ArrayList<String>::init(gk::globalHeapAllocator()->clone(), { "hello world!"_str});
+	ArrayList<String> a = ArrayList<String>::init(gk::globalHeapAllocator(), { "hello world!"_str});
 	String s = toString(a);
 	check_eq(s, "[\"hello world!\"]"_str);
 }
 
 test_case("toString from array list of string two values") {
-	ArrayList<String> a = ArrayList<String>::init(gk::globalHeapAllocator()->clone(), { "hello world!"_str, "woa."_str});
+	ArrayList<String> a = ArrayList<String>::init(gk::globalHeapAllocator(), { "hello world!"_str, "woa."_str});
 	String s = toString(a);
 	check_eq(s, "[\"hello world!\", \"woa.\"]"_str);
 }
 
 test_case("toString from array list of string many values") {
-	ArrayList<String> a = ArrayList<String>::init(gk::globalHeapAllocator()->clone(), { "hello world!"_str, "woa."_str, 'c', 'b', "lmao"_str});
+	ArrayList<String> a = ArrayList<String>::init(gk::globalHeapAllocator(), { "hello world!"_str, "woa."_str, 'c', 'b', "lmao"_str});
 	String s = toString(a);
 	check_eq(s, "[\"hello world!\", \"woa.\", \"c\", \"b\", \"lmao\"]"_str);
 }

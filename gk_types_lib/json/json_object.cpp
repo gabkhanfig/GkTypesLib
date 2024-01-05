@@ -212,16 +212,16 @@ usize gk::JsonObject::calculateNewBucketCount(usize requiredCapacity)
 void gk::JsonObject::reallocateRuntime(usize requiredCapacity)
 {
 	using internal::JsonObjectBucket;
-	Allocator* allocator = gk::globalHeapAllocator();
+	Allocator allocator = gk::globalHeapAllocator();
 
 	const usize newBucketCount = calculateNewBucketCount(requiredCapacity);
 	if (newBucketCount <= bucketCount) {
 		return;
 	}
 
-	JsonObjectBucket* newBuckets = allocator->mallocBuffer<JsonObjectBucket>(newBucketCount).ok();
+	JsonObjectBucket* newBuckets = allocator.mallocBuffer<JsonObjectBucket>(newBucketCount).ok();
 	for (usize i = 0; i < newBucketCount; i++) {
-		new (newBuckets + i) JsonObjectBucket(allocator);
+		new (newBuckets + i) JsonObjectBucket(&allocator);
 	}
 
 	for (usize oldBucketIndex = 0; oldBucketIndex < bucketCount; oldBucketIndex++) {
@@ -236,13 +236,13 @@ void gk::JsonObject::reallocateRuntime(usize requiredCapacity)
 			//const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
 
 			const usize newBucketIndex = bucketBits.value % newBucketCount;
-			newBuckets[newBucketIndex].insert(std::move(pair.key), std::move(pair.value), pair.hashCode, allocator);
+			newBuckets[newBucketIndex].insert(std::move(pair.key), std::move(pair.value), pair.hashCode, &allocator);
 		}
 		oldBucket.length = 0;
-		oldBucket.free(allocator);
+		oldBucket.free(&allocator);
 	}
 	if (buckets) {
-		allocator->freeBuffer(buckets, bucketCount);
+		allocator.freeBuffer(buckets, bucketCount);
 	}
 
 	buckets = newBuckets;
@@ -251,6 +251,7 @@ void gk::JsonObject::reallocateRuntime(usize requiredCapacity)
 
 gk::Option<gk::JsonValue*> gk::JsonObject::addFieldRuntime(String&& name, JsonValue&& value)
 {
+	Allocator allocator = gk::globalHeapAllocator();
 	const usize hashCode = name.hash();
 	const internal::JsonHashBucketBits bucketBits = internal::JsonHashBucketBits(hashCode);
 	//const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
@@ -272,7 +273,7 @@ gk::Option<gk::JsonValue*> gk::JsonObject::addFieldRuntime(String&& name, JsonVa
 
 	{
 		const usize bucketIndex = bucketBits.value % bucketCount;
-		buckets[bucketIndex].insert(std::move(name), std::move(value), hashCode, gk::globalHeapAllocator());
+		buckets[bucketIndex].insert(std::move(name), std::move(value), hashCode, &allocator);
 		elementCount++;
 		return gk::Option<JsonValue*>();
 	}
@@ -280,11 +281,12 @@ gk::Option<gk::JsonValue*> gk::JsonObject::addFieldRuntime(String&& name, JsonVa
 
 bool gk::JsonObject::eraseFieldRuntime(const String& name)
 {
+	Allocator allocator = gk::globalHeapAllocator();
 	const usize hashCode = name.hash();
 	const internal::JsonHashBucketBits bucketBits = internal::JsonHashBucketBits(hashCode);
 	//const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
 	const usize bucketIndex = bucketBits.value % bucketCount;
-	return buckets[bucketIndex].erase(name, hashCode, gk::globalHeapAllocator());
+	return buckets[bucketIndex].erase(name, hashCode, &allocator);
 }
 
 #if GK_TYPES_LIB_TEST

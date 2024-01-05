@@ -12,6 +12,7 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 add_library(GkTypesLib STATIC 
 "gk_types_lib/lib.cpp" 
+"gk_types_lib/allocator/allocator.cpp"
 "gk_types_lib/array/array_list.cpp" 
 "gk_types_lib/function/callback.cpp" 
 "gk_types_lib/function/function_ptr.cpp" 
@@ -28,7 +29,6 @@ add_library(GkTypesLib STATIC
 "gk_types_lib/job/job_thread.cpp"
 "gk_types_lib/job/job_system.cpp" 
 "gk_types_lib/error/result.cpp" 
-"gk_types_lib/allocator/heap_allocator.cpp" 
 "gk_types_lib/doctest/doctest_proxy.cpp" 
 "gk_types_lib/utility.cpp" 
 "gk_types_lib/string/string_type_conversion.cpp"
@@ -37,6 +37,7 @@ add_library(GkTypesLib STATIC
 
 add_executable(GkTypesLibTest 
 "gk_types_lib/test.cpp" 
+"gk_types_lib/allocator/allocator.cpp"
 "gk_types_lib/array/array_list.cpp" 
 "gk_types_lib/function/callback.cpp" 
 "gk_types_lib/function/function_ptr.cpp" 
@@ -53,7 +54,6 @@ add_executable(GkTypesLibTest
 "gk_types_lib/job/job_thread.cpp"
 "gk_types_lib/job/job_system.cpp" 
 "gk_types_lib/error/result.cpp" 
-"gk_types_lib/allocator/heap_allocator.cpp" 
 "gk_types_lib/doctest/doctest_proxy.cpp" 
 "gk_types_lib/utility.cpp" 
 "gk_types_lib/string/string_type_conversion.cpp"

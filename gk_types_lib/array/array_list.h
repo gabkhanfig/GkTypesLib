@@ -2,7 +2,6 @@
 
 #include "../doctest/doctest_proxy.h"
 #include "../allocator/allocator.h"
-#include "../allocator/heap_allocator.h"
 #include "../option/option.h"
 #include <type_traits>
 #include "../error/result.h"
@@ -15,7 +14,7 @@ namespace gk
 				return Allocator();
 			}
 			else {
-				return gk::globalHeapAllocator()->clone();
+				return gk::globalHeapAllocator();
 			}
 
 		}

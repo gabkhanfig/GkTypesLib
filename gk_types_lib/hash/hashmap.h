@@ -4,7 +4,6 @@
 #include "../doctest/doctest_proxy.h"
 #include "../option/option.h"
 #include "../allocator/allocator.h"
-#include "../allocator/heap_allocator.h"
 #include "../utility.h"
 
 namespace gk
@@ -887,7 +886,7 @@ inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::HashMap()
 	: _groups(nullptr), _groupCount(0), _elementCount(0)
 {
 	if (!std::is_constant_evaluated()) {
-		new (&_allocator) Allocator(globalHeapAllocator()->clone());
+		new (&_allocator) Allocator(globalHeapAllocator());
 	}
 }
 
@@ -897,7 +896,7 @@ inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::HashMap(const HashMa
 	: _groups(nullptr), _groupCount(0), _elementCount(0)
 {
 	if (!std::is_constant_evaluated()) {
-		new (&_allocator) Allocator(globalHeapAllocator()->clone());
+		new (&_allocator) Allocator(globalHeapAllocator());
 	}
 	if (other._groupCount == 0) {
 		return;

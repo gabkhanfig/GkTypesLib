@@ -1002,11 +1002,11 @@ inline constexpr gk::JsonObject& gk::JsonObject::operator=(JsonObject&& other) n
 			buckets = nullptr;
 		}
 		else {
-			Allocator* globalAllocator = globalHeapAllocator();
+			Allocator globalAllocator = globalHeapAllocator();
 			for (usize i = 0; i < bucketCount; i++) {
-				buckets[i].free(globalAllocator);
+				buckets[i].free(&globalAllocator);
 			}
-			globalAllocator->freeBuffer(buckets, bucketCount);
+			globalAllocator.freeBuffer(buckets, bucketCount);
 		}
 	}
 
@@ -1033,11 +1033,11 @@ inline constexpr gk::JsonObject& gk::JsonObject::operator=(const JsonObject& oth
 			buckets = nullptr;
 		}
 		else {
-			Allocator* globalAllocator = globalHeapAllocator();
+			Allocator globalAllocator = globalHeapAllocator();
 			for (usize i = 0; i < bucketCount; i++) {
-				buckets[i].free(globalAllocator);
+				buckets[i].free(&globalAllocator);
 			}
-			globalAllocator->freeBuffer(buckets, bucketCount);
+			globalAllocator.freeBuffer(buckets, bucketCount);
 		}
 		buckets = nullptr;
 		bucketCount = 0;
@@ -1058,7 +1058,8 @@ inline constexpr gk::JsonObject& gk::JsonObject::operator=(const JsonObject& oth
 	}
 
 	for (usize i = 0; i < bucketCount; i++) {
-		buckets[i].free(globalHeapAllocator());
+		Allocator globalAllocator = globalHeapAllocator();
+		buckets[i].free(&globalAllocator);
 	}
 	if (shouldReallocate(other.elementCount)) {
 		reallocate(other.elementCount);
@@ -1079,11 +1080,11 @@ constexpr gk::JsonObject::~JsonObject()
 		buckets = nullptr;
 	}
 	else {
-		Allocator* globalAllocator = globalHeapAllocator();
+		Allocator globalAllocator = globalHeapAllocator();
 		for (usize i = 0; i < bucketCount; i++) {
-			buckets[i].free(globalAllocator);
+			buckets[i].free(&globalAllocator);
 		}
-		globalAllocator->freeBuffer(buckets, bucketCount);
+		globalAllocator.freeBuffer(buckets, bucketCount);
 	}
 }
 

@@ -7,13 +7,13 @@
 
 namespace gk
 {
+	enum class AllocError {
+		OutOfMemory
+	};
+
 	struct MemoryLayout {
 		size_t size;
 		size_t alignment;
-	};
-
-	enum class AllocError {
-		OutOfMemory
 	};
 
 	struct Allocator;
@@ -24,62 +24,66 @@ namespace gk
 		virtual Result<void*, AllocError> mallocImpl(MemoryLayout layout) = 0;
 
 		virtual void freeImpl(void* buffer, MemoryLayout layout) = 0;
+
+		virtual IAllocator* clone() = 0;
+
+		virtual void destroy() = 0;
 	};
 
 	struct Allocator {
-
 	private:
-		struct AtomcRefCountAllocator {
-			IAllocator* allocator;
-			std::atomic<size_t> refCount;
 
-			AtomcRefCountAllocator(IAllocator* inAllocator)
-				: allocator(inAllocator), refCount(1) {}
-
-			AtomcRefCountAllocator(const AtomcRefCountAllocator&) = delete;
-			AtomcRefCountAllocator(AtomcRefCountAllocator&&) = delete;
-			AtomcRefCountAllocator& operator = (const AtomcRefCountAllocator&) = delete;
-			AtomcRefCountAllocator& operator = (AtomcRefCountAllocator&&) = delete;
-
-			~AtomcRefCountAllocator() {
-				delete allocator;
-			}
-		};
+		constexpr Allocator(IAllocator* inAllocator) : inner(inAllocator) {}
 
 	public:
 
 		/**
 		* Allow for other constexpr objects to store an empty allocator.
 		*/
-		constexpr Allocator() : _allocatorRef(nullptr) {}
+		constexpr Allocator() : inner(nullptr) {}
 
-		constexpr Allocator(const Allocator& other) {
-			_allocatorRef = other._allocatorRef;
-			if (_allocatorRef == nullptr) return;
-			_allocatorRef->refCount++;
+		constexpr Allocator(const Allocator& other)
+		{
+			if (other.inner == nullptr) {
+				inner = nullptr;
+				return;
+			}
+
+			inner = other.inner->clone();
 		}
 
-		constexpr Allocator(Allocator&& other) noexcept {
-			_allocatorRef = other._allocatorRef;
-			other._allocatorRef = nullptr;
+		constexpr Allocator(Allocator&& other) noexcept
+			: inner(other.inner)
+		{
+			other.inner = nullptr;
 		}
 
 		constexpr ~Allocator() {
-			decrementCounter();
+			if (inner) {
+				inner->destroy();
+				inner = nullptr;
+			}
 		}
 
 		constexpr Allocator& operator = (const Allocator& other) {
-			decrementCounter();
-			_allocatorRef = other._allocatorRef;
-			if (_allocatorRef == nullptr) return *this;
-			_allocatorRef->refCount++;
+			if (inner) {
+				inner->destroy();
+			}
+			if (other.inner) {
+				inner = other.inner->clone();
+			}
+			else {
+				inner = nullptr;
+			}
 			return *this;
 		}
 
 		constexpr Allocator& operator = (Allocator&& other) noexcept {
-			decrementCounter();
-			_allocatorRef = other._allocatorRef;
-			other._allocatorRef = nullptr;
+			if (inner) {
+				inner->destroy();
+			}
+			inner = other.inner;
+			other.inner = nullptr;
 			return *this;
 		}
 
@@ -90,14 +94,27 @@ namespace gk
 		* @param args: Variadic arguments to pass into the child IAllocator constructor
 		*/
 		template<typename AllocatorT, typename ...ConstructorArgs>
-			//requires(std::is_base_of_v<IAllocator, AllocatorT>)
-		static Allocator makeShared(ConstructorArgs... args) {
+			requires(std::is_base_of_v<IAllocator, AllocatorT>)
+		static Allocator create(ConstructorArgs&&... args) {
 			IAllocator* allocator = new AllocatorT(args...);
-			AtomcRefCountAllocator* ref = new AtomcRefCountAllocator(allocator);
-			Allocator out;
-			out._allocatorRef = ref;
-			return out;
+			return Allocator{ allocator };
 		}
+
+		///**
+		//* Makes a new instance of an Allocator given a class that implements IAllocator, and some optional arguments for the class's constructor. 
+		//* 
+		//* @param AllocatorT: Any that implements IAllocator
+		//* @param args: Variadic arguments to pass into the child IAllocator constructor
+		//*/
+		//template<typename AllocatorT, typename ...ConstructorArgs>
+		//	//requires(std::is_base_of_v<IAllocator, AllocatorT>)
+		//static Allocator makeShared(ConstructorArgs... args) {
+		//	IAllocator* allocator = new AllocatorT(args...);
+		//	AtomcRefCountAllocator* ref = new AtomcRefCountAllocator(allocator);
+		//	Allocator out;
+		//	out._allocatorRef = ref;
+		//	return out;
+		//}
 
 		/**
 		* Makes a clone of this Allocator, which just increments the ref count to the shared IAllocator object.
@@ -105,14 +122,23 @@ namespace gk
 		* @return A new shared owner of an IAllocator
 		*/
 		constexpr Allocator clone() const {
-			return Allocator(*this);
+			if (inner) {
+				return Allocator{ inner->clone() };
+			}
+			else {
+				return Allocator();
+			}
 		}
 
 		/* Does not call constructor */
 		template<typename T>
 		Result<T*, AllocError> mallocObject() {
 			MemoryLayout layout{ sizeof(T), alignof(T) };
-			T* mem = (T*)_allocatorRef->allocator->mallocImpl(layout).ok();
+			Result<void*, AllocError> allocResult = mallocImpl(layout);
+			if (allocResult.isError()) {
+				return ResultErr<AllocError>(allocResult.errorCopy());
+			}
+			T* mem = (T*)allocResult.okCopy();
 			check_message((size_t(mem) % alignof(T)) == 0, "Allocator mallocObject returned a pointer not aligned to the alignment requirements of the type T");
 			return ResultOk<T*>(mem);
 		}
@@ -121,8 +147,12 @@ namespace gk
 		template<typename T>
 		Result<T*, AllocError> mallocAlignedObject(size_t byteAlignment) {
 			MemoryLayout layout{ sizeof(T), byteAlignment };
-			T* mem = (T*)_allocatorRef->allocator->mallocImpl(layout).ok();
-			check_message((size_t(mem) % byteAlignment) == 0, "Allocator mallocAlignedObject returned a pointer not aligned to the alignment requirements of the type T");
+			Result<void*, AllocError> allocResult = mallocImpl(layout);
+			if (allocResult.isError()) {
+				return ResultErr<AllocError>(allocResult.errorCopy());
+			}
+			T* mem = (T*)allocResult.okCopy();
+			check_message((size_t(mem) % alignof(T)) == 0, "Allocator mallocObject returned a pointer not aligned to the alignment requirements of the type T");
 			return ResultOk<T*>(mem);
 		}
 
@@ -130,8 +160,12 @@ namespace gk
 		template<typename T>
 		Result<T*, AllocError> mallocBuffer(size_t numElements) {
 			MemoryLayout layout{ sizeof(T) * numElements, alignof(T) };
-			T* mem = (T*)_allocatorRef->allocator->mallocImpl(layout).ok();
-			check_message((size_t(mem) % alignof(T)) == 0, "Allocator mallocBuffer returned a pointer not aligned to the alignment requirements of the type T");
+			Result<void*, AllocError> allocResult = mallocImpl(layout);
+			if (allocResult.isError()) {
+				return ResultErr<AllocError>(allocResult.errorCopy());
+			}
+			T* mem = (T*)allocResult.okCopy();
+			check_message((size_t(mem) % alignof(T)) == 0, "Allocator mallocObject returned a pointer not aligned to the alignment requirements of the type T");
 			return ResultOk<T*>(mem);
 		}
 
@@ -139,8 +173,12 @@ namespace gk
 		template<typename T>
 		Result<T*, AllocError> mallocAlignedBuffer(size_t numElements, size_t byteAlignment) {
 			MemoryLayout layout{ sizeof(T) * numElements, byteAlignment };
-			T* mem = (T*)_allocatorRef->allocator->mallocImpl(layout).ok();
-			check_message((size_t(mem) % alignof(T)) == 0, "Allocator mallocAlignedBuffer returned a pointer not aligned to the alignment requirements of the type T");
+			Result<void*, AllocError> allocResult = mallocImpl(layout);
+			if (allocResult.isError()) {
+				return ResultErr<AllocError>(allocResult.errorCopy());
+			}
+			T* mem = (T*)allocResult.okCopy();
+			check_message((size_t(mem) % alignof(T)) == 0, "Allocator mallocObject returned a pointer not aligned to the alignment requirements of the type T");
 			return ResultOk<T*>(mem);
 		}
 
@@ -149,7 +187,7 @@ namespace gk
 		void freeObject(T*& object) {
 			check_message(object != nullptr, "Cannot free nullptr");
 			MemoryLayout layout{ sizeof(T), alignof(T) };
-			_allocatorRef->allocator->freeImpl((void*)object, layout);
+			freeImpl((void*)object, layout);
 			object = nullptr;
 		}
 
@@ -158,7 +196,7 @@ namespace gk
 		void freeAlignedObject(T*& object, size_t byteAlignment) {
 			check_message(object != nullptr, "Cannot free nullptr");
 			MemoryLayout layout{ sizeof(T), byteAlignment };
-			_allocatorRef->allocator->freeImpl((void*)object, layout);
+			freeImpl((void*)object, layout);
 			object = nullptr;
 		}
 
@@ -167,7 +205,7 @@ namespace gk
 		void freeBuffer(T*& buffer, size_t numElements) {
 			check_message(buffer != nullptr, "Cannot free nullptr");
 			MemoryLayout layout{ sizeof(T) * numElements, alignof(T) };
-			_allocatorRef->allocator->freeImpl((void*)buffer, layout);
+			freeImpl((void*)buffer, layout);
 			buffer = nullptr;
 		}
 
@@ -176,31 +214,29 @@ namespace gk
 		void freeAlignedBuffer(T*& buffer, size_t numElements, size_t byteAlignment) {
 			check_message(buffer != nullptr, "Cannot free nullptr");
 			MemoryLayout layout{ sizeof(T) * numElements, byteAlignment };
-			_allocatorRef->allocator->freeImpl((void*)buffer, layout);
+			freeImpl((void*)buffer, layout);
 			buffer = nullptr;
 		}
 
 		constexpr bool operator == (const Allocator& other) const {
-			return _allocatorRef == other._allocatorRef;
+			return inner == other.inner;
 		}
 
 	private:
 
-		constexpr void decrementCounter() {
-			if (_allocatorRef == nullptr) return;
-			if (std::is_constant_evaluated()) {
-				// All constexpr allocator objects should NOT have an allocator ref.
-				throw;
-			}
+		Result<void*, AllocError> mallocImpl(MemoryLayout layout);
 
-			_allocatorRef->refCount--;
-			if (_allocatorRef->refCount.load(std::memory_order::acquire) == 0) {
-				delete _allocatorRef;
-			}
-		}
+		void freeImpl(void* buffer, MemoryLayout layout);
 
 	private:
 
-		AtomcRefCountAllocator* _allocatorRef;
+		IAllocator* inner;
 	};
+
+	/**
+	* @return A "copy" of the global heap allocator.
+	*/
+	Allocator globalHeapAllocator();
+
+
 } // namespace gk
