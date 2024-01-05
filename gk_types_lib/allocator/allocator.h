@@ -11,6 +11,10 @@ namespace gk
 		OutOfMemory
 	};
 
+	Result<void*, AllocError> malloc(usize numBytes, usize alignment = alignof(usize));
+
+	void free(void* memory, usize numBytes, usize alignment = alignof(usize));
+
 	struct MemoryLayout {
 		size_t size;
 		size_t alignment;
