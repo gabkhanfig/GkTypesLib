@@ -63,6 +63,12 @@ gk::AllocatorRef::AllocatorRef(IAllocator* inAllocator)
 	}
 }
 
+bool gk::AllocatorRef::operator==(const IAllocator* other) const
+{
+	constexpr usize PTR_BITMASK = (1ULL << 48) - 1;
+	return reinterpret_cast<const IAllocator*>(inner & PTR_BITMASK) == other;
+}
+
 Result<void*, AllocError> gk::AllocatorRef::mallocImpl(usize numBytes, usize alignment)
 {
 	return getAllocator()->mallocImpl(numBytes, alignment);

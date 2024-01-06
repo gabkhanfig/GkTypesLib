@@ -329,6 +329,8 @@ namespace gk
 			return inner == other.inner;
 		}
 
+		bool operator == (const IAllocator* other) const;
+
 	private:
 
 		AllocatorRef(usize forceInner) : inner(forceInner) {} // utility for global heap
