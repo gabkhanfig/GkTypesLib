@@ -530,7 +530,7 @@ namespace gk
 		*/
 		struct JsonObjectBucket {
 
-			constexpr JsonObjectBucket(Allocator* allocator);
+			constexpr JsonObjectBucket(AllocatorRef* allocator);
 
 			constexpr JsonObjectBucket(JsonObjectBucket&& other) noexcept;
 
@@ -540,15 +540,15 @@ namespace gk
 			constexpr JsonObjectBucket& operator = (const JsonObjectBucket&) = delete;
 			constexpr JsonObjectBucket& operator = (JsonObjectBucket&&) = delete;
 
-			constexpr void free(Allocator* allocator);
+			constexpr void free(AllocatorRef* allocator);
 			
 			constexpr Option<JsonValue*> find(const String& key, usize hashCode);
 
 			constexpr Option<const JsonValue*> find(const String& key, usize hashCode) const;
 
-			constexpr void insert(String&& key, JsonValue&& value, usize hashCode, Allocator* allocator);
+			constexpr void insert(String&& key, JsonValue&& value, usize hashCode, AllocatorRef* allocator);
 
-			constexpr bool erase(const String& key, usize hashCode, Allocator* allocator);
+			constexpr bool erase(const String& key, usize hashCode, AllocatorRef* allocator);
 
 			i8* hashMasks;
 			JsonKeyValue* pairs;
@@ -558,19 +558,19 @@ namespace gk
 
 		private:
 
-			void defaultConstructRuntime(Allocator* allocator);
+			void defaultConstructRuntime(AllocatorRef* allocator);
 
 			constexpr Option<usize> findIndexOfKey(const String& key, JsonPairHashBits hashCode) const;
 
 			Option<usize> findIndexOfKeyRuntime(const String& key, JsonPairHashBits hashCode) const;
 
-			constexpr void reallocate(usize minCapacity, Allocator* allocator);
+			constexpr void reallocate(usize minCapacity, AllocatorRef* allocator);
 
-			void reallocateMasksAndPairs(usize minCapacity, Allocator* allocator);
+			void reallocateMasksAndPairs(usize minCapacity, AllocatorRef* allocator);
 
 			Option<usize> firstAvailableSlot() const;
 
-			void freeRuntime(Allocator* allocator);
+			void freeRuntime(AllocatorRef* allocator);
 			
 		}; // struct JsonObjectBucket
 
@@ -841,7 +841,7 @@ inline constexpr gk::String gk::JsonValue::toString(usize objectNestCount) const
 	}
 }
 
-inline constexpr gk::internal::JsonObjectBucket::JsonObjectBucket(Allocator* allocator)
+inline constexpr gk::internal::JsonObjectBucket::JsonObjectBucket(AllocatorRef* allocator)
 	: hashMasks(nullptr), pairs(nullptr), length(0), maskCapacity(0), pairCapacity(0)
 {
 	if (std::is_constant_evaluated()) {
@@ -878,7 +878,7 @@ inline constexpr gk::Option<gk::usize> gk::internal::JsonObjectBucket::findIndex
 	}
 }
 
-constexpr void gk::internal::JsonObjectBucket::reallocate(usize minCapacity, Allocator* allocator)
+constexpr void gk::internal::JsonObjectBucket::reallocate(usize minCapacity, AllocatorRef* allocator)
 {
 	if (std::is_constant_evaluated()) {
 		JsonKeyValue* newPairs = new JsonKeyValue[minCapacity];
@@ -893,7 +893,7 @@ constexpr void gk::internal::JsonObjectBucket::reallocate(usize minCapacity, All
 	}
 }
 
-inline constexpr void gk::internal::JsonObjectBucket::free(Allocator* allocator)
+inline constexpr void gk::internal::JsonObjectBucket::free(AllocatorRef* allocator)
 {
 	if (std::is_constant_evaluated()) {
 		delete[] pairs;
@@ -929,7 +929,7 @@ inline constexpr gk::Option<const gk::JsonValue*> gk::internal::JsonObjectBucket
 	}
 }
 
-inline constexpr void gk::internal::JsonObjectBucket::insert(String&& key, JsonValue&& value, usize hashCode, Allocator* allocator)
+inline constexpr void gk::internal::JsonObjectBucket::insert(String&& key, JsonValue&& value, usize hashCode, AllocatorRef* allocator)
 {
 	JsonKeyValue newPair{ std::move(key), std::move(value), hashCode };
 	if (length == pairCapacity) {
@@ -953,7 +953,7 @@ inline constexpr void gk::internal::JsonObjectBucket::insert(String&& key, JsonV
 	length++;
 }
 
-inline constexpr bool gk::internal::JsonObjectBucket::erase(const String& key, usize hashCode, Allocator* allocator)
+inline constexpr bool gk::internal::JsonObjectBucket::erase(const String& key, usize hashCode, AllocatorRef* allocator)
 {
 	Option<usize> optIndex = findIndexOfKey(key, JsonPairHashBits(hashCode));
 	if (optIndex.none()) {
@@ -1002,7 +1002,7 @@ inline constexpr gk::JsonObject& gk::JsonObject::operator=(JsonObject&& other) n
 			buckets = nullptr;
 		}
 		else {
-			Allocator globalAllocator = globalHeapAllocator();
+			AllocatorRef globalAllocator = globalHeapAllocator();
 			for (usize i = 0; i < bucketCount; i++) {
 				buckets[i].free(&globalAllocator);
 			}
@@ -1033,7 +1033,7 @@ inline constexpr gk::JsonObject& gk::JsonObject::operator=(const JsonObject& oth
 			buckets = nullptr;
 		}
 		else {
-			Allocator globalAllocator = globalHeapAllocator();
+			AllocatorRef globalAllocator = globalHeapAllocator();
 			for (usize i = 0; i < bucketCount; i++) {
 				buckets[i].free(&globalAllocator);
 			}
@@ -1058,7 +1058,7 @@ inline constexpr gk::JsonObject& gk::JsonObject::operator=(const JsonObject& oth
 	}
 
 	for (usize i = 0; i < bucketCount; i++) {
-		Allocator globalAllocator = globalHeapAllocator();
+		AllocatorRef globalAllocator = globalHeapAllocator();
 		buckets[i].free(&globalAllocator);
 	}
 	if (shouldReallocate(other.elementCount)) {
@@ -1080,7 +1080,7 @@ constexpr gk::JsonObject::~JsonObject()
 		buckets = nullptr;
 	}
 	else {
-		Allocator globalAllocator = globalHeapAllocator();
+		AllocatorRef globalAllocator = globalHeapAllocator();
 		for (usize i = 0; i < bucketCount; i++) {
 			buckets[i].free(&globalAllocator);
 		}

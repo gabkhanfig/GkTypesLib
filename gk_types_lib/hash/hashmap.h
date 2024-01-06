@@ -78,7 +78,7 @@ namespace gk
 		*
 		* @return Immutable reference to the allocator used by this HashMap.
 		*/
-		[[nodiscard]] const Allocator& allocator() const { return _allocator; }
+		[[nodiscard]] const AllocatorRef& allocator() const { return _allocator; }
 
 		/**
 		* Finds an entry within the HashMap, returning an optional mutable value.
@@ -278,7 +278,7 @@ namespace gk
 		GroupT* _groups;
 		usize _groupCount;
 		usize _elementCount;
-		Allocator _allocator;
+		AllocatorRef _allocator;
 	};
 
 	namespace internal
@@ -323,8 +323,8 @@ namespace gk
 			constexpr const Value* getValue() const { return &value; }
 			constexpr usize hashCode() const { return gk::hash<Key>(key); }
 
-			constexpr void erase(Allocator* allocator);
-			constexpr void insert(Key&& inKey, Value&& inValue, usize inHashCode, Allocator* allocator);
+			constexpr void erase(AllocatorRef* allocator);
+			constexpr void insert(Key&& inKey, Value&& inValue, usize inHashCode, AllocatorRef* allocator);
 
 		private:
 			Key key;
@@ -353,8 +353,8 @@ namespace gk
 			constexpr const Value* getValue() const { return &pair->value; }
 			constexpr usize hashCode() const { return pair->hashCode; }
 
-			constexpr void erase(Allocator* allocator);
-			constexpr void insert(Key&& inKey, Value&& inValue, usize inHashCode, Allocator* allocator);
+			constexpr void erase(AllocatorRef* allocator);
+			constexpr void insert(Key&& inKey, Value&& inValue, usize inHashCode, AllocatorRef* allocator);
 
 			Pair* pair;
 		};
@@ -404,17 +404,17 @@ namespace gk
 			constexpr HashMapGroup& operator = (HashMapGroup&& other) noexcept;
 			constexpr ~HashMapGroup();
 
-			constexpr void defaultInit(Allocator* allocator);
+			constexpr void defaultInit(AllocatorRef* allocator);
 
-			constexpr void free(Allocator* allocator);
+			constexpr void free(AllocatorRef* allocator);
 
 			constexpr Option<Value*> find(const Key& key, usize hashCode);
 
 			constexpr Option<const Value*> find(const Key& key, usize hashCode) const;
 
-			constexpr Option<Value*> insert(Key&& key, Value&& value, usize hashCode, Allocator* allocator);
+			constexpr Option<Value*> insert(Key&& key, Value&& value, usize hashCode, AllocatorRef* allocator);
 
-			constexpr bool erase(const Key& key, usize hashCode, Allocator* allocator);
+			constexpr bool erase(const Key& key, usize hashCode, AllocatorRef* allocator);
 
 			//private:
 
@@ -430,7 +430,7 @@ namespace gk
 
 			constexpr Option<usize> firstAvailableGroupSlot() const;
 
-			constexpr void reallocate(usize newCapacity, Allocator* allocator);
+			constexpr void reallocate(usize newCapacity, AllocatorRef* allocator);
 
 		}; // struct HashMapGroup
 
@@ -468,14 +468,14 @@ inline constexpr gk::usize gk::internal::calculateHashMapGroupRuntimeAllocationS
 }
 
 template<typename Key, typename Value>
-inline constexpr void gk::internal::HashPairInPlace<Key, Value>::erase(Allocator* allocator)
+inline constexpr void gk::internal::HashPairInPlace<Key, Value>::erase(AllocatorRef* allocator)
 {
 	key.~Key();
 	value.~Value();
 }
 
 template<typename Key, typename Value>
-inline constexpr void gk::internal::HashPairInPlace<Key, Value>::insert(Key&& inKey, Value&& inValue, usize inHashCode, gk::Allocator* allocator)
+inline constexpr void gk::internal::HashPairInPlace<Key, Value>::insert(Key&& inKey, Value&& inValue, usize inHashCode, gk::AllocatorRef* allocator)
 {
 	if (std::is_constant_evaluated()) {
 		key = std::move(inKey);
@@ -504,7 +504,7 @@ inline constexpr gk::internal::HashPairOnHeap<Key, Value>& gk::internal::HashPai
 }
 
 template<typename Key, typename Value>
-inline constexpr void gk::internal::HashPairOnHeap<Key, Value>::erase(Allocator* allocator)
+inline constexpr void gk::internal::HashPairOnHeap<Key, Value>::erase(AllocatorRef* allocator)
 {
 	if (std::is_constant_evaluated()) {
 		delete pair;
@@ -516,7 +516,7 @@ inline constexpr void gk::internal::HashPairOnHeap<Key, Value>::erase(Allocator*
 }
 
 template<typename Key, typename Value>
-inline constexpr void gk::internal::HashPairOnHeap<Key, Value>::insert(Key&& inKey, Value&& inValue, usize inHashCode, Allocator* allocator)
+inline constexpr void gk::internal::HashPairOnHeap<Key, Value>::insert(Key&& inKey, Value&& inValue, usize inHashCode, AllocatorRef* allocator)
 {
 	check(pair == nullptr);
 	if (std::is_constant_evaluated()) {
@@ -572,7 +572,7 @@ inline constexpr gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::~Hash
 }
 
 template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
-inline constexpr void gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::defaultInit(Allocator* allocator)
+inline constexpr void gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::defaultInit(AllocatorRef* allocator)
 {
 	check_eq(pairs, nullptr);
 
@@ -597,7 +597,7 @@ inline constexpr void gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::
 }
 
 template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
-inline constexpr void gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::free(Allocator* allocator)
+inline constexpr void gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::free(AllocatorRef* allocator)
 {
 	if (std::is_constant_evaluated()) {
 		for (usize i = 0; i < capacity; i++) {
@@ -644,7 +644,7 @@ inline constexpr gk::Option<const Value*> gk::internal::HashMapGroup<Key, Value,
 }
 
 template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
-inline constexpr gk::Option<Value*> gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::insert(Key&& key, Value&& value, usize hashCode, Allocator* allocator)
+inline constexpr gk::Option<Value*> gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::insert(Key&& key, Value&& value, usize hashCode, AllocatorRef* allocator)
 {
 	Option<Value*> existingValue = /*((gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>*)this)->*/
 		find(key, hashCode);
@@ -665,7 +665,7 @@ inline constexpr gk::Option<Value*> gk::internal::HashMapGroup<Key, Value, GROUP
 }
 
 template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
-inline constexpr bool gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::erase(const Key& key, usize hashCode, Allocator* allocator)
+inline constexpr bool gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::erase(const Key& key, usize hashCode, AllocatorRef* allocator)
 {
 	Option<usize> foundIndex = findIndexOfKey(key, hashCode);
 	if (foundIndex.none()) {
@@ -799,7 +799,7 @@ inline constexpr gk::Option<gk::usize> gk::internal::HashMapGroup<Key, Value, GR
 }
 
 template<typename Key, typename Value, gk::usize GROUP_ALLOC_SIZE>
-inline constexpr void gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::reallocate(usize newCapacity, Allocator* allocator)
+inline constexpr void gk::internal::HashMapGroup<Key, Value, GROUP_ALLOC_SIZE>::reallocate(usize newCapacity, AllocatorRef* allocator)
 {
 	check_eq((newCapacity % 16), 0);
 	if (newCapacity < capacity) {
@@ -886,7 +886,7 @@ inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::HashMap()
 	: _groups(nullptr), _groupCount(0), _elementCount(0)
 {
 	if (!std::is_constant_evaluated()) {
-		new (&_allocator) Allocator(globalHeapAllocator());
+		new (&_allocator) AllocatorRef(globalHeapAllocatorRef());
 	}
 }
 
@@ -896,7 +896,7 @@ inline constexpr gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::HashMap(const HashMa
 	: _groups(nullptr), _groupCount(0), _elementCount(0)
 {
 	if (!std::is_constant_evaluated()) {
-		new (&_allocator) Allocator(globalHeapAllocator());
+		new (&_allocator) AllocatorRef(globalHeapAllocatorRef());
 	}
 	if (other._groupCount == 0) {
 		return;

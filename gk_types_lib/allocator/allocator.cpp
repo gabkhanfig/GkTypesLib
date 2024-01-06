@@ -2,8 +2,11 @@
 
 using gk::Result;
 using gk::AllocError;
-using gk::Allocator;
+using gk::AllocatorRef;
 using gk::IAllocator;
+using gk::usize;
+
+
 
 Result<void*, AllocError> gk::malloc(usize numBytes, usize alignment)
 {
@@ -32,21 +35,107 @@ void gk::free(void* memory, usize numBytes, usize alignment)
 	}
 }
 
-Result<void*, AllocError> gk::Allocator::mallocImpl(MemoryLayout layout)
+AllocatorRef gk::IAllocator::toRef()
 {
-  if (inner == nullptr) {
-		return gk::malloc(layout.size, layout.alignment);
-  }
-  else {
-		return inner->mallocImpl(layout);
-  }
+	return AllocatorRef(this);
 }
 
-void gk::Allocator::freeImpl(void* buffer, MemoryLayout layout)
+Result<void*, AllocError> gk::HeapAllocator::mallocImpl(usize numBytes, usize alignment)
 {
-	return gk::free(buffer, layout.size, layout.alignment);
+	return gk::malloc(numBytes, alignment);
 }
 
-Allocator gk::globalHeapAllocator() {
-	return Allocator();
+void gk::HeapAllocator::freeImpl(void* buffer, usize numBytes, usize alignment)
+{
+	return gk::free(buffer, numBytes, alignment);
+}
+
+constexpr usize ALLOCATOR_USE_REF_COUNT_FLAG = (1ULL << 48);
+
+gk::AllocatorRef::AllocatorRef(IAllocator* inAllocator)
+{
+	check_ne(inAllocator, nullptr);
+	const usize ptrAsUsize = reinterpret_cast<usize>(inAllocator);
+	const usize countFlag = static_cast<usize>(inAllocator->trackRefCount()) << 48;
+	inner = ptrAsUsize | countFlag;
+	if (countFlag) {
+		inAllocator->incrementRefCount();
+	}
+}
+
+Result<void*, AllocError> gk::AllocatorRef::mallocImpl(usize numBytes, usize alignment)
+{
+	return getAllocator()->mallocImpl(numBytes, alignment);
+}
+
+void gk::AllocatorRef::freeImpl(void* buffer, usize numBytes, usize alignment)
+{
+	return getAllocator()->freeImpl(buffer, numBytes, alignment);
+}
+
+IAllocator* gk::AllocatorRef::getAllocator()
+{
+	constexpr usize PTR_BITMASK = (1ULL << 48) - 1;
+	return reinterpret_cast<IAllocator*>(inner & PTR_BITMASK);
+}
+
+void gk::AllocatorRef::destruct()
+{
+	if (inner == 0) {
+		return;
+	}
+
+	if (inner & ALLOCATOR_USE_REF_COUNT_FLAG) {
+		getAllocator()->decrementRefCount();
+	}
+	inner = 0;
+}
+
+void gk::AllocatorRef::constructCopy(const AllocatorRef& other)
+{
+	inner = other.inner;
+	if (!(inner & ALLOCATOR_USE_REF_COUNT_FLAG)) {
+		return;
+	}
+
+	getAllocator()->incrementRefCount();
+}
+
+void gk::AllocatorRef::assignMove(AllocatorRef&& other) noexcept
+{
+	if (inner & ALLOCATOR_USE_REF_COUNT_FLAG) { // if the ref is null (0), this if will not execute, thus is safe
+		getAllocator()->decrementRefCount();
+	}
+
+	inner = other.inner;
+	other.inner = 0;
+}
+
+void gk::AllocatorRef::assignCopy(const AllocatorRef& other)
+{
+	if (inner & ALLOCATOR_USE_REF_COUNT_FLAG) { // if the ref is null (0), this if will not execute, thus is safe
+		getAllocator()->decrementRefCount();
+	}
+
+	inner = other.inner;
+	if (inner & ALLOCATOR_USE_REF_COUNT_FLAG) {
+		getAllocator()->incrementRefCount();
+	}
+}
+
+gk::HeapAllocator* gk::globalHeapAllocator() 
+{
+	static gk::HeapAllocator GLOBAL_HEAP_ALLOCATOR = gk::HeapAllocator();
+	return &GLOBAL_HEAP_ALLOCATOR;
+}
+
+AllocatorRef gk::globalHeapAllocatorRef()
+{
+	return gk::HeapAllocator::globalInstance();
+}
+
+AllocatorRef gk::HeapAllocator::globalInstance()
+{
+	static const usize GLOBAL_HEAP_ALLOCATOR_REF = reinterpret_cast<usize>(gk::globalHeapAllocator());
+	return AllocatorRef{ GLOBAL_HEAP_ALLOCATOR_REF };
 }

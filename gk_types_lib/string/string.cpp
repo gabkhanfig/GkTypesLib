@@ -14,7 +14,7 @@ char* gk::mallocCharBufferAligned(usize* capacity)
 
 	const usize mallocCapacity = *capacity;
 
-	char* buffer = globalHeapAllocator().mallocAlignedBuffer<char>(mallocCapacity, alignment).ok();
+	char* buffer = globalHeapAllocator()->mallocAlignedBuffer<char>(mallocCapacity, alignment).ok();
 	memset(buffer, '\0', mallocCapacity);
 	return buffer;
 }
@@ -22,7 +22,7 @@ char* gk::mallocCharBufferAligned(usize* capacity)
 void gk::freeCharBufferAligned(char*& buffer, usize capacity)
 {
 	constexpr usize alignment = 64;
-	globalHeapAllocator().freeAlignedBuffer(buffer, capacity, alignment);
+	globalHeapAllocator()->freeAlignedBuffer(buffer, capacity, alignment);
 }
 
 namespace gk {

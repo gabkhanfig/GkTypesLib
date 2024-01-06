@@ -29,7 +29,7 @@ static constexpr usize calculateAllocationSize(usize hashMaskCount, usize pairCo
 	return hashMaskCount + (sizeof(gk::internal::JsonKeyValue) * pairCount);
 }
 
-void gk::internal::JsonObjectBucket::defaultConstructRuntime(Allocator* allocator)
+void gk::internal::JsonObjectBucket::defaultConstructRuntime(AllocatorRef* allocator)
 {
 	constexpr usize alignment = 64;
 	constexpr usize allocationSize = calculateAllocationSize(64, 4);
@@ -43,7 +43,7 @@ void gk::internal::JsonObjectBucket::defaultConstructRuntime(Allocator* allocato
 	this->pairs = reinterpret_cast<JsonKeyValue*>(memory + maskCapacity); // offset by the masks
 }
 
-inline void gk::internal::JsonObjectBucket::reallocateMasksAndPairs(usize minCapacity, Allocator* allocator)
+inline void gk::internal::JsonObjectBucket::reallocateMasksAndPairs(usize minCapacity, AllocatorRef* allocator)
 {
 	constexpr usize alignment = 64;
 
@@ -194,7 +194,7 @@ gk::Option<usize> gk::internal::JsonObjectBucket::firstAvailableSlot() const
 	return func(this->hashMasks, this->pairCapacity);
 }
 
-void gk::internal::JsonObjectBucket::freeRuntime(Allocator* allocator)
+void gk::internal::JsonObjectBucket::freeRuntime(AllocatorRef* allocator)
 {
 	if (hashMasks == nullptr) return;
 
@@ -212,7 +212,7 @@ usize gk::JsonObject::calculateNewBucketCount(usize requiredCapacity)
 void gk::JsonObject::reallocateRuntime(usize requiredCapacity)
 {
 	using internal::JsonObjectBucket;
-	Allocator allocator = gk::globalHeapAllocator();
+	AllocatorRef allocator = gk::globalHeapAllocator();
 
 	const usize newBucketCount = calculateNewBucketCount(requiredCapacity);
 	if (newBucketCount <= bucketCount) {
@@ -251,7 +251,7 @@ void gk::JsonObject::reallocateRuntime(usize requiredCapacity)
 
 gk::Option<gk::JsonValue*> gk::JsonObject::addFieldRuntime(String&& name, JsonValue&& value)
 {
-	Allocator allocator = gk::globalHeapAllocator();
+	AllocatorRef allocator = gk::globalHeapAllocator();
 	const usize hashCode = name.hash();
 	const internal::JsonHashBucketBits bucketBits = internal::JsonHashBucketBits(hashCode);
 	//const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
@@ -281,7 +281,7 @@ gk::Option<gk::JsonValue*> gk::JsonObject::addFieldRuntime(String&& name, JsonVa
 
 bool gk::JsonObject::eraseFieldRuntime(const String& name)
 {
-	Allocator allocator = gk::globalHeapAllocator();
+	AllocatorRef allocator = gk::globalHeapAllocator();
 	const usize hashCode = name.hash();
 	const internal::JsonHashBucketBits bucketBits = internal::JsonHashBucketBits(hashCode);
 	//const internal::JsonPairHashBits pairBits = internal::JsonPairHashBits(hashCode);
