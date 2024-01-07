@@ -62,7 +62,7 @@ namespace gk {
 #define test_suite DOCTEST_TEST_SUITE
 
 #define comptime_test_case(test_case_name, test_block) \
-consteval bool CompTimeTest_ ## test_case_name ## () ## { test_block return true; } \
+static consteval bool CompTimeTest_ ## test_case_name ## () ## { test_block return true; } \
 static_assert(CompTimeTest_ ## test_case_name ## ());
 
 #else
