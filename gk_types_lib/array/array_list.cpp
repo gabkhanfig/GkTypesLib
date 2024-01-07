@@ -704,6 +704,66 @@ comptime_test_case(find_end, {
 	check_eq(a.find(9).some(), 9);
 });
 
+static constexpr void testArrayListRemoveContainsOneElement() {
+	ArrayList<int> a;
+	a.push(50);
+	check_eq(a.remove(0), 50);
+	check_eq(a.len(), 0);
+}
+
+test_case("remove contains one element") {
+	testArrayListRemoveContainsOneElement();
+}
+
+comptime_test_case(remove_contains_one_element, {
+	testArrayListRemoveContainsOneElement();
+});
+
+static constexpr void testArrayListRemoveLastElement() {
+	ArrayList<int> a;
+	a.push(10);
+	a.push(20);
+	a.push(30);
+	a.push(40);
+	a.push(50);
+	check_eq(a.remove(4), 50);
+	check_eq(a.len(), 4);
+	check_eq(a[0], 10);
+	check_eq(a[1], 20);
+	check_eq(a[2], 30);
+	check_eq(a[3], 40);
+}
+
+test_case("remove last element") {
+	testArrayListRemoveLastElement();
+}
+
+comptime_test_case(remove_last_element, {
+	testArrayListRemoveLastElement();
+});
+
+static constexpr void testArrayListRemoveMiddleElement() {
+	ArrayList<int> a;
+	a.push(10);
+	a.push(20);
+	a.push(30);
+	a.push(40);
+	a.push(50);
+	check_eq(a.remove(2), 30);
+	check_eq(a.len(), 4);
+	check_eq(a[0], 10);
+	check_eq(a[1], 20);
+	check_eq(a[2], 40);
+	check_eq(a[3], 50);
+}
+
+test_case("remove middle element") {
+	testArrayListRemoveMiddleElement();
+}
+
+comptime_test_case(remove_middle_element, {
+	testArrayListRemoveMiddleElement();
+	});
 
 #endif
 
