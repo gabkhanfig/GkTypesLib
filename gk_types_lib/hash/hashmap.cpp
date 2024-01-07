@@ -186,7 +186,7 @@ test_case("DefaultConstruct") {
 	hashMapDefaultConstruct();
 }
 
-comptime_test_case(hashmap, DefaultConstruct, {
+comptime_test_case(DefaultConstruct, {
 	hashMapDefaultConstruct();
 });
 
@@ -200,7 +200,7 @@ test_case("InsertIntSize") {
 	hashMapInsertIntSize();
 }
 
-comptime_test_case(hashmap, InsertIntSize, {
+comptime_test_case(InsertIntSize, {
 	hashMapInsertIntSize();
 });
 
@@ -216,7 +216,7 @@ test_case("InsertMultipleIntsSize") {
 	hashMapInsertMultipleIntsSize();
 }
 
-comptime_test_case(hashmap, InsertMultipleIntsSize, {
+comptime_test_case(InsertMultipleIntsSize, {
 	hashMapInsertMultipleIntsSize();
 });
 
@@ -285,7 +285,7 @@ test_case("FindIntSize1") {
 	testHashMapFindIntSize1();
 }
 
-comptime_test_case(hashmap, FindIntSize1, {
+comptime_test_case(FindIntSize1, {
 	testHashMapFindIntSize1();
 });
 
@@ -300,7 +300,7 @@ test_case("DontFindIntSize1") {
 	testhashMapDontFindIntSize1();
 }
 
-comptime_test_case(hashmap, DontFindIntSize1, {
+comptime_test_case(DontFindIntSize1, {
 	testhashMapDontFindIntSize1();
 });
 
@@ -317,7 +317,7 @@ test_case("FindIntSizeMultiple") {
 	testHashMapFindIntSizeMultiple();
 }
 
-comptime_test_case(hashmap, FindIntSizeMultiple, {
+comptime_test_case(FindIntSizeMultiple, {
 	testHashMapFindIntSizeMultiple();
 });
 
@@ -334,7 +334,7 @@ test_case("DontFindIntSizeMultiple") {
 	testHashMapDontFindIntSizeMultiple();
 }
 
-comptime_test_case(hashmap, DontFindIntSizeMultiple, {
+comptime_test_case(DontFindIntSizeMultiple, {
 	testHashMapFindIntSizeMultiple();
 });
 

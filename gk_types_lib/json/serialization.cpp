@@ -49,7 +49,7 @@ test_case("Serialize one bool field") {
 	check_eq(obj.findField("someFlag"_str).some()->boolValue(), true);
 }
 
-comptime_test_case(Serialize, OneBoolField, {
+comptime_test_case(SerializeOneBoolField, {
 	SerializeExample1 e;
 	e.someFlag = true;
 	JsonObject obj = serialize(e);
@@ -64,7 +64,7 @@ test_case("Deserialize one bool field") {
 	check_eq(des.someFlag, true);
 }
 
-comptime_test_case(Deserialize, OneBoolField, {
+comptime_test_case(DeserializeOneBoolField, {
 	JsonObject obj;
 	obj.addField("someFlag"_str, JsonValue::makeBool(true));
 	SerializeExample1 des = deserialize<SerializeExample1>(obj).ok();
@@ -79,7 +79,7 @@ test_case("Serialize and deserialize one bool field") {
 	check_eq(des.someFlag, true);
 }
 
-comptime_test_case(SerializeAndDeserialize, OneBoolField, {
+comptime_test_case(SerializeAndDeserializeOneBoolField, {
 	SerializeExample1 e;
 	e.someFlag = true;
 	JsonObject obj = serialize(e);
@@ -98,7 +98,7 @@ test_case("Serialize two number fields") {
 	check_eq(obj.findField("power"_str).some()->numberValue(), 10);
 }
 
-comptime_test_case(Serialize, TwoNumberFields, {
+comptime_test_case(SerializeTwoNumberFields, {
 	SerializeExample2 e;
 	e.health = 195.5;
 	e.power = 10;
@@ -118,7 +118,7 @@ test_case("Deserialize two number fields") {
 	check_eq(des.power, 5);
 }
 
-comptime_test_case(Deserialize, TwoNumberFields, {
+comptime_test_case(DeserializeTwoNumberFields, {
 	JsonObject obj;
 	obj.addField("health"_str, JsonValue::makeNumber(60.1));
 	obj.addField("power"_str, JsonValue::makeNumber(5));
@@ -137,7 +137,7 @@ test_case("Serialize and deserialize two number fields") {
 	check_eq(des.power, 4);
 }
 
-comptime_test_case(SerializeAndDeserialize, TwoNumberFields, {
+comptime_test_case(SerializeAndDeserializeTwoNumberFields, {
 	SerializeExample2 e;
 	e.health = -1.7;
 	e.power = 4;
@@ -158,7 +158,7 @@ test_case("Serialize with string field") {
 	check_eq(obj.findField("name"_str).some()->stringValue(), "pslang"_str);
 }
 
-comptime_test_case(Serialize, WithStringField, {
+comptime_test_case(SerializeWithStringField, {
 	SerializeExample3 e;
 	e.someFlag = true;
 	e.name = "pslang"_str;
@@ -178,7 +178,7 @@ test_case("Deserialize with string field") {
 	check_eq(des.name, "pslang"_str);
 }
 
-comptime_test_case(Deserialize, WithStringField, {
+comptime_test_case(DeserializeWithStringField, {
 	JsonObject obj;
 	obj.addField("someFlag"_str, JsonValue::makeBool(true));
 	obj.addField("name"_str, JsonValue::makeString("pslang"_str));
@@ -197,7 +197,7 @@ test_case("Serialize and deserialize with string field") {
 	check_eq(des.name, "pslang"_str);
 }
 
-comptime_test_case(SerializeAndDeserialize, WithStringField, {
+comptime_test_case(SerializeAndDeserializeWithStringField, {
 	SerializeExample3 e;
 	e.someFlag = true;
 	e.name = "pslang"_str;
@@ -221,7 +221,7 @@ test_case("Serialize with array field") {
 	check_eq(values[3].numberValue(), 3);
 }
 
-comptime_test_case(Serialize, WithArrayField, { 
+comptime_test_case(SerializeWithArrayField, { 
 	SerializeExample4 e;
 	for (int i = 0; i < 4; i++) {
 		e.numbers.push(i);
@@ -245,7 +245,7 @@ test_case("Deserialize with array field") {
 	check_eq(des.numbers[0], 10);
 }
 
-comptime_test_case(Deserialize, WithArrayField, {
+comptime_test_case(DeserializeWithArrayField, {
 	JsonObject obj;
 	ArrayList<JsonValue> values;
 	values.push(JsonValue::makeNumber(10));
@@ -267,7 +267,7 @@ test_case("Serialize and deserialize with array field") {
 	check_eq(des.numbers[1], 11);
 }
 
-comptime_test_case(SerializeAndDeserialize, WithArrayField, {
+comptime_test_case(SerializeAndDeserializeWithArrayField, {
 	SerializeExample4 e;
 	for (int i = 0; i < 2; i++) {
 		e.numbers.push(i + 10);
@@ -296,7 +296,7 @@ test_case("Serialize nested") {
 	check_eq(subobj.findField("power"_str).some()->numberValue(), 10);
 }
 
-comptime_test_case(Serialize, Nested, {
+comptime_test_case(SerializeNested, {
 	SerializeExample5 e;
 	e.nested.health = 195.5;
 	e.nested.power = 10;
@@ -320,7 +320,7 @@ test_case("Deserialize nested") {
 	check_eq(des.nested.power, 5);
 }
 
-comptime_test_case(Deserialize, Nested, {
+comptime_test_case(DeserializeNested, {
 	JsonObject subobj;
 	subobj.addField("health"_str, JsonValue::makeNumber(60.1));
 	subobj.addField("power"_str, JsonValue::makeNumber(5));
@@ -341,7 +341,7 @@ test_case("Serialize and deserialize nested") {
 	check_eq(des.nested.power, 4);
 }
 
-comptime_test_case(SerializeAndDeserialize, Nested, {
+comptime_test_case(SerializeAndDeserializeNested, {
 	SerializeExample5 e;
 	e.nested.health = -1.7;
 	e.nested.power = 4;

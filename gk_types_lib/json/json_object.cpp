@@ -303,7 +303,7 @@ test_case("JsonObject cant find field when empty") {
 	check(obj.findField(""_str).none());
 }
 
-comptime_test_case(JsonObject, CantFindFieldWhenEmpty, {
+comptime_test_case(CantFindFieldWhenEmpty, {
 	JsonObject obj;
 	check(obj.findField(""_str).none());
 });
@@ -315,7 +315,7 @@ test_case("JsonObject add field null") {
 	check(obj.findField("some name"_str).some()->isNull());
 }
 
-comptime_test_case(JsonObject, AddFieldNull, {
+comptime_test_case(AddFieldNull, {
 	JsonObject obj;
 	obj.addField("some name"_str, JsonValue());
 	check(obj.findField("some name"_str).isSome());
@@ -329,7 +329,7 @@ test_case("JsonObject add field bool") {
 	check_eq(obj.findField("some name"_str).some()->boolValue(), true);
 }
 
-comptime_test_case(JsonObject, AddFieldBool, {
+comptime_test_case(AddFieldBool, {
 	JsonObject obj;
 	obj.addField("some name"_str, JsonValue::makeBool(true));
 	check(obj.findField("some name"_str).isSome());
@@ -343,7 +343,7 @@ test_case("JsonObject add field number") {
 	check_eq(obj.findField("some name"_str).some()->numberValue(), -1.5);
 }
 
-comptime_test_case(JsonObject, AddFieldNumber, {
+comptime_test_case(AddFieldNumber, {
 	JsonObject obj;
 	obj.addField("some name"_str, JsonValue::makeNumber(-1.5));
 	check(obj.findField("some name"_str).isSome());
@@ -357,7 +357,7 @@ test_case("JsonObject add field string") {
 	check_eq(obj.findField("some name"_str).some()->stringValue(), "whoa!"_str);
 }
 
-comptime_test_case(JsonObject, AddFieldString, {
+comptime_test_case(AddFieldString, {
 	JsonObject obj;
 	obj.addField("some name"_str, JsonValue::makeString("whoa!"_str));
 	check(obj.findField("some name"_str).isSome());
@@ -373,7 +373,7 @@ test_case("JsonObject add field array") {
 	check_eq(obj.findField("some name"_str).some()->arrayValue()[0].boolValue(), true);
 }
 
-comptime_test_case(JsonObject, AddFieldArray, {
+comptime_test_case(AddFieldArray, {
 	JsonObject obj;
 	ArrayList<JsonValue> values;
 	values.push(JsonValue::makeBool(true));
@@ -392,7 +392,7 @@ test_case("JsonObject add field object") {
 	check_eq(subobjRef.findField("sub field"_str).some()->boolValue(), true);
 }
 
-comptime_test_case(JsonObject, AddFieldObject, {
+comptime_test_case(AddFieldObject, {
 	JsonObject obj;
 	JsonObject subobj;
 	subobj.addField("sub field"_str, JsonValue::makeBool(true));
@@ -408,7 +408,7 @@ test_case("JsonObject to string empty") {
 	check_eq(jsonString, "{}"_str);
 }
 
-comptime_test_case(JsonObject, to_string_empty, {
+comptime_test_case(to_string_empty, {
 	JsonObject obj;
 	String jsonString = obj.toString();
 	check_eq(jsonString, "{}"_str);
@@ -421,7 +421,7 @@ test_case("JsonObject to string one null field") {
 	check(jsonString.find("\"someField\": null").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_one_null_field, {
+comptime_test_case(to_string_one_null_field, {
 	JsonObject obj;
 	obj.addField("someField"_str, JsonValue::makeNull());
 	String jsonString = obj.toString();
@@ -437,7 +437,7 @@ test_case("JsonObject to string two null fields") {
 	check(jsonString.find("\"someField2\": null").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_two_null_fields, {
+comptime_test_case(to_string_two_null_fields, {
 	JsonObject obj;
 	obj.addField("someField1"_str, JsonValue::makeNull());
 	obj.addField("someField2"_str, JsonValue::makeNull());
@@ -453,7 +453,7 @@ test_case("JsonObject to string one bool field") {
 	check(jsonString.find("\"someField\": true").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_one_bool_field, {
+comptime_test_case(to_string_one_bool_field, {
 	JsonObject obj;
 	obj.addField("someField"_str, JsonValue::makeBool(true));
 	String jsonString = obj.toString();
@@ -469,7 +469,7 @@ test_case("JsonObject to string two bool fields") {
 	check(jsonString.find("\"someField2\": false").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_two_bool_fields, {
+comptime_test_case(to_string_two_bool_fields, {
 	JsonObject obj;
 	obj.addField("someField1"_str, JsonValue::makeBool(true));
 	obj.addField("someField2"_str, JsonValue::makeBool(false));
@@ -485,7 +485,7 @@ test_case("JsonObject to string one number field") {
 	check(jsonString.find("\"someField\": -15.72").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_one_number_field, {
+comptime_test_case(to_string_one_number_field, {
 	JsonObject obj;
 	obj.addField("someField"_str, JsonValue::makeNumber(-15.72));
 	String jsonString = obj.toString();
@@ -501,7 +501,7 @@ test_case("JsonObject to string two number fields") {
 	check(jsonString.find("\"someField2\": 0.0").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_two_number_fields, {
+comptime_test_case(to_string_two_number_fields, {
 	JsonObject obj;
 	obj.addField("someField1"_str, JsonValue::makeNumber(-15.72));
 	obj.addField("someField2"_str, JsonValue::makeNumber(0));
@@ -517,7 +517,7 @@ test_case("JsonObject to string one string field") {
 	check(jsonString.find("\"someField\": \"chicken\"").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_one_string_field, {
+comptime_test_case(to_string_one_string_field, {
 	JsonObject obj;
 	obj.addField("someField"_str, JsonValue::makeString("chicken"_str));
 	String jsonString = obj.toString();
@@ -533,7 +533,7 @@ test_case("JsonObject to string two string fields") {
 	check(jsonString.find("\"someField2\": \":}\"").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_two_string_fields, {
+comptime_test_case(to_string_two_string_fields, {
 	JsonObject obj;
 	obj.addField("someField1"_str, JsonValue::makeString("woa"_str));
 	obj.addField("someField2"_str, JsonValue::makeString(":}"_str));
@@ -551,7 +551,7 @@ test_case("JsonObject to string one array field") {
 	check(jsonString.find("\"someField\": [0.0]").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_one_array_field, {
+comptime_test_case(to_string_one_array_field, {
 	JsonObject obj;
 	ArrayList<JsonValue> a;
 	a.push(JsonValue::makeNumber(0));
@@ -573,7 +573,7 @@ test_case("JsonObject to string two array fields") {
 	check(jsonString.find("\"someField2\": [95.7]").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_two_array_fields, {
+comptime_test_case(to_string_two_array_fields, {
 	JsonObject obj;
 	ArrayList<JsonValue> a1;
 	ArrayList<JsonValue> a2;
@@ -597,7 +597,7 @@ test_case("JsonObject to string one array field multiple array values") {
 	check(jsonString.find("\"someField\": [0.0, 1.0, 10.8]").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_one_array_field_multiple_array_values, {
+comptime_test_case(to_string_one_array_field_multiple_array_values, {
 	JsonObject obj;
 	ArrayList<JsonValue> a;
 	a.push(JsonValue::makeNumber(0));
@@ -628,7 +628,7 @@ test_case("JsonObject to string two array fields multiple array values") {
 	check(jsonString.find("\"someField2\": [95.7, -10.0, -500.0]").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_two_array_fields_multiple_array_values, {
+comptime_test_case(to_string_two_array_fields_multiple_array_values, {
 	JsonObject obj;
 	ArrayList<JsonValue> a1;
 	ArrayList<JsonValue> a2;
@@ -655,7 +655,7 @@ test_case("JsonObject to string one object field empty object") {
 	check(jsonString.find("\"someField\": {}").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_one_object_field_empty_object, {
+comptime_test_case(to_string_one_object_field_empty_object, {
 	JsonObject obj;
 	obj.addField("someField"_str, JsonValue::makeObject(JsonObject()));
 	String jsonString = obj.toString();
@@ -671,7 +671,7 @@ test_case("JsonObject to string two object fields empty objects") {
 	check(jsonString.find("\"someField2\": {}").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_two_object_fields_empty_objects, {
+comptime_test_case(to_string_two_object_fields_empty_objects, {
 	JsonObject obj;
 	obj.addField("someField1"_str, JsonValue::makeObject(JsonObject()));
 	obj.addField("someField2"_str, JsonValue::makeObject(JsonObject()));
@@ -690,7 +690,7 @@ test_case("JsonObject to string one object field subobject") {
 	check(jsonString.find("\"subField\": false").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_one_object_field_subobject, {
+comptime_test_case(to_string_one_object_field_subobject, {
 	JsonObject obj;
 	JsonObject subobj;
 	subobj.addField("subField"_str, JsonValue::makeBool(false));
@@ -716,7 +716,7 @@ test_case("JsonObject to string two object field subobjects") {
 	check(jsonString.find("\"subField\": false").isSome());
 }
 
-comptime_test_case(JsonObject, to_string_two_object_field_subobjects, {
+comptime_test_case(to_string_two_object_field_subobjects, {
 	JsonObject obj;
 	JsonObject subobj1;
 	JsonObject subobj2;
@@ -739,7 +739,7 @@ test_case("JsonObject parse empty json object") {
 	check_eq(res.ok().fieldCount(), 0);
 }
 
-comptime_test_case(JsonObject, parse_empty_json_object, {
+comptime_test_case(parse_empty_json_object, {
 	gk::Str jsonString = "{}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -753,7 +753,7 @@ test_case("JsonObject parse empty json object sanity") {
 	check_eq(res.ok().fieldCount(), 0);
 }
 
-comptime_test_case(JsonObject, parse_empty_json_object_sanity, {
+comptime_test_case(parse_empty_json_object_sanity, {
 	gk::Str jsonString = "  {\n\n\t}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -769,7 +769,7 @@ test_case("JsonObject parse json object one null value") {
 	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Null);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_null_value, {
+comptime_test_case(parse_json_object_one_null_value, {
 	gk::Str jsonString = "{\"field\": null}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -787,7 +787,7 @@ test_case("JsonObject parse json object one null value sanity") {
 	check_eq(obj.findField("field"_str).some()->type(), JsonValueType::Null);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_null_value_sanity, {
+comptime_test_case(parse_json_object_one_null_value_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \nnull\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -806,7 +806,7 @@ test_case("JsonObject parse json object one bool value true") {
 	check_eq(obj.findField("field"_str).some()->boolValue(), true);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_bool_value_true, {
+comptime_test_case(parse_json_object_one_bool_value_true, {
 	gk::Str jsonString = "{\"field\": true}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -826,7 +826,7 @@ test_case("JsonObject parse json object one bool value true sanity") {
 	check_eq(obj.findField("field"_str).some()->boolValue(), true);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_bool_value_true_sanity, {
+comptime_test_case(parse_json_object_one_bool_value_true_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \ntrue\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -846,7 +846,7 @@ test_case("JsonObject parse json object one bool value false") {
 	check_eq(obj.findField("field"_str).some()->boolValue(), false);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_bool_value_false, {
+comptime_test_case(parse_json_object_one_bool_value_false, {
 	gk::Str jsonString = "{\"field\": false}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -866,7 +866,7 @@ test_case("JsonObject parse json object one bool value false sanity") {
 	check_eq(obj.findField("field"_str).some()->boolValue(), false);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_bool_value_false_sanity, {
+comptime_test_case(parse_json_object_one_bool_value_false_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \nfalse\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -886,7 +886,7 @@ test_case("JsonObject parse json object one number value zero") {
 	check_eq(obj.findField("field"_str).some()->numberValue(), 0.0);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_number_value_zero, {
+comptime_test_case(parse_json_object_one_number_value_zero, {
 	gk::Str jsonString = "{\"field\": 0}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -906,7 +906,7 @@ test_case("JsonObject parse json object one number value zero sanity") {
 	check_eq(obj.findField("field"_str).some()->numberValue(), 0.0);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_number_value_zero_sanity, {
+comptime_test_case(parse_json_object_one_number_value_zero_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \n0.0\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -926,7 +926,7 @@ test_case("JsonObject parse json object one number value random positive integer
 	check_eq(obj.findField("field"_str).some()->numberValue(), 6591.0);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_number_value_random_positive_integer, {
+comptime_test_case(parse_json_object_one_number_value_random_positive_integer, {
 	gk::Str jsonString = "{\"field\": 6591}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -946,7 +946,7 @@ test_case("JsonObject parse json object one number value random positive integer
 	check_eq(obj.findField("field"_str).some()->numberValue(), 6591.0);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_number_value_random_positive_integer_sanity, {
+comptime_test_case(parse_json_object_one_number_value_random_positive_integer_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \n6591.0\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -966,7 +966,7 @@ test_case("JsonObject parse json object one number value random negative integer
 	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.0);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_number_value_random_negative_integer, {
+comptime_test_case(parse_json_object_one_number_value_random_negative_integer, {
 	gk::Str jsonString = "{\"field\": -6591}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -986,7 +986,7 @@ test_case("JsonObject parse json object one number value random negative integer
 	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.0);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_number_value_random_negative_integer_sanity, {
+comptime_test_case(parse_json_object_one_number_value_random_negative_integer_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \n-6591.0\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1006,7 +1006,7 @@ test_case("JsonObject parse json object one number value random positive decimal
 	check_eq(obj.findField("field"_str).some()->numberValue(), 6591.1945);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_number_value_random_positive_decimal, {
+comptime_test_case(parse_json_object_one_number_value_random_positive_decimal, {
 	gk::Str jsonString = "{\"field\": 6591.1945}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1026,7 +1026,7 @@ test_case("JsonObject parse json object one number value random positive decimal
 	check_eq(obj.findField("field"_str).some()->numberValue(), 6591.1945);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_number_value_random_positive_decimal_sanity, {
+comptime_test_case(parse_json_object_one_number_value_random_positive_decimal_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \n6591.1945\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1046,7 +1046,7 @@ test_case("JsonObject parse json object one number value random negative decimal
 	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.1945);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_number_value_random_negative_decimal, {
+comptime_test_case(parse_json_object_one_number_value_random_negative_decimal, {
 	gk::Str jsonString = "{\"field\": -6591.1945}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1066,7 +1066,7 @@ test_case("JsonObject parse json object one number value random negative decimal
 	check_eq(obj.findField("field"_str).some()->numberValue(), -6591.1945);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_number_value_random_negative_decimal_sanity, {
+comptime_test_case(parse_json_object_one_number_value_random_negative_decimal_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \n-6591.1945\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1086,7 +1086,7 @@ test_case("JsonObject parse json object one string value") {
 	check_eq(obj.findField("field"_str).some()->stringValue(), "hello world!"_str);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_string_value, {
+comptime_test_case(parse_json_object_one_string_value, {
 	gk::Str jsonString = "{\"field\": \"hello world!\"}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1106,7 +1106,7 @@ test_case("JsonObject parse json object one string value sanity") {
 	check_eq(obj.findField("field"_str).some()->stringValue(), "hello world!"_str);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_string_value_sanity, {
+comptime_test_case(parse_json_object_one_string_value_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \n\"hello world!\"\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1130,7 +1130,7 @@ test_case("JsonObject parse json object one array value one element") {
 	check_eq(arr[0].numberValue(), 0);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_array_value_one_element, {
+comptime_test_case(parse_json_object_one_array_value_one_element, {
 	gk::Str jsonString = "{\"field\": [0]}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1156,7 +1156,7 @@ test_case("JsonObject parse json object one array value one element sanity") {
 	check_eq(arr[0].numberValue(), 0);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_array_value_one_element_sanity, {
+comptime_test_case(parse_json_object_one_array_value_one_element_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \n[0]\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1184,7 +1184,7 @@ test_case("JsonObject parse json object one array value multiple elements") {
 	check_eq(arr[2].numberValue(), 2);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_array_value_multiple_elements, {
+comptime_test_case(parse_json_object_one_array_value_multiple_elements, {
 	gk::Str jsonString = "{\"field\": [0, 1, 2]}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1214,7 +1214,7 @@ test_case("JsonObject parse json object one array value multiple elements sanity
 	check_eq(arr[2].numberValue(), 2);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_array_value_multiple_elements_sanity, {
+comptime_test_case(parse_json_object_one_array_value_multiple_elements_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \n[0, 1, 2]\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1241,7 +1241,7 @@ test_case("JsonObject parse json object one array value no elements") {
 	check_eq(arr.len(), 0);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_array_value_no_elements, {
+comptime_test_case(parse_json_object_one_array_value_no_elements, {
 	gk::Str jsonString = "{\"field\": []}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1263,7 +1263,7 @@ test_case("JsonObject parse json object one array value no elements sanity") {
 	check_eq(arr.len(), 0);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_array_value_no_elements_sanity, {
+comptime_test_case(parse_json_object_one_array_value_no_elements_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \n[]\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1286,7 +1286,7 @@ test_case("JsonObject parse json object one object value empty") {
 	check_eq(subobj.fieldCount(), 0);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_object_value_empty, {
+comptime_test_case(parse_json_object_one_object_value_empty, {
 	gk::Str jsonString = "{\"field\": {}}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1310,7 +1310,7 @@ test_case("JsonObject parse json object one object value empty sanity") {
 	check_eq(subobj.fieldCount(), 0);
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_array_object_value_empty_sanity, {
+comptime_test_case(parse_json_object_one_array_object_value_empty_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \n{ }\n}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1336,7 +1336,7 @@ test_case("JsonObject parse json object one object value null subfield") {
 	check(sub->isNull());
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_object_value_null_subfield, {
+comptime_test_case(parse_json_object_one_object_value_null_subfield, {
 	gk::Str jsonString = "{\"field\": { \"sub\": null}}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1362,7 +1362,7 @@ test_case("JsonObject parse json object one object value null subfield sanity") 
 	check(sub->isNull());
 }
 
-comptime_test_case(JsonObject, parse_json_object_one_object_value_null_subfield_sanity, {
+comptime_test_case(parse_json_object_one_object_value_null_subfield_sanity, {
 	gk::Str jsonString = "{\n \"field\"  \n\t: \n{\t\t\n\"sub\":    null\n}\n}}";
 	Result<JsonObject> res = JsonObject::parse(jsonString);
 	check(res.isOk());
@@ -1570,7 +1570,7 @@ test_case("JsonObject parse one object value subfield bool true") {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldBoolTrue();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_bool_true, {
+comptime_test_case(parse_one_object_value_subfield_bool_true, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldBoolTrue();
 });
 
@@ -1578,7 +1578,7 @@ test_case("JsonObject parse one object value subfield bool false") {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldBoolFalse();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_bool_false, {
+comptime_test_case(parse_one_object_value_subfield_bool_false, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldBoolFalse();
 });
 
@@ -1586,7 +1586,7 @@ test_case("JsonObject parse one object value subfield number zero") {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberZero();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_number_zero, {
+comptime_test_case(parse_one_object_value_subfield_number_zero, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberZero();
 });
 
@@ -1594,7 +1594,7 @@ test_case("JsonObject parse one object value subfield number zero decimal") {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberZeroDecimal();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_number_zero_decimal, {
+comptime_test_case(parse_one_object_value_subfield_number_zero_decimal, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberZeroDecimal();
 });
 
@@ -1602,7 +1602,7 @@ test_case("JsonObject parse one object value subfield number positive integer") 
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberPositiveInteger();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_number_positive_integer, {
+comptime_test_case(parse_one_object_value_subfield_number_positive_integer, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberPositiveInteger();
 });
 
@@ -1610,7 +1610,7 @@ test_case("JsonObject parse one object value subfield number positive decimal") 
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberPositiveDecimal();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_number_positive_decimal, {
+comptime_test_case(parse_one_object_value_subfield_number_positive_decimal, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberPositiveDecimal();
 });
 
@@ -1618,7 +1618,7 @@ test_case("JsonObject parse one object value subfield number negative integer") 
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberNegativeInteger();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_number_negative_integer, {
+comptime_test_case(parse_one_object_value_subfield_number_negative_integer, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberNegativeInteger();
 });
 
@@ -1626,7 +1626,7 @@ test_case("JsonObject parse one object value subfield number negative decimal") 
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberNegativeDecimal();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_number_negative_decimal, {
+comptime_test_case(parse_one_object_value_subfield_number_negative_decimal, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldNumberNegativeDecimal();
 });
 
@@ -1634,7 +1634,7 @@ test_case("JsonObject parse one object value subfield string") {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldString();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_string, {
+comptime_test_case(parse_one_object_value_subfield_string, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldString();
 });
 
@@ -1642,7 +1642,7 @@ test_case("JsonObject parse one object value subfield array empty") {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldArrayEmpty();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_array_empty, {
+comptime_test_case(parse_one_object_value_subfield_array_empty, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldArrayEmpty();
 });
 
@@ -1650,7 +1650,7 @@ test_case("JsonObject parse one object value subfield array one element") {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldArrayOneElement();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_array_one_element, {
+comptime_test_case(parse_one_object_value_subfield_array_one_element, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldArrayOneElement();
 });
 
@@ -1658,7 +1658,7 @@ test_case("JsonObject parse one object value subfield array multiple elements") 
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldArrayMultipleElements();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_array_multiple_elements, {
+comptime_test_case(parse_one_object_value_subfield_array_multiple_elements, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldArrayMultipleElements();
 });
 
@@ -1666,7 +1666,7 @@ test_case("JsonObject parse one object value subfield object empty") {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldObjectEmpty();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_object_empty, {
+comptime_test_case(parse_one_object_value_subfield_object_empty, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldObjectEmpty();
 });
 
@@ -1674,7 +1674,7 @@ test_case("JsonObject parse one object value subfield object nested nested") {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldObjectNullValue();
 }
 
-comptime_test_case(JsonObject, parse_one_object_value_subfield_object_nested_nested, {
+comptime_test_case(parse_one_object_value_subfield_object_nested_nested, {
 	gk::unitTests::testJsonObjectParseObjectOneObjectValueSubfieldObjectNullValue();
 });
 
@@ -1715,7 +1715,7 @@ test_case("JsonObject parse multiple fields") {
 	gk::unitTests::testJsonObjectParseMultipleFields();
 }
 
-comptime_test_case(JsonObject, parse_multiple_fields, {
+comptime_test_case(parse_multiple_fields, {
 	gk::unitTests::testJsonObjectParseMultipleFields();
 });
 

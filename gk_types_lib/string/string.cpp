@@ -525,7 +525,7 @@ test_case("DefaultConstruct") {
 	check_eq(a.len(), 0);
 }
 
-comptime_test_case(String, DefaultConstruct, {
+comptime_test_case(DefaultConstruct, {
 	String a;
 	check(a.len() == 0);
 	});
@@ -537,7 +537,7 @@ test_case("ConstructOneCharacter") {
 	check_eq(a.cstr()[1], '\0');
 }
 
-comptime_test_case(String, ConstructOneCharacter, {
+comptime_test_case(ConstructOneCharacter, {
 		String a = 'c';
 		check(a.len() == 1);
 		check(a.cstr()[0] == 'c');
@@ -554,7 +554,7 @@ test_case("ConstructStrSmall") {
 	check_eq(a.cstr()[2], '\0');
 }
 
-comptime_test_case(String, ConstructStrSmall, {
+comptime_test_case(ConstructStrSmall, {
 		String a = "hi"_str;
 		check_eq(a.len(), 2);
 		check_eq(a.cstr()[0], 'h');
@@ -571,7 +571,7 @@ test_case("ConstructStrSmallUtf8") {
 	check_eq(a.cstr()[4], '\0');
 }
 
-comptime_test_case(String, ConstructStrSmallUtf8, {
+comptime_test_case(ConstructStrSmallUtf8, {
 		String a = "aÜ"_str;
 		check_eq(a.len(), 3);
 		check_eq(a.cstr()[0], 'a');
@@ -587,7 +587,7 @@ test_case("ConstructStrLarge") {
 	check_eq(a.cstr()[39], '\0');
 }
 
-comptime_test_case(String, ConstructStrLarge, {
+comptime_test_case(ConstructStrLarge, {
 		String a = "asdglkjahsldkjahsldkjahsldkjahsdlkajshd"_str;
 		check_eq(a.len(), 39);
 		check_eq(a.cstr()[0], 'a');
@@ -603,7 +603,7 @@ test_case("ConstructStrLargeUtf8") {
 	check_eq(a.cstr()[37], '\0');
 }
 
-comptime_test_case(String, ConstructStrLargeUtf8, {
+comptime_test_case(ConstructStrLargeUtf8, {
 		String a = "ÜbergrößenträgerÜbergrößenträ"_str;
 		check_eq(a.len(), 37);
 		check_eq(a.cstr()[0], "Ü"[0]);
@@ -622,7 +622,7 @@ test_case("CopyDefaultConstruct") {
 	check_eq(b.len(), 0);
 }
 
-comptime_test_case(String, CopyDefaultConstruct, {
+comptime_test_case(CopyDefaultConstruct, {
 		String a;
 		String b = a;
 		check_eq(b.len(), 0);
@@ -636,7 +636,7 @@ test_case("CopyConstructOneCharacter") {
 	check_eq(b.cstr()[1], '\0');
 }
 
-comptime_test_case(String, CopyConstructOneCharacter, {
+comptime_test_case(CopyConstructOneCharacter, {
 		String a = 'c';
 		String b = a;
 		check_eq(b.len(), 1);
@@ -653,7 +653,7 @@ test_case("CopyConstructStrSmall") {
 	check_eq(b.cstr()[2], '\0');
 }
 
-comptime_test_case(String, CopyConstructStrSmall, {
+comptime_test_case(CopyConstructStrSmall, {
 		String a = "hi"_str;
 		String b = a;
 		check_eq(b.len(), 2);
@@ -672,7 +672,7 @@ test_case("CopyConstructStrSmallUtf8") {
 	check_eq(b.cstr()[4], '\0');
 }
 
-comptime_test_case(String, CopyConstructStrSmallUtf8, {
+comptime_test_case(CopyConstructStrSmallUtf8, {
 		String a = "aÜ"_str;
 		String b = a;
 		check_eq(b.len(), 3);
@@ -690,7 +690,7 @@ test_case("CopyConstructStrLarge") {
 	check_eq(b.cstr()[39], '\0');
 }
 
-comptime_test_case(String, CopyConstructStrLarge, {
+comptime_test_case(CopyConstructStrLarge, {
 		String a = "asdglkjahsldkjahsldkjahsldkjahsdlkajshd"_str;
 		String b = a;
 		check_eq(b.len(), 39);
@@ -708,7 +708,7 @@ test_case("CopyConstructStrLargeUtf8") {
 	check_eq(b.cstr()[37], '\0');
 }
 
-comptime_test_case(String, CopyConstructStrLargeUtf8, {
+comptime_test_case(CopyConstructStrLargeUtf8, {
 		String a = "ÜbergrößenträgerÜbergrößenträ"_str;
 		String b = a;
 		check_eq(b.len(), 37);
@@ -728,7 +728,7 @@ test_case("MoveDefaultConstruct") {
 	check_eq(b.len(), 0);
 }
 
-comptime_test_case(String, MoveDefaultConstruct, {
+comptime_test_case(MoveDefaultConstruct, {
 		String a;
 		String b = a;
 		check_eq(b.len(), 0);
@@ -742,7 +742,7 @@ test_case("MoveConstructOneCharacter") {
 	check_eq(b.cstr()[1], '\0');
 }
 
-comptime_test_case(String, MoveConstructOneCharacter, {
+comptime_test_case(MoveConstructOneCharacter, {
 		String a = 'c';
 		String b = a;
 		check_eq(b.len(), 1);
@@ -759,7 +759,7 @@ test_case("MoveConstructStrSmall") {
 	check_eq(b.cstr()[2], '\0');
 }
 
-comptime_test_case(String, MoveConstructStrSmall, {
+comptime_test_case(MoveConstructStrSmall, {
 		String a = "hi"_str;
 		String b = a;
 		check_eq(b.len(), 2);
@@ -778,7 +778,7 @@ test_case("MoveConstructStrSmallUtf8") {
 	check_eq(b.cstr()[4], '\0');
 }
 
-comptime_test_case(String, MoveConstructStrSmallUtf8, {
+comptime_test_case(MoveConstructStrSmallUtf8, {
 		String a = "aÜ"_str;
 		String b = a;
 		check_eq(b.len(), 3);
@@ -796,7 +796,7 @@ test_case("MoveConstructStrLarge") {
 	check_eq(b.cstr()[39], '\0');
 }
 
-comptime_test_case(String, MoveConstructStrLarge, {
+comptime_test_case(MoveConstructStrLarge, {
 		String a = "asdglkjahsldkjahsldkjahsldkjahsdlkajshd"_str;
 		String b = a;
 		check_eq(b.len(), 39);
@@ -814,7 +814,7 @@ test_case("MoveConstructStrLargeUtf8") {
 	check_eq(b.cstr()[37], '\0');
 }
 
-comptime_test_case(String, MoveConstructStrLargeUtf8, {
+comptime_test_case(MoveConstructStrLargeUtf8, {
 		String a = "ÜbergrößenträgerÜbergrößenträ"_str;
 		String b = a;
 		check_eq(b.len(), 37);
@@ -836,7 +836,7 @@ test_case("AssignFromChar") {
 	check_eq(a.cstr()[1], '\0');
 }
 
-comptime_test_case(String, AssignFromChar, {
+comptime_test_case(AssignFromChar, {
 		String a = "ahosiduyapisudypaiusdypaiusdypaiusydpaiusd"_str;
 		a = 'c';
 		check_eq(a.len(), 1);
@@ -854,7 +854,7 @@ test_case("AssignFromCharNullBytesSanityCheck") {
 	}
 }
 
-comptime_test_case(String, AssignFromCharNullBytesSanityCheck, {
+comptime_test_case(AssignFromCharNullBytesSanityCheck, {
 		String a = "ha"_str;
 		a = 'c';
 		check_eq(a.len(), 1);
@@ -877,7 +877,7 @@ test_case("AssignFromSmallStr") {
 	check_eq(a.cstr()[2], '\0');
 }
 
-comptime_test_case(String, AssignFromSmallStr, {
+comptime_test_case(AssignFromSmallStr, {
 		String a = "haaiusydp8iauysdoliuaqyweoiuqywepoiuaqyspediausd"_str;
 		a = "ca"_str;
 		check_eq(a.len(), 2);
@@ -895,7 +895,7 @@ test_case("AssignFromLargeStr") {
 	check_eq(a.cstr()[39], '\0');
 }
 
-comptime_test_case(String, AssignFromLargeStr, {
+comptime_test_case(AssignFromLargeStr, {
 		String a = "hagsldihaglsdhalsiudhasduia;sikjdhlakjsdhl;akjsdh;akjsdh;akjshdoiuaysdo8q76wye08uyatsd"_str;
 		a = "aijshdliajshdlkajshdlkjashdlkajshdlaasd"_str;
 		check_eq(a.len(), 39);
@@ -915,7 +915,7 @@ test_case("AssignFromStrNullBytesSanityCheck") {
 	}
 }
 
-comptime_test_case(String, AssignFromStrNullBytesSanityCheck, {
+comptime_test_case(AssignFromStrNullBytesSanityCheck, {
 		String a = "hbb"_str;
 		a = "ca"_str;
 		check_eq(a.len(), 2);
@@ -947,7 +947,7 @@ test_case("AssignFromSmallCopy") {
 	check_eq(a.cstr()[1], 'a');
 }
 
-comptime_test_case(String, AssignFromSmallCopy, {
+comptime_test_case(AssignFromSmallCopy, {
 		String a = "haaiusydp8iauysdoliuaqyweoiuqywepoiuaqyspediausd"_str;
 		String b = "ca"_str;
 		a = b;
@@ -967,7 +967,7 @@ test_case("AssignFromLargeCopy") {
 	check_eq(a.cstr()[39], '\0');
 }
 
-comptime_test_case(String, AssignFromLargeCopy, {
+comptime_test_case(AssignFromLargeCopy, {
 		String a = "hagsldihaglsdhalsiudhasduia;sikjdhlakjsdhl;akjsdh;akjsdh;akjshdoiuaysdo8q76wye08uyatsd"_str;
 		String b = "aijshdliajshdlkajshdlkjashdlkajshdlaasd"_str;
 		a = b;
@@ -989,7 +989,7 @@ test_case("AssignFromCopyNullBytesSanityCheck") {
 	}
 }
 
-comptime_test_case(String, AssignFromCopyNullBytesSanityCheck, {
+comptime_test_case(AssignFromCopyNullBytesSanityCheck, {
 		String a = "hbb"_str;
 		String b = "ca"_str;
 		a = b;
@@ -1024,7 +1024,7 @@ test_case("AssignFromSmallMove") {
 	check_eq(a.cstr()[2], '\0');
 }
 
-comptime_test_case(String, AssignFromSmallMove, {
+comptime_test_case(AssignFromSmallMove, {
 		String a = "haaiusydp8iauysdoliuaqyweoiuqywepoiuaqyspediausd"_str;
 		String b = "ca"_str;
 		a = std::move(b);
@@ -1044,7 +1044,7 @@ test_case("AssignFromLargeMove") {
 	check_eq(a.cstr()[39], '\0');
 }
 
-comptime_test_case(String, AssignFromLargeMove, {
+comptime_test_case(AssignFromLargeMove, {
 		String a = "hagsldihaglsdhalsiudhasduia;sikjdhlakjsdhl;akjsdh;akjsdh;akjshdoiuaysdo8q76wye08uyatsd"_str;
 		String b = "aijshdliajshdlkajshdlkjashdlkajshdlaasd"_str;
 		a = std::move(b);
@@ -1066,7 +1066,7 @@ test_case("AssignFromMoveNullBytesSanityCheck") {
 	}
 }
 
-comptime_test_case(String, AssignFromMoveNullBytesSanityCheck, {
+comptime_test_case(AssignFromMoveNullBytesSanityCheck, {
 		String a = "hbb"_str;
 		String b = "ca"_str;
 		a = std::move(b);
@@ -1087,7 +1087,7 @@ test_case("EqualChar") {
 	check_eq(a, 'c');
 }
 
-comptime_test_case(String, EqualChar, {
+comptime_test_case(EqualChar, {
 		String a = 'c';
 		check_eq(a, 'c');
 	});
@@ -1097,7 +1097,7 @@ test_case("NotEqualChar") {
 	check_ne(a, 'c');
 }
 
-comptime_test_case(String, NotEqualChar, {
+comptime_test_case(NotEqualChar, {
 		String a = 'b';
 		check_ne(a, 'c');
 	});
@@ -1107,7 +1107,7 @@ test_case("NotEqualCharSameFirst") {
 	check_ne(a, 'c');
 }
 
-comptime_test_case(String, NotEqualCharSameFirst, {
+comptime_test_case(NotEqualCharSameFirst, {
 		String a = "ca"_str;
 		check_ne(a, 'c');
 	});
@@ -1117,7 +1117,7 @@ test_case("NotEqualCharAndLargeString") {
 	check_ne(a, 'c');
 }
 
-comptime_test_case(String, NotEqualCharAndLargeString, {
+comptime_test_case(NotEqualCharAndLargeString, {
 		String a = "calsjkhdglajhsgdlajhsgdoauiysgdoauyisgdoauhsgdlajhsgdlajhsgdlajhsd"_str;
 		check_ne(a, 'c');
 	});
@@ -1131,7 +1131,7 @@ test_case("EqualSmallStr") {
 	check_eq(a, "hi"_str);
 }
 
-comptime_test_case(String, EqualSmallStr, {
+comptime_test_case(EqualSmallStr, {
 		String a = "hi"_str;
 		check_eq(a, "hi"_str);
 	});
@@ -1141,7 +1141,7 @@ test_case("EqualSsoMaxStr") {
 	check_eq(a, "ashdlakjshdlkajshdlkjasdasdddg"_str);
 }
 
-comptime_test_case(String, EqualSsoMaxStr, {
+comptime_test_case(EqualSsoMaxStr, {
 		String a = "ashdlakjshdlkajshdlkjasdasdddg"_str;
 		check_eq(a, "ashdlakjshdlkajshdlkjasdasdddg"_str);
 	});
@@ -1151,7 +1151,7 @@ test_case("EqualLargeStr") {
 	check_eq(a, "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str);
 }
 
-comptime_test_case(String, EqualLargeStr, {
+comptime_test_case(EqualLargeStr, {
 		String a = "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str;
 		check_eq(a, "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str);
 	});
@@ -1161,7 +1161,7 @@ test_case("EqualUtf8SmallStr") {
 	check_eq(a, "ßen"_str);
 }
 
-comptime_test_case(String, EqualUtf8SmallStr, {
+comptime_test_case(EqualUtf8SmallStr, {
 		String a = "ßen"_str;
 		check_eq(a, "ßen"_str);
 	});
@@ -1171,7 +1171,7 @@ test_case("EqualUtf8LargeStr") {
 	check_eq(a, "ÜbergrößenträgerÜbergrößenträ"_str);
 }
 
-comptime_test_case(String, EqualUtf8LargeStr, {
+comptime_test_case(EqualUtf8LargeStr, {
 		String a = "ÜbergrößenträgerÜbergrößenträ"_str;
 		check_eq(a, "ÜbergrößenträgerÜbergrößenträ"_str);
 	});
@@ -1181,7 +1181,7 @@ test_case("NotEqualSmallStr") {
 	check_ne(a, "hi"_str);
 }
 
-comptime_test_case(String, NotEqualSmallStr, {
+comptime_test_case(NotEqualSmallStr, {
 		String a = "hh"_str;
 		check_ne(a, "hi"_str);
 	});
@@ -1191,7 +1191,7 @@ test_case("NotEqualSsoMaxStr") {
 	check_ne(a, "ashdlakjshdlkajshdlkjasdasdddg"_str);
 }
 
-comptime_test_case(String, NotEqualSsoMaxStr, {
+comptime_test_case(NotEqualSsoMaxStr, {
 		String a = "bshdlakjshdlkajshdlkjasdasdddg"_str;
 		check_ne(a, "ashdlakjshdlkajshdlkjasdasdddg"_str);
 	});
@@ -1201,7 +1201,7 @@ test_case("NotEqualLargeStr") {
 	check_ne(a, "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str);
 }
 
-comptime_test_case(String, NotEqualLargeStr, {
+comptime_test_case(NotEqualLargeStr, {
 		String a = "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwsteoiuywgoiuy6203871602837610238761023"_str;
 		check_ne(a, "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str);
 	});
@@ -1211,7 +1211,7 @@ test_case("NotEqualUtf8Small") {
 	check_ne(a, "ßen"_str);
 }
 
-comptime_test_case(String, NotEqualUtf8Small, {
+comptime_test_case(NotEqualUtf8Small, {
 		String a = "ßeb"_str;
 		check_ne(a, "ßen"_str);
 	});
@@ -1221,7 +1221,7 @@ test_case("NotEqualUtf8Large") {
 	check_ne(a, "ÜbergrößenträgerÜbergrößenträ"_str);
 }
 
-comptime_test_case(String, NotEqualUtf8Large, {
+comptime_test_case(NotEqualUtf8Large, {
 		String a = "ÜbergrößenträgerÜbargrößenträ"_str;
 		check_ne(a, "ÜbergrößenträgerÜbergrößenträ"_str);
 	});
@@ -1235,7 +1235,7 @@ test_case("EqualCharOtherString") {
 	check_eq(a, String('c'));
 }
 
-comptime_test_case(String, EqualCharOtherString, {
+comptime_test_case(EqualCharOtherString, {
 		String a = 'c';
 		check_eq(a, String('c'));
 	});
@@ -1245,7 +1245,7 @@ test_case("EqualSmallOtherString") {
 	check_eq(a, String("hi"_str));
 }
 
-comptime_test_case(String, EqualSmallOtherString, {
+comptime_test_case(EqualSmallOtherString, {
 		String a = "hi"_str;
 		check_eq(a, String("hi"_str));
 	});
@@ -1255,7 +1255,7 @@ test_case("EqualSsoMaxOtherString") {
 	check_eq(a, String("ashdlakjshdlkajshdlkjasdasdddg"_str));
 }
 
-comptime_test_case(String, EqualSsoMaxOtherString, {
+comptime_test_case(EqualSsoMaxOtherString, {
 		String a = "ashdlakjshdlkajshdlkjasdasdddg"_str;
 		check_eq(a, String("ashdlakjshdlkajshdlkjasdasdddg"_str));
 	});
@@ -1265,7 +1265,7 @@ test_case("EqualLargeOtherString") {
 	check_eq(a, String("ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str));
 }
 
-comptime_test_case(String, EqualLargeOtherString, {
+comptime_test_case(EqualLargeOtherString, {
 		String a = "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str;
 		check_eq(a, String("ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str));
 	});
@@ -1275,7 +1275,7 @@ test_case("EqualUtf8SmallOtherString") {
 	check_eq(a, String("ßen"_str));
 }
 
-comptime_test_case(String, EqualUtf8SmallOtherString, {
+comptime_test_case(EqualUtf8SmallOtherString, {
 		String a = "ßen"_str;
 		check_eq(a, String("ßen"_str));
 	});
@@ -1285,7 +1285,7 @@ test_case("EqualUtf8LargeOtherString") {
 	check_eq(a, String("ÜbergrößenträgerÜbergrößenträ"_str));
 }
 
-comptime_test_case(String, EqualUtf8LargeOtherString, {
+comptime_test_case(EqualUtf8LargeOtherString, {
 		String a = "ÜbergrößenträgerÜbergrößenträ"_str;
 		check_eq(a, String("ÜbergrößenträgerÜbergrößenträ"_str));
 	});
@@ -1295,7 +1295,7 @@ test_case("NotEqualSmallStrOtherString") {
 	check_ne(a, String("hi"_str));
 }
 
-comptime_test_case(String, NotEqualSmallStrOtherString, {
+comptime_test_case(NotEqualSmallStrOtherString, {
 		String a = "hh"_str;
 		check_ne(a, String("hi"_str));
 	});
@@ -1305,7 +1305,7 @@ test_case("NotEqualSsoMaxStrOtherString") {
 	check_ne(a, String("ashdlakjshdlkajshdlkjasdasdddg"_str));
 }
 
-comptime_test_case(String, NotEqualSsoMaxStrOtherString, {
+comptime_test_case(NotEqualSsoMaxStrOtherString, {
 		String a = "bshdlakjshdlkajshdlkjasdasdddg"_str;
 		check_ne(a, String("ashdlakjshdlkajshdlkjasdasdddg"_str));
 	});
@@ -1315,7 +1315,7 @@ test_case("NotEqualLargeStrOtherString") {
 	check_ne(a, String("ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str));
 }
 
-comptime_test_case(String, NotEqualLargeStrOtherString, {
+comptime_test_case(NotEqualLargeStrOtherString, {
 		String a = "ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwsteoiuywgoiuy6203871602837610238761023"_str;
 		check_ne(a, String("ashdlakjshdlkajshdlkjasdasdddgaksjhdgaljshdglajshdglaiuwyteoiuywgoiuy6203871602837610238761023"_str));
 	});
@@ -1325,7 +1325,7 @@ test_case("NotEqualUtf8SmallOtherString") {
 	check_ne(a, String("ßen"_str));
 }
 
-comptime_test_case(String, NotEqualUtf8SmallOtherString, {
+comptime_test_case(NotEqualUtf8SmallOtherString, {
 		String a = "ßeb"_str;
 		check_ne(a, String("ßen"_str));
 	});
@@ -1335,7 +1335,7 @@ test_case("NotEqualUtf8LargeOtherString") {
 	check_ne(a, String("ÜbergrößenträgerÜbergrößenträ"_str));
 }
 
-comptime_test_case(String, NotEqualUtf8LargeOtherString, {
+comptime_test_case(NotEqualUtf8LargeOtherString, {
 		String a = "ÜbergrößenträgerÜbargrößenträ"_str;
 		check_ne(a, String("ÜbergrößenträgerÜbergrößenträ"_str));
 	});
@@ -1351,7 +1351,7 @@ test_case("EmptyStringAppendChar") {
 	check_eq(a, String('c')); // for sanity, same with following tests
 }
 
-comptime_test_case(String, EmptyStringAppendChar, {
+comptime_test_case(EmptyStringAppendChar, {
 		String a;
 		a.append('c');
 		check_eq(a, 'c');
@@ -1365,7 +1365,7 @@ test_case("SmallStringAppendChar") {
 	check_eq(a, String("hello!"_str));
 }
 
-comptime_test_case(String, SmallStringAppendChar, {
+comptime_test_case(SmallStringAppendChar, {
 		String a = "hello"_str;
 		a.append('!');
 		check_eq(a, "hello!"_str);
@@ -1379,7 +1379,7 @@ test_case("SmallStringAppendCharMakeHeap") {
 	check_eq(a, String("ahlskdjhalskjdhlaskjdhlakjsgga!"_str));
 }
 
-comptime_test_case(String, SmallStringAppendCharMakeHeap, {
+comptime_test_case(SmallStringAppendCharMakeHeap, {
 		String a = "ahlskdjhalskjdhlaskjdhlakjsgga"_str;
 		a.append('!');
 		check_eq(a, "ahlskdjhalskjdhlaskjdhlakjsgga!"_str);
@@ -1393,7 +1393,7 @@ test_case("LargeStringAppendChar") {
 	check_eq(a, String("1672038761203876102873601287630187263018723601872630187263018723a"_str));
 }
 
-comptime_test_case(String, LargeStringAppendChar, {
+comptime_test_case(LargeStringAppendChar, {
 		String a = "1672038761203876102873601287630187263018723601872630187263018723"_str;
 		a.append('a');
 		check_eq(a, "1672038761203876102873601287630187263018723601872630187263018723a"_str);
@@ -1407,7 +1407,7 @@ test_case("SmallUtf8AppendChar") {
 	check_eq(a, String("ßeb?"_str));
 }
 
-comptime_test_case(String, SmallUtf8AppendChar, {
+comptime_test_case(SmallUtf8AppendChar, {
 		String a = "ßeb"_str;
 		a.append('?');
 		check_eq(a, "ßeb?"_str);
@@ -1421,7 +1421,7 @@ test_case("SmallUtf8AppendCharMakeHeap") {
 	check_eq(a, String("ÜbergrößenträgerÜbergröal"_str));
 }
 
-comptime_test_case(String, SmallUtf8AppendCharMakeHeap, {
+comptime_test_case(SmallUtf8AppendCharMakeHeap, {
 		String a = "ÜbergrößenträgerÜbergröa"_str;
 		a.append('l');
 		check_eq(a, "ÜbergrößenträgerÜbergröal"_str);
@@ -1435,7 +1435,7 @@ test_case("AppendCharHeapReallocate") {
 	check_eq(a, String("askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl5"_str));
 }
 
-comptime_test_case(String, AppendCharHeapReallocate, {
+comptime_test_case(AppendCharHeapReallocate, {
 		String a = "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl"_str;
 		a.append('5');
 		check_eq(a, "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl5"_str);
@@ -1453,7 +1453,7 @@ test_case("EmptyStringAppendStr") {
 	check_eq(a, String("cc"_str)); // for sanity, same with following tests
 }
 
-comptime_test_case(String, EmptyStringAppendStr, {
+comptime_test_case(EmptyStringAppendStr, {
 		String a;
 		a.append("cc"_str);
 		check_eq(a, "cc"_str);
@@ -1467,7 +1467,7 @@ test_case("SmallStringAppendStr") {
 	check_eq(a, String("hello!!"_str));
 }
 
-comptime_test_case(String, SmallStringAppendStr, {
+comptime_test_case(SmallStringAppendStr, {
 		String a = "hello"_str;
 		a.append("!!"_str);
 		check_eq(a, "hello!!"_str);
@@ -1481,7 +1481,7 @@ test_case("SmallStringAppendStrMakeHeap") {
 	check_eq(a, String("ahlskdjhalskjdhlaskjdhlakjsgga!!"_str));
 }
 
-comptime_test_case(String, SmallStringAppendStrMakeHeap, {
+comptime_test_case(SmallStringAppendStrMakeHeap, {
 		String a = "ahlskdjhalskjdhlaskjdhlakjsgga"_str;
 		a.append("!!"_str);
 		check_eq(a, "ahlskdjhalskjdhlaskjdhlakjsgga!!"_str);
@@ -1495,7 +1495,7 @@ test_case("LargeStringAppendStr") {
 	check_eq(a, String("1672038761203876102873601287630187263018723601872630187263018723aa"_str));
 }
 
-comptime_test_case(String, LargeStringAppendStr, {
+comptime_test_case(LargeStringAppendStr, {
 		String a = "1672038761203876102873601287630187263018723601872630187263018723"_str;
 		a.append("aa"_str);
 		check_eq(a, "1672038761203876102873601287630187263018723601872630187263018723aa"_str);
@@ -1509,7 +1509,7 @@ test_case("SmallUtf8AppendStr") {
 	check_eq(a, String("ßeb??"_str));
 }
 
-comptime_test_case(String, SmallUtf8AppendStr, {
+comptime_test_case(SmallUtf8AppendStr, {
 		String a = "ßeb"_str;
 		a.append("??"_str);
 		check_eq(a, "ßeb??"_str);
@@ -1523,7 +1523,7 @@ test_case("SmallUtf8AppendStrMakeHeap") {
 	check_eq(a, String("ÜbergrößenträgerÜbergröall"_str));
 }
 
-comptime_test_case(String, SmallUtf8AppendStrMakeHeap, {
+comptime_test_case(SmallUtf8AppendStrMakeHeap, {
 		String a = "ÜbergrößenträgerÜbergröa"_str;
 		a.append("ll"_str);
 		check_eq(a, "ÜbergrößenträgerÜbergröall"_str);
@@ -1537,7 +1537,7 @@ test_case("AppendStrHeapReallocate") {
 	check_eq(a, String("askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl55"_str));
 }
 
-comptime_test_case(String, AppendStrHeapReallocate, {
+comptime_test_case(AppendStrHeapReallocate, {
 		String a = "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl"_str;
 		a.append("55"_str);
 		check_eq(a, "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl55"_str);
@@ -1555,7 +1555,7 @@ test_case("EmptyStringAppendOtherString") {
 	check_eq(a, String("cc"_str)); // for sanity, same with following tests
 }
 
-comptime_test_case(String, EmptyStringAppendOtherString, {
+comptime_test_case(EmptyStringAppendOtherString, {
 		String a;
 		a.append(String("cc"_str));
 		check_eq(a, "cc"_str);
@@ -1569,7 +1569,7 @@ test_case("SmallStringAppendOtherString") {
 	check_eq(a, String("hello!!"_str));
 }
 
-comptime_test_case(String, SmallStringAppendOtherString, {
+comptime_test_case(SmallStringAppendOtherString, {
 		String a = "hello"_str;
 		a.append(String("!!"_str));
 		check_eq(a, "hello!!"_str);
@@ -1583,7 +1583,7 @@ test_case("SmallStringAppendOtherStringMakeHeap") {
 	check_eq(a, String("ahlskdjhalskjdhlaskjdhlakjsgga!!"_str));
 }
 
-comptime_test_case(String, SmallStringAppendOtherStringMakeHeap, {
+comptime_test_case(SmallStringAppendOtherStringMakeHeap, {
 		String a = "ahlskdjhalskjdhlaskjdhlakjsgga"_str;
 		a.append(String("!!"_str));
 		check_eq(a, "ahlskdjhalskjdhlaskjdhlakjsgga!!"_str);
@@ -1597,7 +1597,7 @@ test_case("LargeStringAppendOtherString") {
 	check_eq(a, String("1672038761203876102873601287630187263018723601872630187263018723aa"_str));
 }
 
-comptime_test_case(String, LargeStringAppendOtherString, {
+comptime_test_case(LargeStringAppendOtherString, {
 		String a = "1672038761203876102873601287630187263018723601872630187263018723"_str;
 		a.append(String("aa"_str));
 		check_eq(a, "1672038761203876102873601287630187263018723601872630187263018723aa"_str);
@@ -1611,7 +1611,7 @@ test_case("SmallUtf8AppendOtherString") {
 	check_eq(a, String("ßeb??"_str));
 }
 
-comptime_test_case(String, SmallUtf8AppendOtherString, {
+comptime_test_case(SmallUtf8AppendOtherString, {
 		String a = "ßeb"_str;
 		a.append(String("??"_str));
 		check_eq(a, "ßeb??"_str);
@@ -1625,7 +1625,7 @@ test_case("SmallUtf8AppendOtherStringMakeHeap") {
 	check_eq(a, String("ÜbergrößenträgerÜbergröall"_str));
 }
 
-comptime_test_case(String, SmallUtf8AppendOtherStringMakeHeap, {
+comptime_test_case(SmallUtf8AppendOtherStringMakeHeap, {
 		String a = "ÜbergrößenträgerÜbergröa"_str;
 		a.append(String("ll"_str));
 		check_eq(a, "ÜbergrößenträgerÜbergröall"_str);
@@ -1639,7 +1639,7 @@ test_case("AppendOtherStringHeapReallocate") {
 	check_eq(a, String("askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl55"_str));
 }
 
-comptime_test_case(String, AppendOtherStringHeapReallocate, {
+comptime_test_case(AppendOtherStringHeapReallocate, {
 	String a = "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl"_str;
 	a.append(String("55"_str));
 	check_eq(a, "askjdhlakjshl;iuhgl;isudhvlisuhdfoliuaysdoiauhsfoaajhgblkajdhfl55"_str);
@@ -1657,7 +1657,7 @@ test_case("ConcatEmptyAndChar") {
 	check_eq(b, String('c'));
 }
 
-comptime_test_case(String, ConcatEmptyAndChar, {
+comptime_test_case(ConcatEmptyAndChar, {
 		const String a;
 		String b = a + 'c';
 		check_eq(b, 'c');
@@ -1671,7 +1671,7 @@ test_case("ConcatCharStringAndChar") {
 	check_eq(b, String("cc"_str));
 }
 
-comptime_test_case(String, ConcatCharStringAndChar, {
+comptime_test_case(ConcatCharStringAndChar, {
 		const String a = 'c';
 		String b = a + 'c';
 		check_eq(b, "cc"_str);
@@ -1685,7 +1685,7 @@ test_case("ConcatSmallStringAndCharToHeap") {
 	check_eq(b, String("aslasdasddkjahldkjahsldkjahsdac"_str));
 }
 
-comptime_test_case(String, ConcatSmallStringAndCharToHeap, {
+comptime_test_case(ConcatSmallStringAndCharToHeap, {
 		const String a = "aslasdasddkjahldkjahsldkjahsda"_str;
 		String b = a + 'c';
 		check_eq(b, "aslasdasddkjahldkjahsldkjahsdac"_str);
@@ -1699,7 +1699,7 @@ test_case("ConcatHeapStringAndCharToHeap") {
 	check_eq(b, String("aslasdasddkjahl55dkjahsldkjahsdac"_str));
 }
 
-comptime_test_case(String, ConcatHeapStringAndCharToHeap, {
+comptime_test_case(ConcatHeapStringAndCharToHeap, {
 		const String a = "aslasdasddkjahl55dkjahsldkjahsda"_str;
 		String b = a + 'c';
 		check_eq(b, "aslasdasddkjahl55dkjahsldkjahsdac"_str);
@@ -1713,7 +1713,7 @@ test_case("ConcatSmallUtf8AndChar") {
 	check_eq(b, String("Übergrößenträgerc"_str));
 }
 
-comptime_test_case(String, ConcatSmallUtf8AndChar, {
+comptime_test_case(ConcatSmallUtf8AndChar, {
 		const String a = "Übergrößenträger"_str;
 		String b = a + 'c';
 		check_eq(b, "Übergrößenträgerc"_str);
@@ -1727,7 +1727,7 @@ test_case("ConcatSmallUtf8AndCharToHeap") {
 	check_eq(b, String("Übergrößenträgerasjhdgashhc"_str));
 }
 
-comptime_test_case(String, ConcatSmallUtf8AndCharToHeap, {
+comptime_test_case(ConcatSmallUtf8AndCharToHeap, {
 		const String a = "Übergrößenträgerasjhdgashh"_str;
 		String b = a + 'c';
 		check_eq(b, "Übergrößenträgerasjhdgashhc"_str);
@@ -1741,7 +1741,7 @@ test_case("ConcatHeapUtf8AndChar") {
 	check_eq(b, String("ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerc"_str));
 }
 
-comptime_test_case(String, ConcatHeapUtf8AndChar, {
+comptime_test_case(ConcatHeapUtf8AndChar, {
 		const String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		String b = a + 'c';
 		check_eq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerc"_str);
@@ -1759,7 +1759,7 @@ test_case("InvertConcatEmptyAndChar") {
 	check_eq(b, String('c'));
 }
 
-comptime_test_case(String, InvertConcatEmptyAndChar, {
+comptime_test_case(InvertConcatEmptyAndChar, {
 		const String a;
 		String b = 'c' + a;
 		check_eq(b, 'c');
@@ -1773,7 +1773,7 @@ test_case("InvertConcatCharStringAndChar") {
 	check_eq(b, String("cc"_str));
 }
 
-comptime_test_case(String, InvertConcatCharStringAndChar, {
+comptime_test_case(InvertConcatCharStringAndChar, {
 		const String a = 'c';
 		String b = 'c' + a;
 		check_eq(b, "cc"_str);
@@ -1787,7 +1787,7 @@ test_case("InvertConcatSmallStringAndCharToHeap") {
 	check_eq(b, String("caslasdasddkjahldkjahsldkjahsda"_str));
 }
 
-comptime_test_case(String, InvertConcatSmallStringAndCharToHeap, {
+comptime_test_case(InvertConcatSmallStringAndCharToHeap, {
 		const String a = "aslasdasddkjahldkjahsldkjahsda"_str;
 		String b = 'c' + a;
 		check_eq(b, "caslasdasddkjahldkjahsldkjahsda"_str);
@@ -1801,7 +1801,7 @@ test_case("InvertConcatHeapStringAndCharToHeap") {
 	check_eq(b, String("caslasdasddkjahl55dkjahsldkjahsda"_str));
 }
 
-comptime_test_case(String, InvertConcatHeapStringAndCharToHeap, {
+comptime_test_case(InvertConcatHeapStringAndCharToHeap, {
 		const String a = "aslasdasddkjahl55dkjahsldkjahsda"_str;
 		String b = 'c' + a;
 		check_eq(b, "caslasdasddkjahl55dkjahsldkjahsda"_str);
@@ -1815,7 +1815,7 @@ test_case("InvertConcatSmallUtf8AndChar") {
 	check_eq(b, String("cÜbergrößenträger"_str));
 }
 
-comptime_test_case(String, InvertConcatSmallUtf8AndChar, {
+comptime_test_case(InvertConcatSmallUtf8AndChar, {
 		const String a = "Übergrößenträger"_str;
 		String b = 'c' + a;
 		check_eq(b, "cÜbergrößenträger"_str);
@@ -1829,7 +1829,7 @@ test_case("InvertConcatSmallUtf8AndCharToHeap") {
 	check_eq(b, String("cÜbergrößenträgerasjhdgashh"_str));
 }
 
-comptime_test_case(String, InvertConcatSmallUtf8AndCharToHeap, {
+comptime_test_case(InvertConcatSmallUtf8AndCharToHeap, {
 		const String a = "Übergrößenträgerasjhdgashh"_str;
 		String b = 'c' + a;
 		check_eq(b, "cÜbergrößenträgerasjhdgashh"_str);
@@ -1843,7 +1843,7 @@ test_case("InvertConcatHeapUtf8AndChar") {
 	check_eq(b, String("cÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str));
 }
 
-comptime_test_case(String, InvertConcatHeapUtf8AndChar, {
+comptime_test_case(InvertConcatHeapUtf8AndChar, {
 		const String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		String b = 'c' + a;
 		check_eq(b, "cÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str);
@@ -1861,7 +1861,7 @@ test_case("ConcatEmptyAndStr") {
 	check_eq(b, String("cc"_str));
 }
 
-comptime_test_case(String, ConcatEmptyAndStr, {
+comptime_test_case(ConcatEmptyAndStr, {
 		const String a;
 		String b = a + "cc"_str;
 		check_eq(b, "cc"_str);
@@ -1875,7 +1875,7 @@ test_case("ConcatCharStringAndStr") {
 	check_eq(b, String("ccc"_str));
 }
 
-comptime_test_case(String, ConcatCharStringAndStr, {
+comptime_test_case(ConcatCharStringAndStr, {
 		const String a = 'c';
 		String b = a + "cc"_str;
 		check_eq(b, "ccc"_str);
@@ -1889,7 +1889,7 @@ test_case("ConcatSmallStringAndStrToHeap") {
 	check_eq(b, String("aslasdasddkjahldkjahsldkjahsdacc"_str));
 }
 
-comptime_test_case(String, ConcatSmallStringAndStrToHeap, {
+comptime_test_case(ConcatSmallStringAndStrToHeap, {
 		const String a = "aslasdasddkjahldkjahsldkjahsda"_str;
 		String b = a + "cc"_str;
 		check_eq(b, "aslasdasddkjahldkjahsldkjahsdacc"_str);
@@ -1903,7 +1903,7 @@ test_case("ConcatHeapStringAndStrToHeap") {
 	check_eq(b, String("aslasdasddkjahl55dkjahsldkjahsdacc"_str));
 }
 
-comptime_test_case(String, ConcatHeapStringAndStrToHeap, {
+comptime_test_case(ConcatHeapStringAndStrToHeap, {
 		const String a = "aslasdasddkjahl55dkjahsldkjahsda"_str;
 		String b = a + "cc"_str;
 		check_eq(b, "aslasdasddkjahl55dkjahsldkjahsdacc"_str);
@@ -1917,7 +1917,7 @@ test_case("ConcatSmallUtf8AndStr") {
 	check_eq(b, String("Übergrößenträgercc"_str));
 }
 
-comptime_test_case(String, ConcatSmallUtf8AndStr, {
+comptime_test_case(ConcatSmallUtf8AndStr, {
 		const String a = "Übergrößenträger"_str;
 		String b = a + "cc"_str;
 		check_eq(b, "Übergrößenträgercc"_str);
@@ -1931,7 +1931,7 @@ test_case("ConcatSmallUtf8AndStrToHeap") {
 	check_eq(b, String("Übergrößenträgerasjhdgashhcc"_str));
 }
 
-comptime_test_case(String, ConcatSmallUtf8AndStrToHeap, {
+comptime_test_case(ConcatSmallUtf8AndStrToHeap, {
 		const String a = "Übergrößenträgerasjhdgashh"_str;
 		String b = a + "cc"_str;
 		check_eq(b, "Übergrößenträgerasjhdgashhcc"_str);
@@ -1945,7 +1945,7 @@ test_case("ConcatHeapUtf8AndStr") {
 	check_eq(b, String("ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgercc"_str));
 }
 
-comptime_test_case(String, ConcatHeapUtf8AndStr, {
+comptime_test_case(ConcatHeapUtf8AndStr, {
 		const String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		String b = a + "cc"_str;
 		check_eq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgercc"_str);
@@ -1963,7 +1963,7 @@ test_case("InvertConcatEmptyAndStr") {
 	check_eq(b, String("cc"_str));
 }
 
-comptime_test_case(String, InvertConcatEmptyAndStr, {
+comptime_test_case(InvertConcatEmptyAndStr, {
 		const String a;
 		String b = "cc"_str + a;
 		check_eq(b, "cc"_str);
@@ -1977,7 +1977,7 @@ test_case("InvertConcatCharStringAndStr") {
 	check_eq(b, String("ccc"_str));
 }
 
-comptime_test_case(String, InvertConcatCharStringAndStr, {
+comptime_test_case(InvertConcatCharStringAndStr, {
 		const String a = 'c';
 		String b = "cc"_str + a;
 		check_eq(b, "ccc"_str);
@@ -1991,7 +1991,7 @@ test_case("InvertConcatSmallStringAndStrToHeap") {
 	check_eq(b, String("ccaslasdasddkjahldkjahsldkjahsda"_str));
 }
 
-comptime_test_case(String, InvertConcatSmallStringAndStrToHeap, {
+comptime_test_case(InvertConcatSmallStringAndStrToHeap, {
 		const String a = "aslasdasddkjahldkjahsldkjahsda"_str;
 		String b = "cc"_str + a;
 		check_eq(b, "ccaslasdasddkjahldkjahsldkjahsda"_str);
@@ -2005,7 +2005,7 @@ test_case("InvertConcatHeapStringAndStrToHeap") {
 	check_eq(b, String("ccaslasdasddkjahl55dkjahsldkjahsda"_str));
 }
 
-comptime_test_case(String, InvertConcatHeapStringAndStrToHeap, {
+comptime_test_case(InvertConcatHeapStringAndStrToHeap, {
 		const String a = "aslasdasddkjahl55dkjahsldkjahsda"_str;
 		String b = "cc"_str + a;
 		check_eq(b, "ccaslasdasddkjahl55dkjahsldkjahsda"_str);
@@ -2019,7 +2019,7 @@ test_case("InvertConcatSmallUtf8AndStr") {
 	check_eq(b, String("ccÜbergrößenträger"_str));
 }
 
-comptime_test_case(String, InvertConcatSmallUtf8AndStr, {
+comptime_test_case(InvertConcatSmallUtf8AndStr, {
 		const String a = "Übergrößenträger"_str;
 		String b = "cc"_str + a;
 		check_eq(b, "ccÜbergrößenträger"_str);
@@ -2033,7 +2033,7 @@ test_case("InvertConcatSmallUtf8AndStrToHeap") {
 	check_eq(b, String("ccÜbergrößenträgerasjhdgashh"_str));
 }
 
-comptime_test_case(String, InvertConcatSmallUtf8AndStrToHeap, {
+comptime_test_case(InvertConcatSmallUtf8AndStrToHeap, {
 		const String a = "Übergrößenträgerasjhdgashh"_str;
 		String b = "cc"_str + a;
 		check_eq(b, "ccÜbergrößenträgerasjhdgashh"_str);
@@ -2047,7 +2047,7 @@ test_case("InvertConcatHeapUtf8AndStr") {
 	check_eq(b, String("ccÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str));
 }
 
-comptime_test_case(String, InvertConcatHeapUtf8AndStr, {
+comptime_test_case(InvertConcatHeapUtf8AndStr, {
 		const String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		String b = "cc"_str + a;
 		check_eq(b, "ccÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str);
@@ -2065,7 +2065,7 @@ test_case("ConcatEmptyAndOtherString") {
 	check_eq(b, String("cc"_str));
 }
 
-comptime_test_case(String, ConcatEmptyAndOtherString, {
+comptime_test_case(ConcatEmptyAndOtherString, {
 		const String a;
 		String b = a + String("cc"_str);
 		check_eq(b, "cc"_str);
@@ -2079,7 +2079,7 @@ test_case("ConcatCharStringAndOtherString") {
 	check_eq(b, String("ccc"_str));
 }
 
-comptime_test_case(String, ConcatCharStringAndOtherString, {
+comptime_test_case(ConcatCharStringAndOtherString, {
 		const String a = 'c';
 		String b = a + String("cc"_str);
 		check_eq(b, "ccc"_str);
@@ -2093,7 +2093,7 @@ test_case("ConcatSmallStringAndOtherStringToHeap") {
 	check_eq(b, String("aslasdasddkjahldkjahsldkjahsdacc"_str));
 }
 
-comptime_test_case(String, ConcatSmallStringAndOtherStringToHeap, {
+comptime_test_case(ConcatSmallStringAndOtherStringToHeap, {
 		const String a = "aslasdasddkjahldkjahsldkjahsda"_str;
 		String b = a + String("cc"_str);
 		check_eq(b, "aslasdasddkjahldkjahsldkjahsdacc"_str);
@@ -2107,7 +2107,7 @@ test_case("ConcatHeapStringAndOtherStringToHeap") {
 	check_eq(b, String("aslasdasddkjahl55dkjahsldkjahsdacc"_str));
 }
 
-comptime_test_case(String, ConcatHeapStringAndOtherStringToHeap, {
+comptime_test_case(ConcatHeapStringAndOtherStringToHeap, {
 		const String a = "aslasdasddkjahl55dkjahsldkjahsda"_str;
 		String b = a + String("cc"_str);
 		check_eq(b, "aslasdasddkjahl55dkjahsldkjahsdacc"_str);
@@ -2121,7 +2121,7 @@ test_case("ConcatSmallUtf8AndOtherString") {
 	check_eq(b, String("Übergrößenträgercc"_str));
 }
 
-comptime_test_case(String, ConcatSmallUtf8AndOtherString, {
+comptime_test_case(ConcatSmallUtf8AndOtherString, {
 		const String a = "Übergrößenträger"_str;
 		String b = a + String("cc"_str);
 		check_eq(b, "Übergrößenträgercc"_str);
@@ -2135,7 +2135,7 @@ test_case("ConcatSmallUtf8AndOtherStringToHeap") {
 	check_eq(b, String("Übergrößenträgerasjhdgashhcc"_str));
 }
 
-comptime_test_case(String, ConcatSmallUtf8AndOtherStringToHeap, {
+comptime_test_case(ConcatSmallUtf8AndOtherStringToHeap, {
 		const String a = "Übergrößenträgerasjhdgashh"_str;
 		String b = a + String("cc"_str);
 		check_eq(b, "Übergrößenträgerasjhdgashhcc"_str);
@@ -2149,7 +2149,7 @@ test_case("ConcatHeapUtf8AndOtherString") {
 	check_eq(b, String("ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgercc"_str));
 }
 
-comptime_test_case(String, ConcatHeapUtf8AndOtherString, {
+comptime_test_case(ConcatHeapUtf8AndOtherString, {
 		const String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		String b = a + String("cc"_str);
 		check_eq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgercc"_str);
@@ -2167,7 +2167,7 @@ test_case("ChainConcat") {
 	check_eq(b, String("hello world! hmm this is a multi concat string thats quite large"_str));
 }
 
-comptime_test_case(String, ChainConcat, {
+comptime_test_case(ChainConcat, {
 		String a = "hello world!"_str;
 		String b = a + ' ' + "hmm"_str + " t" + 'h' + String("is is") + " a multi concat string thats quite large"_str;
 		check_eq(b, "hello world! hmm this is a multi concat string thats quite large"_str);
@@ -2184,7 +2184,7 @@ test_case("FromBoolTrue") {
 	check_eq(a, String("true"_str));
 }
 
-comptime_test_case(String, FromBoolTrue, {
+comptime_test_case(FromBoolTrue, {
 		String a = String::fromBool(true);
 		check_eq(a, "true"_str);
 		check_eq(a, String("true"_str));
@@ -2196,7 +2196,7 @@ test_case("FromBoolFalse") {
 	check_eq(a, String("false"_str));
 }
 
-comptime_test_case(String, FromBoolFalse, {
+comptime_test_case(FromBoolFalse, {
 		String a = String::fromBool(false);
 		check_eq(a, "false"_str);
 		check_eq(a, String("false"_str));
@@ -2207,7 +2207,7 @@ test_case("FromSignedIntZero") {
 	check_eq(a, '0');
 }
 
-comptime_test_case(String, FromSignedIntZero, {
+comptime_test_case(FromSignedIntZero, {
 	String a = String::fromInt(0);
 	check_eq(a, '0');
 	});
@@ -2217,7 +2217,7 @@ test_case("FromSignedIntSmallValue") {
 	check_eq(a, "16"_str);
 }
 
-comptime_test_case(String, FromSignedIntSmallValue, {
+comptime_test_case(FromSignedIntSmallValue, {
 		String a = String::fromInt(16);
 		check_eq(a, "16"_str);
 	});
@@ -2227,7 +2227,7 @@ test_case("FromSignedIntMaximumValue") {
 	check_eq(a, "9223372036854775807"_str);
 }
 
-comptime_test_case(String, FromSignedIntMaximumValue, {
+comptime_test_case(FromSignedIntMaximumValue, {
 		String a = String::fromInt(std::numeric_limits<gk::i64>::max());
 		check_eq(a, "9223372036854775807"_str);
 	});
@@ -2237,7 +2237,7 @@ test_case("FromSignedIntSmallNegativeValue") {
 	check_eq(a, "-3"_str);
 }
 
-comptime_test_case(String, FromSignedIntSmallNegativeValue, {
+comptime_test_case(FromSignedIntSmallNegativeValue, {
 		String a = String::fromInt(-3);
 		check_eq(a, "-3"_str);
 	});
@@ -2247,7 +2247,7 @@ test_case("FromSignedIntMinimumValue") {
 	check_eq(a, "-9223372036854775808"_str);
 }
 
-comptime_test_case(String, FromSignedIntMinimumValue, {
+comptime_test_case(FromSignedIntMinimumValue, {
 		String a = String::fromInt(std::numeric_limits<gk::i64>::min());
 		check_eq(a, "-9223372036854775808"_str);
 	});
@@ -2257,7 +2257,7 @@ test_case("FromUnsignedIntZero") {
 	check_eq(a, '0');
 }
 
-comptime_test_case(String, FromUnsignedIntZero, {
+comptime_test_case(FromUnsignedIntZero, {
 		String a = String::fromUint(0);
 		check_eq(a, '0');
 	});
@@ -2267,7 +2267,7 @@ test_case("FromUnsignedIntSmallValue") {
 	check_eq(a, "23"_str);
 }
 
-comptime_test_case(String, FromUnsignedIntSmallValue, {
+comptime_test_case(FromUnsignedIntSmallValue, {
 		String a = String::fromUint(23);
 		check_eq(a, "23"_str);
 	});
@@ -2277,7 +2277,7 @@ test_case("FromUnsignedIntMaximumValue") {
 	check_eq(a, "18446744073709551615"_str);
 }
 
-comptime_test_case(String, FromUnsignedIntMaximumValue, {
+comptime_test_case(FromUnsignedIntMaximumValue, {
 		String a = String::fromUint(std::numeric_limits<gk::u64>::max());
 		check_eq(a, "18446744073709551615"_str);
 	});
@@ -2287,7 +2287,7 @@ test_case("FromFloatZero") {
 	check_eq(a, "0.0"_str);
 }
 
-comptime_test_case(String, FromFloatZero, {
+comptime_test_case(FromFloatZero, {
 		String a = String::fromFloat(0.0);
 		check_eq(a, "0.0"_str);
 	});
@@ -2312,7 +2312,7 @@ test_case("FromFloatWholeNumber") {
 	check_eq(a, "100.0"_str);
 }
 
-comptime_test_case(String, FromFloatWholeNumber, {
+comptime_test_case(FromFloatWholeNumber, {
 		String a = String::fromFloat(100.0);
 		check_eq(a, "100.0"_str);
 	});
@@ -2322,7 +2322,7 @@ test_case("FromFloatWholeNegativeNumber") {
 	check_eq(a, "-100.0"_str);
 }
 
-comptime_test_case(String, FromFloatWholeNegativeNumber, {
+comptime_test_case(FromFloatWholeNegativeNumber, {
 		String a = String::fromFloat(-100.0);
 		check_eq(a, "-100.0"_str);
 	});
@@ -2332,7 +2332,7 @@ test_case("FromFloatDecimalNumber") {
 	check_eq(a, "100.09999"_str);
 }
 
-comptime_test_case(String, FromFloatDecimalNumber, {
+comptime_test_case(FromFloatDecimalNumber, {
 		String a = String::fromFloat(100.09999);
 		check_eq(a, "100.09999"_str);
 	});
@@ -2342,7 +2342,7 @@ test_case("FromFloatDecimalNegativeNumber") {
 	check_eq(a, "-100.09999"_str);
 }
 
-comptime_test_case(String, FromFloatDecimalNegativeNumber, {
+comptime_test_case(FromFloatDecimalNegativeNumber, {
 		String a = String::fromFloat(-100.09999);
 		check_eq(a, "-100.09999"_str);
 	});
@@ -2352,7 +2352,7 @@ test_case("FromFloatDecimalNumberDefaultPrecision") {
 	check_eq(a, "100.12"_str);
 }
 
-comptime_test_case(String, FromFloatDecimalNumberDefaultPrecision, {
+comptime_test_case(FromFloatDecimalNumberDefaultPrecision, {
 		String a = String::fromFloat(100.12000005);
 		check_eq(a, "100.12"_str);
 	});
@@ -2362,7 +2362,7 @@ test_case("FromFloatDecimalNegativeNumberDefaultPrecision") {
 	check_eq(a, "-100.12"_str);
 }
 
-comptime_test_case(String, FromFloatDecimalNegativeNumberDefaultPrecision, {
+comptime_test_case(FromFloatDecimalNegativeNumberDefaultPrecision, {
 		String a = String::fromFloat(-100.12000005);
 		check_eq(a, "-100.12"_str);
 	});
@@ -2372,7 +2372,7 @@ test_case("FromFloatDecimalNumberCustomPrecision") {
 	check_eq(a, "100.12000005"_str);
 }
 
-comptime_test_case(String, FromFloatDecimalNumberCustomPrecision, {
+comptime_test_case(FromFloatDecimalNumberCustomPrecision, {
 		String a = String::fromFloat(100.12000005, 10);
 		check_eq(a, "100.12000005"_str);
 	});
@@ -2382,7 +2382,7 @@ test_case("FromFloatDecimalNegativeNumberCustomPrecision") {
 	check_eq(a, "-100.12000005"_str);
 }
 
-comptime_test_case(String, FromFloatDecimalNegativeNumberCustomPrecision, {
+comptime_test_case(FromFloatDecimalNegativeNumberCustomPrecision, {
 		String a = String::fromFloat(-100.12000005, 10);
 		check_eq(a, "-100.12000005"_str);
 	});
@@ -2393,7 +2393,7 @@ test_case("FromTemplateBool") {
 	check_eq(a, "true"_str);
 }
 
-comptime_test_case(String, FromTemplateBool, {
+comptime_test_case(FromTemplateBool, {
 		bool b = true;
 		String a = String::from(b);
 		check_eq(a, "true"_str);
@@ -2405,7 +2405,7 @@ test_case("FromTemplategk::i8") {
 	check_eq(a, "-56"_str);
 }
 
-comptime_test_case(String, FromTemplateInt8, {
+comptime_test_case(FromTemplateInt8, {
 		gk::i8 num = -56;
 		String a = String::from(num);
 		check_eq(a, "-56"_str);
@@ -2417,7 +2417,7 @@ test_case("FromTemplategk::u8") {
 	check_eq(a, "56"_str);
 }
 
-comptime_test_case(String, FromTemplateUint8, {
+comptime_test_case(FromTemplateUint8, {
 		gk::u8 num = 56;
 		String a = String::from(num);
 		check_eq(a, "56"_str);
@@ -2429,7 +2429,7 @@ test_case("FromTemplategk::i16") {
 	check_eq(a, "-1000"_str);
 }
 
-comptime_test_case(String, FromTemplateInt16, {
+comptime_test_case(FromTemplateInt16, {
 		gk::i16 num = -1000;
 		String a = String::from(num);
 		check_eq(a, "-1000"_str);
@@ -2441,7 +2441,7 @@ test_case("FromTemplategk::u16") {
 	check_eq(a, "1000"_str);
 }
 
-comptime_test_case(String, FromTemplateUint16, {
+comptime_test_case(FromTemplateUint16, {
 		gk::u16 num = 1000;
 		String a = String::from(num);
 		check_eq(a, "1000"_str);
@@ -2453,7 +2453,7 @@ test_case("FromTemplategk::i32") {
 	check_eq(a, "-99999"_str);
 }
 
-comptime_test_case(String, FromTemplateInt32, {
+comptime_test_case(FromTemplateInt32, {
 		gk::i32 num = -99999;
 		String a = String::from(num);
 		check_eq(a, "-99999"_str);
@@ -2465,7 +2465,7 @@ test_case("FromTemplategk::u32") {
 	check_eq(a, "99999"_str);
 }
 
-comptime_test_case(String, FromTemplateUint32, {
+comptime_test_case(FromTemplateUint32, {
 		gk::u32 num = 99999;
 		String a = String::from(num);
 		check_eq(a, "99999"_str);
@@ -2477,7 +2477,7 @@ test_case("FromTemplategk::i64") {
 	check_eq(a, "-123456789012345"_str);
 }
 
-comptime_test_case(String, FromTemplateInt64, {
+comptime_test_case(FromTemplateInt64, {
 		gk::i64 num = -123456789012345;
 		String a = String::from(num);
 		check_eq(a, "-123456789012345"_str);
@@ -2489,7 +2489,7 @@ test_case("FromTemplategk::u64") {
 	check_eq(a, "123456789012345"_str);
 }
 
-comptime_test_case(String, FromTemplateUint64, {
+comptime_test_case(FromTemplateUint64, {
 		gk::u64 num = 123456789012345;
 		String a = String::from(num);
 		check_eq(a, "123456789012345"_str);
@@ -2501,7 +2501,7 @@ test_case("FromTemplateFloat32") {
 	check_eq(a, "-123.44999"_str); // slightly imprecise
 }
 
-comptime_test_case(String, FromTemplateFloat32, {
+comptime_test_case(FromTemplateFloat32, {
 		float num = -123.45f;
 		String a = String::from(num);
 		check_eq(a, "-123.44999"_str); // slightly imprecise
@@ -2513,7 +2513,7 @@ test_case("FromTemplateFloat64") {
 	check_eq(a, "-123.45"_str);
 }
 
-comptime_test_case(String, FromTemplateFloat64, {
+comptime_test_case(FromTemplateFloat64, {
 		double num = -123.45;
 		String a = String::from(num);
 		check_eq(a, "-123.45"_str);
@@ -2527,7 +2527,7 @@ test_case("FromTemplateCustomType") {
 	check_eq(a, "1.0, 1"_str);
 }
 
-comptime_test_case(String, FromTemplateCustomType, {
+comptime_test_case(FromTemplateCustomType, {
 		StringTestExample e;
 		e.a = 1.0;
 		e.b = 1;
@@ -2545,7 +2545,7 @@ test_case("FormatOneArg") {
 	check_eq(a, "num: 4"_str);
 }
 
-comptime_test_case(String, FormatOneArg, {
+comptime_test_case(FormatOneArg, {
 		gk::i32 num = 4;
 		String a = String::format<"num: {}">(num);
 		check_eq(a, "num: 4"_str);
@@ -2557,7 +2557,7 @@ test_case("FormatOneArgWithTextAfter") {
 	check_eq(a, "num: 4.0... cool!"_str);
 }
 
-comptime_test_case(String, FormatOneArgWithTextAfter, {
+comptime_test_case(FormatOneArgWithTextAfter, {
 		float num = 4.f;
 		String a = String::format<"num: {}... cool!">(num);
 		check_eq(a, "num: 4.0... cool!"_str);
@@ -2570,7 +2570,7 @@ test_case("FormatTwoArgs") {
 	check_eq(a, "num1: 5, num2: 5.0"_str);
 }
 
-comptime_test_case(String, FormatTwoArgs, {
+comptime_test_case(FormatTwoArgs, {
 		int num1 = 5;
 		float num2 = 5;
 		String a = String::format<"num1: {}, num2: {}">(num1, num2);
@@ -2584,7 +2584,7 @@ test_case("FormatTwoArgsWithOperation") {
 	check_eq(a, "num1: 5, num2: 5.0, multiplied: 25.0"_str);
 }
 
-comptime_test_case(String, FormatTwoArgsWithOperation, {
+comptime_test_case(FormatTwoArgsWithOperation, {
 		int num1 = 5;
 		float num2 = 5;
 		String a = String::format<"num1: {}, num2: {}, multiplied: {}">(num1, num2, num1 * num2);
@@ -2600,7 +2600,7 @@ test_case("FormatFromCustomType") {
 	check_eq(a, "the 2 numbers are -1.19999, 5"_str);
 }
 
-comptime_test_case(String, FormatFromCustomType, {
+comptime_test_case(FormatFromCustomType, {
 		StringTestExample e;
 		e.a = -1.2;
 		e.b = 5;
@@ -2620,7 +2620,7 @@ test_case("FindCharInSso") {
 	check_eq(opt.some(), 21);
 }
 
-comptime_test_case(String, FindCharInSso, {
+comptime_test_case(FindCharInSso, {
 		String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 		gk::Option<gk::usize> opt = a.find('5');
 		check(opt.none() == false);
@@ -2634,7 +2634,7 @@ test_case("FindCharInHeap") {
 	check_eq(opt.some(), 81);
 }
 
-comptime_test_case(String, FindCharInHeap, {
+comptime_test_case(FindCharInHeap, {
 		String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajwheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 		gk::Option<gk::usize> opt = a.find('5');
 		check(opt.none() == false);
@@ -2647,7 +2647,7 @@ test_case("NotFindCharInSso") {
 	check(opt.none());
 }
 
-comptime_test_case(String, NotFindCharInSso, {
+comptime_test_case(NotFindCharInSso, {
 		String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 		gk::Option<gk::usize> opt = a.find('6');
 		check(opt.none());
@@ -2659,7 +2659,7 @@ test_case("NotFindCharInHeap") {
 	check(opt.none());
 }
 
-comptime_test_case(String, NotFindCharInHeap, {
+comptime_test_case(NotFindCharInHeap, {
 		String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajwheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 		gk::Option<gk::usize> opt = a.find('6');
 		check(opt.none());
@@ -2676,7 +2676,7 @@ test_case("FindStrInSso") {
 	check_eq(opt.some(), 21);
 }
 
-comptime_test_case(String, FindStrInSso, {
+comptime_test_case(FindStrInSso, {
 		String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 		gk::Option<gk::usize> opt = a.find("5a"_str);
 		check(opt.none() == false);
@@ -2690,7 +2690,7 @@ test_case("FindStrInHeap") {
 	check_eq(opt.some(), 83);
 }
 
-comptime_test_case(String, FindStrInHeap, {
+comptime_test_case(FindStrInHeap, {
 		String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajw5bheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 		gk::Option<gk::usize> opt = a.find("5a"_str);
 		check(opt.none() == false);
@@ -2704,7 +2704,7 @@ test_case("FindUtf8StrInSso") {
 	check_eq(opt.some(), 9);
 }
 
-comptime_test_case(String, FindUtf8StrInSso, {
+comptime_test_case(FindUtf8StrInSso, {
 		String a = "Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find("ßen"_str);
 		check(opt.none() == false);
@@ -2718,7 +2718,7 @@ test_case("FindUtf8StrInHeap") {
 	check_eq(opt.some(), 141);
 }
 
-comptime_test_case(String, FindUtf8StrInHeap, {
+comptime_test_case(FindUtf8StrInHeap, {
 		String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger5ÜbergrößenträgerÜbergrößenträgerÜbergrößenträger6Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find("6Übe"_str);
 		check(opt.none() == false);
@@ -2731,7 +2731,7 @@ test_case("NotFindStrInSso") {
 	check(opt.none());
 }
 
-comptime_test_case(String, NotFindStrInSso, {
+comptime_test_case(NotFindStrInSso, {
 		String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 		gk::Option<gk::usize> opt = a.find("ya"_str);
 		check(opt.none());
@@ -2743,7 +2743,7 @@ test_case("NotFindStrInHeap") {
 	check(opt.none());
 }
 
-comptime_test_case(String, NotFindStrInHeap, {
+comptime_test_case(NotFindStrInHeap, {
 		String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajw5bheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 		gk::Option<gk::usize> opt = a.find(";5"_str);
 		check(opt.none());
@@ -2755,7 +2755,7 @@ test_case("NotFindUtf8StrInSso") {
 	check(opt.none());
 }
 
-comptime_test_case(String, NotFindUtf8StrInSso, {
+comptime_test_case(NotFindUtf8StrInSso, {
 		String a = "Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find("ßet"_str);
 		check(opt.none());
@@ -2767,7 +2767,7 @@ test_case("NotFindUtf8StrInHeap") {
 	check(opt.none());
 }
 
-comptime_test_case(String, NotFindUtf8StrInHeap, {
+comptime_test_case(NotFindUtf8StrInHeap, {
 		String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger5ÜbergrößenträgerÜbergrößenträgerÜbergrößenträger6Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find("5Üba"_str);
 		check(opt.none());
@@ -2784,7 +2784,7 @@ test_case("FindOtherStringInSso") {
 	check_eq(opt.some(), 21);
 }
 
-comptime_test_case(String, FindOtherStringInSso, {
+comptime_test_case(FindOtherStringInSso, {
 		String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 		gk::Option<gk::usize> opt = a.find(String("5a"_str));
 		check(opt.none() == false);
@@ -2798,7 +2798,7 @@ test_case("FindOtherStringInHeap") {
 	check_eq(opt.some(), 83);
 }
 
-comptime_test_case(String, FindOtherStringInHeap, {
+comptime_test_case(FindOtherStringInHeap, {
 		String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajw5bheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 		gk::Option<gk::usize> opt = a.find(String("5a"_str));
 		check(opt.none() == false);
@@ -2812,7 +2812,7 @@ test_case("FindUtf8OtherStringInSso") {
 	check_eq(opt.some(), 9);
 }
 
-comptime_test_case(String, FindUtf8OtherStringInSso, {
+comptime_test_case(FindUtf8OtherStringInSso, {
 		String a = "Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find(String("ßen"_str));
 		check(opt.none() == false);
@@ -2826,7 +2826,7 @@ test_case("FindUtf8OtherStringInHeap") {
 	check_eq(opt.some(), 141);
 }
 
-comptime_test_case(String, FindUtf8OtherStringInHeap, {
+comptime_test_case(FindUtf8OtherStringInHeap, {
 		String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger5ÜbergrößenträgerÜbergrößenträgerÜbergrößenträger6Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find(String("6Übe"_str));
 		check(opt.none() == false);
@@ -2839,7 +2839,7 @@ test_case("NotFindOtherStringInSso") {
 	check(opt.none());
 }
 
-comptime_test_case(String, NotFindOtherStringInSso, {
+comptime_test_case(NotFindOtherStringInSso, {
 		String a = "iuhlgiuhpiuyupaiusdyp5a"_str;
 		gk::Option<gk::usize> opt = a.find(String("ya"_str));
 		check(opt.none());
@@ -2851,7 +2851,7 @@ test_case("NotFindOtherStringInHeap") {
 	check(opt.none());
 }
 
-comptime_test_case(String, NotFindOtherStringInHeap, {
+comptime_test_case(NotFindOtherStringInHeap, {
 		String a = "woieufypaiuwdypaijsfnl;kajwhrpiauysdpiaujshd;lkajhsdl;kajw5bheoiuaywodiuaysodiuayso5asuidjyhoasiudya"_str;
 		gk::Option<gk::usize> opt = a.find(String(";5"_str));
 		check(opt.none());
@@ -2863,7 +2863,7 @@ test_case("NotFindUtf8OtherStringInSso") {
 	check(opt.none());
 }
 
-comptime_test_case(String, NotFindUtf8OtherStringInSso, {
+comptime_test_case(NotFindUtf8OtherStringInSso, {
 		String a = "Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find(String("ßet"_str));
 		check(opt.none());
@@ -2875,7 +2875,7 @@ test_case("NotFindUtf8OtherStringInHeap") {
 	check(opt.none());
 }
 
-comptime_test_case(String, NotFindUtf8OtherStringInHeap, {
+comptime_test_case(NotFindUtf8OtherStringInHeap, {
 		String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger5ÜbergrößenträgerÜbergrößenträgerÜbergrößenträger6Übergrößenträger"_str;
 		gk::Option<gk::usize> opt = a.find(String("5Üba"_str));
 		check(opt.none());
@@ -2891,7 +2891,7 @@ test_case("SubstringSsoStartingFromBeginning") {
 	check_eq(b, "Übergröße"_str);
 }
 
-comptime_test_case(String, SubstringSsoStartingFromBeginning, {
+comptime_test_case(SubstringSsoStartingFromBeginning, {
 		String a = "Übergrößenträger"_str;
 		String b = a.substring(0, 12);
 		check_eq(b, "Übergröße"_str);
@@ -2903,7 +2903,7 @@ test_case("SubstringSsoStartingFromOffset") {
 	check_eq(b, "bergröße"_str);
 }
 
-comptime_test_case(String, SubstringSsoStartingFromOffset, {
+comptime_test_case(SubstringSsoStartingFromOffset, {
 		String a = "Übergrößenträger"_str;
 		String b = a.substring(2, 12);
 		check_eq(b, "bergröße"_str);
@@ -2915,7 +2915,7 @@ test_case("SubstringHeapToSsoStartingFromBeginning") {
 	check_eq(b, "Übergrößenträger"_str);
 }
 
-comptime_test_case(String, SubstringHeapToSsoStartingFromBeginning, {
+comptime_test_case(SubstringHeapToSsoStartingFromBeginning, {
 		String a = "ÜbergrößenträgerÜbergrößenträger"_str;
 		String b = a.substring(0, 20);
 		check_eq(b, "Übergrößenträger"_str);
@@ -2927,7 +2927,7 @@ test_case("SubstringHeapToSsoStartingFromOffset") {
 	check_eq(b, "Übergrößenträger"_str);
 }
 
-comptime_test_case(String, SubstringHeapToSsoStartingFromOffset, {
+comptime_test_case(SubstringHeapToSsoStartingFromOffset, {
 		String a = "ÜbergrößenträgerÜbergrößenträger"_str;
 		String b = a.substring(20, 40);
 		check_eq(b, "Übergrößenträger"_str);
@@ -2939,7 +2939,7 @@ test_case("SubstringHeapToHeapStartingFromBeginning") {
 	check_eq(b, "ÜbergrößenträgerÜbergrößenträger"_str);
 }
 
-comptime_test_case(String, SubstringHeapToHeapStartingFromBeginning, {
+comptime_test_case(SubstringHeapToHeapStartingFromBeginning, {
 		String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		String b = a.substring(0, 40);
 		check_eq(b, "ÜbergrößenträgerÜbergrößenträger"_str);
@@ -2951,7 +2951,7 @@ test_case("SubstringHeapToHeapStartingFromOffset") {
 	check_eq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str);
 }
 
-comptime_test_case(String, SubstringHeapToHeapStartingFromOffset, {
+comptime_test_case(SubstringHeapToHeapStartingFromOffset, {
 		String a = "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str;
 		String b = a.substring(20, 80);
 		check_eq(b, "ÜbergrößenträgerÜbergrößenträgerÜbergrößenträger"_str);
