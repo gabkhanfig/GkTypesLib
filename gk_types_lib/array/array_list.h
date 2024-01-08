@@ -944,7 +944,7 @@ inline constexpr void gk::ArrayList<T>::insert(usize index, const T& element)
 		_data[index] = element;
 	}
 	else {
-		new (_data + index) T(_data[element]);
+		new (_data + index) T(element);
 	}
 	_length++;
 }
@@ -972,7 +972,7 @@ inline constexpr void gk::ArrayList<T>::insert(usize index, T&& element)
 		_data[index] = std::move(element);
 	}
 	else {
-		new (_data + index) T(std::move(_data[element]));
+		new (_data + index) T(std::move(element));
 	}
 	_length++;
 }
