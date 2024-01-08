@@ -292,7 +292,7 @@ namespace gk
 		* @param index: The element to remove. Asserts that is less than `len()`.
 		* @return The removed element. Can be ingored.
 		*/
-		constexpr T swapRemove(usize index);
+		constexpr T removeSwap(usize index);
 		
 		/**
 		* Insert a copy of `element` at `index`, shuffling up all subsequent elements to maintain order.
@@ -903,7 +903,7 @@ inline constexpr T gk::ArrayList<T>::remove(usize index)
 }
 
 template<typename T>
-inline constexpr T gk::ArrayList<T>::swapRemove(usize index)
+inline constexpr T gk::ArrayList<T>::removeSwap(usize index)
 {
 	check_message(index < _length, "Index out of bounds! Attempted to removed element index ", index, " from ArrayList of length ", _length);
 
