@@ -826,6 +826,128 @@ comptime_test_case(remove_string_middle_element, {
 	testArrayListRemoveStringMiddleElement();
 });
 
+static constexpr void testArrayListRemoveSwapContainsOneElement() {
+	ArrayList<int> a;
+	a.push(50);
+	check_eq(a.removeSwap(0), 50);
+	check_eq(a.len(), 0);
+}
+
+test_case("remove swap contains one element") {
+	testArrayListRemoveSwapContainsOneElement();
+}
+
+comptime_test_case(remove_swap_contains_one_element, {
+	testArrayListRemoveSwapContainsOneElement();
+});
+
+static constexpr void testArrayListStringRemoveSwapContainsOneElement() {
+	ArrayList<std::string> a;
+	a.push("hello world! holy canoly lalalalalalalalalalalala");
+	check_eq(a.removeSwap(0), "hello world! holy canoly lalalalalalalalalalalala");
+	check_eq(a.len(), 0);
+}
+
+test_case("remove swap string contains one element") {
+	testArrayListStringRemoveSwapContainsOneElement();
+}
+
+comptime_test_case(remove_swap_string_contains_one_element, {
+	testArrayListStringRemoveSwapContainsOneElement();
+});
+
+static constexpr void testArrayListRemoveSwapLastElement() {
+	ArrayList<int> a;
+	a.push(10);
+	a.push(20);
+	a.push(30);
+	a.push(40);
+	a.push(50);
+	check_eq(a.removeSwap(4), 50);
+	check_eq(a.len(), 4);
+	check_eq(a[0], 10);
+	check_eq(a[1], 20);
+	check_eq(a[2], 30);
+	check_eq(a[3], 40);
+}
+
+test_case("remove swap last element") {
+	testArrayListRemoveSwapLastElement();
+}
+
+comptime_test_case(remove_swap_last_element, {
+	testArrayListRemoveSwapLastElement();
+	});
+
+static constexpr void testArrayListStringRemoveSwapLastElement() {
+	ArrayList<std::string> a;
+	a.push("10");
+	a.push("asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh");
+	a.push("hello world!");
+	a.push("whoa");
+	a.push("12w3er467891234567892w3456789234567890");
+	check_eq(a.removeSwap(4), "12w3er467891234567892w3456789234567890");
+	check_eq(a.len(), 4);
+	check_eq(a[0], "10");
+	check_eq(a[1], "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh");
+	check_eq(a[2], "hello world!");
+	check_eq(a[3], "whoa");
+}
+
+test_case("remove swap string last element") {
+	testArrayListStringRemoveSwapLastElement();
+}
+
+comptime_test_case(remove_swap_string_last_element, {
+	testArrayListStringRemoveSwapLastElement();
+	});
+
+static constexpr void testArrayListRemoveSwapMiddleElement() {
+	ArrayList<int> a;
+	a.push(10);
+	a.push(20);
+	a.push(30);
+	a.push(40);
+	a.push(50);
+	check_eq(a.removeSwap(2), 30);
+	check_eq(a.len(), 4);
+	check_eq(a[0], 10);
+	check_eq(a[1], 20);
+	check_eq(a[2], 50);
+	check_eq(a[3], 40);
+}
+
+test_case("remove swap middle element") {
+	testArrayListRemoveSwapMiddleElement();
+}
+
+comptime_test_case(remove_swap_middle_element, {
+	testArrayListRemoveSwapMiddleElement();
+	});
+
+static constexpr void testArrayListRemoveSwapStringMiddleElement() {
+	ArrayList<std::string> a;
+	a.push("10");
+	a.push("asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh");
+	a.push("asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.push("hello world!");
+	a.push("12w3er467891234567892w3456789234567890");
+	check_eq(a.removeSwap(2), "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a.len(), 4);
+	check_eq(a[0], "10");
+	check_eq(a[1], "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh");
+	check_eq(a[2], "12w3er467891234567892w3456789234567890");
+	check_eq(a[3], "hello world!");
+}
+
+test_case("remove swap string middle element") {
+	testArrayListRemoveSwapStringMiddleElement();
+}
+
+comptime_test_case(remove_swap_string_middle_element, {
+	testArrayListRemoveSwapStringMiddleElement();
+	});
+
 #endif
 
 
