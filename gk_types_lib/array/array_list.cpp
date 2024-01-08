@@ -765,6 +765,67 @@ comptime_test_case(remove_middle_element, {
 	testArrayListRemoveMiddleElement();
 	});
 
+static constexpr void testArrayListRemoveStringContainsOneElement() {
+	ArrayList<std::string> a;
+	a.push("asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh");
+	check_eq(a.remove(0), "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh");
+	check_eq(a.len(), 0);
+}
+
+test_case("remove string contains one element") {
+	testArrayListRemoveStringContainsOneElement();
+}
+
+comptime_test_case(remove_string_contains_one_element, {
+	testArrayListRemoveStringContainsOneElement();
+});
+
+static constexpr void testArrayListStringRemoveLastElement() {
+	ArrayList<std::string> a;
+	a.push("10");
+	a.push("asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh");
+	a.push("hello world!");
+	a.push("whoa");
+	a.push("12w3er467891234567892w3456789234567890");
+	check_eq(a.remove(4), "12w3er467891234567892w3456789234567890");
+	check_eq(a.len(), 4);
+	check_eq(a[0], "10");
+	check_eq(a[1], "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh");
+	check_eq(a[2], "hello world!");
+	check_eq(a[3], "whoa");
+}
+
+test_case("remove string last element") {
+	testArrayListStringRemoveLastElement();
+}
+
+comptime_test_case(remove_string_last_element, {
+	testArrayListStringRemoveLastElement();
+});
+
+static constexpr void testArrayListRemoveStringMiddleElement() {
+	ArrayList<std::string> a;
+	a.push("10");
+	a.push("asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh");
+	a.push("asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.push("hello world!");
+	a.push("12w3er467891234567892w3456789234567890");
+	check_eq(a.remove(2), "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a.len(), 4);
+	check_eq(a[0], "10");
+	check_eq(a[1], "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh");
+	check_eq(a[2], "hello world!");
+	check_eq(a[3], "12w3er467891234567892w3456789234567890");
+}
+
+test_case("remove string middle element") {
+	testArrayListRemoveStringMiddleElement();
+}
+
+comptime_test_case(remove_string_middle_element, {
+	testArrayListRemoveStringMiddleElement();
+});
+
 #endif
 
 
