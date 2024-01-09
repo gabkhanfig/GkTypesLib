@@ -1201,6 +1201,72 @@ comptime_test_case(truncate_greater_than_length, {
 	testArrayListTruncateGreaterThanLength();
 });
 
+static constexpr void testArrayListAppendCopy() {
+	ArrayList<std::string> a;
+	a.push("0");
+	a.push("1");
+	ArrayList<std::string> b;
+	b.push("2");
+	b.push("3");
+
+	a.appendCopy(b);
+	check_eq(a.len(), 4);
+	check_eq(a[0], "0");
+	check_eq(a[1], "1");
+	check_eq(a[2], "2");
+	check_eq(a[3], "3");
+}
+
+test_case("append copy") {
+	testArrayListAppendCopy();
+}
+
+comptime_test_case(append_copy, {
+	testArrayListAppendCopy();
+});
+
+static constexpr void testArrayListAppendInitializerList() {
+	ArrayList<std::string> a;
+	a.push("0");
+	a.push("1");
+	a.appendList({ "2", "3" });
+	check_eq(a.len(), 4);
+	check_eq(a[0], "0");
+	check_eq(a[1], "1");
+	check_eq(a[2], "2");
+	check_eq(a[3], "3");
+}
+
+test_case("append initializer list") {
+	testArrayListAppendInitializerList();
+}
+
+comptime_test_case(append_initializer_list, {
+	testArrayListAppendInitializerList();
+});
+
+static constexpr void testArrayListAppendBufferCopy() {
+	ArrayList<std::string> a;
+	a.push("0");
+	a.push("1");
+
+	std::string b[] = { "2", "3" };
+	a.appendBufferCopy(b, 2);
+	check_eq(a.len(), 4);
+	check_eq(a[0], "0");
+	check_eq(a[1], "1");
+	check_eq(a[2], "2");
+	check_eq(a[3], "3");
+}
+
+test_case("append buffer copy") {
+	testArrayListAppendBufferCopy();
+}
+
+comptime_test_case(append_buffer_copy, {
+	testArrayListAppendBufferCopy();
+});
+
 #endif
 
 
