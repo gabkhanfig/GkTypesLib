@@ -1123,6 +1123,40 @@ comptime_test_case(insert_swap_middle, {
 	testArrayListInsertSwapMiddle();
 });
 
+static constexpr void testArrayListShrinkToFit() {
+	ArrayList<std::string> a;
+	a.reserve(20);
+	a.push("hello world!");
+	check_ge(a.capacity(), 20);
+	a.shrinkToFit();
+	check_lt(a.capacity(), 20);
+}
+
+test_case("shrink to fit") {
+	testArrayListShrinkToFit();
+}
+
+comptime_test_case(shrink_to_fit, {
+	testArrayListShrinkToFit();
+});
+
+static constexpr void testArrayListShrink() {
+	ArrayList<std::string> a;
+	a.reserve(20);
+	a.push("hello world!");
+	check_ge(a.capacity(), 20);
+	a.shrinkTo(10);
+	check_lt(a.capacity(), 20);
+	check_ge(a.capacity(), 10);
+}
+
+test_case("shrink to") {
+	testArrayListShrink();
+}
+
+comptime_test_case(shrink_to, {
+	testArrayListShrink();
+});
 
 #endif
 
