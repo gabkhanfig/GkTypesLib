@@ -71,15 +71,15 @@ bool gk::AllocatorRef::operator==(const IAllocator* other) const
 
 Result<void*, AllocError> gk::AllocatorRef::mallocImpl(usize numBytes, usize alignment)
 {
-	return getAllocator()->mallocImpl(numBytes, alignment);
+	return getAllocatorObject()->mallocImpl(numBytes, alignment);
 }
 
 void gk::AllocatorRef::freeImpl(void* buffer, usize numBytes, usize alignment)
 {
-	return getAllocator()->freeImpl(buffer, numBytes, alignment);
+	return getAllocatorObject()->freeImpl(buffer, numBytes, alignment);
 }
 
-IAllocator* gk::AllocatorRef::getAllocator()
+IAllocator* gk::AllocatorRef::getAllocatorObject()
 {
 	constexpr usize PTR_BITMASK = (1ULL << 48) - 1;
 	return reinterpret_cast<IAllocator*>(inner & PTR_BITMASK);
@@ -92,7 +92,7 @@ void gk::AllocatorRef::destruct()
 	}
 
 	if (inner & ALLOCATOR_USE_REF_COUNT_FLAG) {
-		getAllocator()->decrementRefCount();
+		getAllocatorObject()->decrementRefCount();
 	}
 	inner = 0;
 }
@@ -104,13 +104,13 @@ void gk::AllocatorRef::constructCopy(const AllocatorRef& other)
 		return;
 	}
 
-	getAllocator()->incrementRefCount();
+	getAllocatorObject()->incrementRefCount();
 }
 
 void gk::AllocatorRef::assignMove(AllocatorRef&& other) noexcept
 {
 	if (inner & ALLOCATOR_USE_REF_COUNT_FLAG) { // if the ref is null (0), this if will not execute, thus is safe
-		getAllocator()->decrementRefCount();
+		getAllocatorObject()->decrementRefCount();
 	}
 
 	inner = other.inner;
@@ -120,12 +120,12 @@ void gk::AllocatorRef::assignMove(AllocatorRef&& other) noexcept
 void gk::AllocatorRef::assignCopy(const AllocatorRef& other)
 {
 	if (inner & ALLOCATOR_USE_REF_COUNT_FLAG) { // if the ref is null (0), this if will not execute, thus is safe
-		getAllocator()->decrementRefCount();
+		getAllocatorObject()->decrementRefCount();
 	}
 
 	inner = other.inner;
 	if (inner & ALLOCATOR_USE_REF_COUNT_FLAG) {
-		getAllocator()->incrementRefCount();
+		getAllocatorObject()->incrementRefCount();
 	}
 }
 
