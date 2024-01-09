@@ -948,6 +948,182 @@ comptime_test_case(remove_swap_string_middle_element, {
 	testArrayListRemoveSwapStringMiddleElement();
 	});
 
+static constexpr void testArrayListInsertEmpty() {
+	ArrayList<std::string> a;
+	a.insert(0, "hello asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456!");
+	check_eq(a.len(), 1);
+	check_eq(a[0], "hello asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456!");
+}
+
+test_case("insert empty") {
+	testArrayListInsertEmpty();
+}
+
+comptime_test_case(insert_empty, {
+	testArrayListInsertEmpty();
+});
+
+static constexpr void testArrayListInsertEmptySanity() {
+	ArrayList<std::string> a;
+	const std::string str = "hello asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456!";
+	a.insert(0, str);
+	check_eq(a.len(), 1);
+	check_eq(a[0], str);
+}
+
+test_case("insert empty sanity") {
+	testArrayListInsertEmptySanity();
+}
+
+comptime_test_case(insert_empty_sanity, {
+	testArrayListInsertEmptySanity();
+});
+
+static constexpr void testArrayListInsertEnd() {
+	ArrayList<std::string> a;
+	a.push("lol");
+	a.push("13");
+	a.insert(2, "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456"); // move
+	check_eq(a.len(), 3);
+	check_eq(a[0], "lol");
+	check_eq(a[1], "13");
+	check_eq(a[2], "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	const std::string another = "!!asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456";
+	a.insert(3, another); // copy
+	check_eq(a.len(), 4);
+	check_eq(a[0], "lol");
+	check_eq(a[1], "13");
+	check_eq(a[2], "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a[3], "!!asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+}
+
+test_case("insert end") {
+	testArrayListInsertEnd();
+}
+
+comptime_test_case(insert_end, {
+	testArrayListInsertEnd();
+});
+
+static constexpr void testArrayListInsertMiddle() {
+	ArrayList<std::string> a;
+	a.push("lol");
+	a.push("13");
+	a.push("whoa!");
+	a.insert(1, "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456"); // move
+	check_eq(a.len(), 4);
+	check_eq(a[0], "lol");
+	check_eq(a[1], "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a[2], "13");
+	check_eq(a[3], "whoa!");
+	const std::string another = "!!asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456";
+	a.insert(1, another); // copy
+	check_eq(a.len(), 5);
+	check_eq(a[0], "lol");
+	check_eq(a[1], "!!asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a[2], "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a[3], "13");
+	check_eq(a[4], "whoa!");
+}
+
+test_case("insert middle") {
+	testArrayListInsertMiddle();
+}
+
+comptime_test_case(insert_middle, {
+	testArrayListInsertMiddle();
+});
+
+static constexpr void testArrayListInsertSwapEmpty() {
+	ArrayList<std::string> a;
+	a.insertSwap(0, "hello asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456!");
+	check_eq(a.len(), 1);
+	check_eq(a[0], "hello asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456!");
+}
+
+test_case("insert swap empty") {
+	testArrayListInsertSwapEmpty();
+}
+
+comptime_test_case(insert_swap_empty, {
+	testArrayListInsertSwapEmpty();
+	});
+
+static constexpr void testArrayListInsertSwapEmptySanity() {
+	ArrayList<std::string> a;
+	const std::string str = "hello asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456!";
+	a.insertSwap(0, str);
+	check_eq(a.len(), 1);
+	check_eq(a[0], str);
+}
+
+test_case("insert swap empty sanity") {
+	testArrayListInsertSwapEmptySanity();
+}
+
+comptime_test_case(insert_swap_empty_sanity, {
+	testArrayListInsertSwapEmptySanity();
+	});
+
+static constexpr void testArrayListInsertSwapEnd() {
+	ArrayList<std::string> a;
+	a.push("lol");
+	a.push("13");
+	a.push("whoa!");
+	a.insertSwap(1, "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456"); // move
+	check_eq(a.len(), 4);
+	check_eq(a[0], "lol");
+	check_eq(a[1], "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a[2], "whoa!");
+	check_eq(a[3], "13");
+	const std::string another = "!!asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456";
+	a.insertSwap(1, another); // copy
+	check_eq(a.len(), 5);
+	check_eq(a[0], "lol");
+	check_eq(a[1], "!!asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a[2], "whoa!");
+	check_eq(a[3], "13");
+	check_eq(a[4], "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+}
+
+test_case("insert swap end") {
+	testArrayListInsertSwapEnd();
+}
+
+comptime_test_case(insert_swap_end, {
+	testArrayListInsertSwapEnd();
+});
+
+static constexpr void testArrayListInsertSwapMiddle() {
+	ArrayList<std::string> a;
+	a.push("lol");
+	a.push("13");
+	a.push("whoa!");
+	a.insertSwap(1, "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456"); // move
+	check_eq(a.len(), 4);
+	check_eq(a[0], "lol");
+	check_eq(a[1], "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a[2], "whoa!");
+	check_eq(a[3], "13");
+	const std::string another = "!!asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456";
+	a.insertSwap(1, another); // copy
+	check_eq(a.len(), 5);
+	check_eq(a[0], "lol");
+	check_eq(a[1], "!!asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a[2], "whoa!");
+	check_eq(a[3], "13");
+	check_eq(a[4], "asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+}
+
+test_case("insert swap middle") {
+	testArrayListInsertSwapMiddle();
+}
+
+comptime_test_case(insert_swap_middle, {
+	testArrayListInsertSwapMiddle();
+});
+
+
 #endif
 
 
