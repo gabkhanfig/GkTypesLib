@@ -9,11 +9,11 @@ namespace gk
 	{
 		using PtrType = T;
 
-		/**
-		* Default constructor sets the held pointer to nullptr.
-		* This can be useful for specific containers.
-		*/
-		constexpr UniquePtr() : ptr(nullptr) {}
+		// require explicit initialization
+		constexpr UniquePtr() = delete;
+		// prevent copying
+		constexpr UniquePtr(const UniquePtr&) = delete;
+		constexpr UniquePtr& operator=(const UniquePtr&) = delete;
 
 		/**
 		* Takes ownership of the pointed-to object.
@@ -38,10 +38,6 @@ namespace gk
 		*/
 		constexpr ~UniquePtr();
 
-		// prevent copying
-		constexpr UniquePtr(const UniquePtr&) = delete;
-		constexpr UniquePtr& operator=(const UniquePtr&) = delete;
-
 		/**
 		* Creates a new instance of UniquePtr using the global heap allocator at runtime,
 		* or just operator new at constexpr time.
@@ -51,6 +47,13 @@ namespace gk
 		*/
 		template<typename ...ConstructorArgs>
 		static constexpr UniquePtr create(ConstructorArgs&&... args);
+
+		/**
+		* Explicitly create a nullptr UniquePtr for whatever reason.
+		* 
+		* @return 
+		*/
+		static constexpr UniquePtr null() { return UniquePtr(nullptr); }
 
 		/**
 		* Creates a new instance of UniquePtr with a specific allocator at runtime only.

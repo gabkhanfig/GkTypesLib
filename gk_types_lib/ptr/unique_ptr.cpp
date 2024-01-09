@@ -7,7 +7,7 @@ using gk::UniquePtr;
 using gk::globalHeapAllocator;
 
 static constexpr void testUniquePtrDefault() {
-	UniquePtr<std::string> p;
+	auto p = UniquePtr<std::string>::null();
 	check_not(p.isValid());
 }
 
@@ -82,7 +82,7 @@ test_case("init deinit custom allocator with args") {
 static constexpr void testUniquePtrOperatorBool() {
 	auto p1 = UniquePtr<std::string>::create();
 	check(p1);
-	auto p2 = UniquePtr<std::string>();
+	auto p2 = UniquePtr<std::string>::null();
 	check_not(p2);
 }
 
@@ -92,7 +92,7 @@ comptime_test_case(operator_bool, { testUniquePtrOperatorBool(); });
 static constexpr void testUniquePtrLogicalNot() {
 	auto p1 = UniquePtr<std::string>::create();
 	check_not(!p1);
-	auto p2 = UniquePtr<std::string>();
+	auto p2 = UniquePtr<std::string>::null();
 	check(!p2);
 }
 
