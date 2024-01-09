@@ -1158,6 +1158,49 @@ comptime_test_case(shrink_to, {
 	testArrayListShrink();
 });
 
+static constexpr void testArrayListTruncate() {
+	ArrayList<std::string> a;
+	a.push("0 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.push("1 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.push("2 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.push("3 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.push("4 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.push("5 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.truncate(3);
+	check_eq(a.len(), 3);
+	check_eq(a[0], "0 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a[1], "1 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a[2], "2 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+}
+
+test_case("truncate") {
+	testArrayListTruncate();
+}
+
+comptime_test_case(truncate, {
+	testArrayListTruncate();
+});
+
+static constexpr void testArrayListTruncateGreaterThanLength() {
+	ArrayList<std::string> a;
+	a.push("0 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.push("1 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.push("2 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.truncate(5);
+	check_eq(a.len(), 3);
+	check_eq(a[0], "0 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a[1], "1 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	check_eq(a[2], "2 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+}
+
+test_case("truncate greater than length") {
+	testArrayListTruncateGreaterThanLength();
+}
+
+comptime_test_case(truncate_greater_than_length, {
+	testArrayListTruncateGreaterThanLength();
+});
+
 #endif
 
 
