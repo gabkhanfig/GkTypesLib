@@ -482,7 +482,7 @@ namespace gk
 		struct ReverseIterator {
 			constexpr ReverseIterator(T* inData) : arrayData(inData) {}
 			constexpr bool operator ==(const ReverseIterator& other) const { return this->arrayData == other.arrayData; }
-			constexpr T& operator*() const { return *arrayData; }
+			constexpr T& operator*() const { return *(arrayData - 1); }
 			constexpr ReverseIterator& operator++() { arrayData--; return *this; }
 		private:
 			T* arrayData;
@@ -491,7 +491,7 @@ namespace gk
 		struct ReverseConstIterator {
 			constexpr ReverseConstIterator(const T* inData) : arrayData(inData) {}
 			constexpr bool operator ==(const ReverseConstIterator& other) const { return this->arrayData == other.arrayData; }
-			constexpr const T& operator*() const { return *arrayData; }
+			constexpr const T& operator*() const { return *(arrayData - 1); }
 			constexpr ReverseConstIterator& operator++() { arrayData--; return *this; }
 		private:
 			const T* arrayData;
@@ -1178,23 +1178,23 @@ inline constexpr gk::ArrayList<T>::ConstIterator gk::ArrayList<T>::end() const
 template<typename T>
 inline constexpr gk::ArrayList<T>::ReverseIterator gk::ArrayList<T>::rbegin()
 {
-	return ReverseIterator(_data + _length - 1);
+	return ReverseIterator(_data + _length);
 }
 
 template<typename T>
 inline constexpr gk::ArrayList<T>::ReverseIterator gk::ArrayList<T>::rend()
 {
-	return ReverseIterator(_data - 1);
+	return ReverseIterator(_data);
 }
 
 template<typename T>
 inline constexpr gk::ArrayList<T>::ReverseConstIterator gk::ArrayList<T>::rbegin() const
 {
-	return ReverseConstIterator(_data + _length - 1);
+	return ReverseConstIterator(_data + _length);
 }
 
 template<typename T>
 inline constexpr gk::ArrayList<T>::ReverseConstIterator gk::ArrayList<T>::rend() const
 {
-	return ReverseConstIterator(_data - 1);
+	return ReverseConstIterator(_data);
 }
