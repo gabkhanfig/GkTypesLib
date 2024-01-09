@@ -222,7 +222,7 @@ namespace gk
 		* @return An Ok variant with an uninitialized T*, or an Error.
 		*/
 		template<typename T>
-		forceinline Result<T*, AllocError> mallocObject() { return getAllocator()->mallocObject<T>(); }
+		forceinline Result<T*, AllocError> mallocObject() { return getAllocatorObject()->mallocObject<T>(); }
 
 		/**
 		* Does not call constructor, nor memset's to 0.
@@ -237,7 +237,7 @@ namespace gk
 		* @return An Ok variant with an uninitialized T*, or an Error.
 		*/
 		template<typename T>
-		forceinline Result<T*, AllocError> mallocAlignedObject(size_t byteAlignment) { return getAllocator()->mallocAlignedObject<T>(byteAlignment); }
+		forceinline Result<T*, AllocError> mallocAlignedObject(size_t byteAlignment) { return getAllocatorObject()->mallocAlignedObject<T>(byteAlignment); }
 
 		/**
 		* Does not call constructor, nor memset's to 0.
@@ -253,7 +253,7 @@ namespace gk
 		* @return An Ok variant with an uninitialized T*, or an Error.
 		*/
 		template<typename T>
-		forceinline Result<T*, AllocError> mallocBuffer(size_t numElements) { return getAllocator()->mallocBuffer<T>(numElements); }
+		forceinline Result<T*, AllocError> mallocBuffer(size_t numElements) { return getAllocatorObject()->mallocBuffer<T>(numElements); }
 
 		/**
 		* Does not call constructor, nor memset's to 0.
@@ -271,7 +271,7 @@ namespace gk
 		* @return An Ok variant with an uninitialized T*, or an Error.
 		*/
 		template<typename T>
-		forceinline Result<T*, AllocError> mallocAlignedBuffer(size_t numElements, size_t byteAlignment) { return getAllocator()->mallocAlignedBuffer<T>(numElements, byteAlignment); }
+		forceinline Result<T*, AllocError> mallocAlignedBuffer(size_t numElements, size_t byteAlignment) { return getAllocatorObject()->mallocAlignedBuffer<T>(numElements, byteAlignment); }
 
 		/**
 		* Does not call destructor.
@@ -281,7 +281,7 @@ namespace gk
 		* @param object: The memory to free. Sets the value of the variable to nullptr.
 		*/
 		template<typename T>
-		void freeObject(T*& object) { return getAllocator()->freeObject<T>(object); }
+		void freeObject(T*& object) { return getAllocatorObject()->freeObject<T>(object); }
 
 		/**
 		* Does not call destructor.
@@ -294,7 +294,7 @@ namespace gk
 		* @param byteAlignment: The byte alignment of the original allocation.
 		*/
 		template<typename T>
-		void freeAlignedObject(T*& object, size_t byteAlignment) { return getAllocator()->freeAlignedObject<T>(object, byteAlignment); }
+		void freeAlignedObject(T*& object, size_t byteAlignment) { return getAllocatorObject()->freeAlignedObject<T>(object, byteAlignment); }
 
 		/**
 		* Does not call destructor.
@@ -307,7 +307,7 @@ namespace gk
 		* @param numElements: Number of T in the buffer.
 		*/
 		template<typename T>
-		void freeBuffer(T*& buffer, size_t numElements) { return getAllocator()->freeBuffer<T>(buffer, numElements); }
+		void freeBuffer(T*& buffer, size_t numElements) { return getAllocatorObject()->freeBuffer<T>(buffer, numElements); }
 
 		/**
 		* Does not call destructor.
@@ -323,7 +323,9 @@ namespace gk
 		* @param byteAlignment: The byte alignment of the original allocation.
 		*/
 		template<typename T>
-		void freeAlignedBuffer(T*& buffer, size_t numElements, size_t byteAlignment) { return getAllocator()->freeAlignedBuffer<T>(buffer, numElements, byteAlignment); }
+		void freeAlignedBuffer(T*& buffer, size_t numElements, size_t byteAlignment) { return getAllocatorObject()->freeAlignedBuffer<T>(buffer, numElements, byteAlignment); }
+
+		IAllocator* getAllocatorObject();
 
 		constexpr bool operator == (const AllocatorRef& other) const {
 			return inner == other.inner;
@@ -338,8 +340,6 @@ namespace gk
 		Result<void*, AllocError> mallocImpl(usize numBytes, usize alignment);
 
 		void freeImpl(void* buffer, usize numBytes, usize alignment);
-
-		IAllocator* getAllocator();
 
 		void destruct();
 
