@@ -1058,9 +1058,9 @@ inline constexpr void gk::ArrayList<T>::truncate(usize newLength)
 	}
 
 	for (usize i = newLength; i < _length; i++) {
-		data[i].~T();
+		_data[i].~T();
 		if (std::is_constant_evaluated()) {
-			data[i] = T(); // set to default for how constexpr destructor works
+			std::construct_at(_data + i, T()); // set to default for how constexpr destructor works
 		}
 	}
 	_length = newLength;
