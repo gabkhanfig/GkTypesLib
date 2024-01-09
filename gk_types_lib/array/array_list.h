@@ -931,13 +931,15 @@ inline constexpr void gk::ArrayList<T>::insert(usize index, const T& element)
 		reallocate((_capacity + 1) * 2);
 	}
 
-	for (usize i = index + 1; i < (_length + 1); i++) {
+	usize i = _length;
+	while (i > index) {
 		if (std::is_constant_evaluated()) {
 			_data[i] = std::move(_data[i - 1]);
 		}
 		else {
 			new (_data + i) T(std::move(_data[i - 1]));
 		}
+		i--;
 	}
 
 	if (std::is_constant_evaluated()) {
@@ -959,13 +961,15 @@ inline constexpr void gk::ArrayList<T>::insert(usize index, T&& element)
 		reallocate((_capacity + 1) * 2);
 	}
 
-	for (usize i = index + 1; i < (_length + 1); i++) {
+	usize i = _length;
+	while (i > index) {
 		if (std::is_constant_evaluated()) {
 			_data[i] = std::move(_data[i - 1]);
 		}
 		else {
 			new (_data + i) T(std::move(_data[i - 1]));
 		}
+		i--;
 	}
 
 	if (std::is_constant_evaluated()) {
