@@ -1351,6 +1351,128 @@ comptime_test_case(resize_truncate, {
 	testArrayListResizeTruncate();
 });
 
+static constexpr void testArrayListIteratorEmpty() {
+	ArrayList<std::string> a;
+	usize i = 0;
+	for (auto& elem : a) {
+		i++;
+	}
+	check_eq(i, 0);
+}
+
+test_case("iterator empty") { testArrayListIteratorEmpty(); }
+comptime_test_case(iterator_empty, { testArrayListIteratorEmpty(); });
+
+static constexpr void testArrayListIteratorNotEmpty() {
+	ArrayList<std::string> a;
+	a.push(":D");
+	a.push(":D");
+	usize i = 0;
+	for (auto& elem : a) {
+		i++;
+		check_eq(elem, ":D");
+	}
+	check_eq(i, 2);
+}
+
+test_case("iterator not empty") { testArrayListIteratorNotEmpty(); }
+comptime_test_case(iterator_not_empty, { testArrayListIteratorNotEmpty(); });
+
+static constexpr void testArrayListConstIteratorEmpty() {
+	const ArrayList<std::string> a;
+	usize i = 0;
+	for (auto& elem : a) {
+		i++;
+	}
+	check_eq(i, 0);
+}
+
+test_case("const iterator empty") { testArrayListConstIteratorEmpty(); }
+comptime_test_case(const_iterator_empty, { testArrayListConstIteratorEmpty(); });
+
+static constexpr void testArrayListConstIteratorNotEmpty() {
+	const ArrayList<std::string> a = []() {
+		ArrayList<std::string> out;
+		out.push(":D");
+		out.push(":D");
+		return out;
+	}();
+	
+	usize i = 0;
+	for (auto& elem : a) {
+		i++;
+		check_eq(elem, ":D");
+	}
+	check_eq(i, 2);
+}
+
+test_case("const iterator not empty") { testArrayListConstIteratorNotEmpty(); }
+comptime_test_case(const_iterator_not_empty, { testArrayListConstIteratorNotEmpty(); });
+
+
+
+
+static constexpr void testArrayListReverseIteratorEmpty() {
+	ArrayList<std::string> a;
+	usize i = 0;
+	for (auto rit = a.rbegin(); rit != a.rend(); ++rit) {
+		auto& elem = *rit;
+		i++;
+	}
+	check_eq(i, 0);
+}
+
+test_case("reverse iterator empty") { testArrayListReverseIteratorEmpty(); }
+comptime_test_case(reverse_iterator_empty, { testArrayListReverseIteratorEmpty(); });
+
+static constexpr void testArrayListReverseIteratorNotEmpty() {
+	ArrayList<std::string> a;
+	a.push(":D");
+	a.push(":D");
+	usize i = 0;
+	for (auto rit = a.rbegin(); rit != a.rend(); ++rit) {
+		auto& elem = *rit;
+		i++;
+		check_eq(elem, ":D");
+	}
+	check_eq(i, 2);
+}
+
+test_case("reverse iterator not empty") { testArrayListReverseIteratorNotEmpty(); }
+comptime_test_case(reverse_iterator_not_empty, { testArrayListReverseIteratorNotEmpty(); });
+
+static constexpr void testArrayListReverseConstIteratorEmpty() {
+	const ArrayList<std::string> a;
+	usize i = 0;
+	for (auto rit = a.rbegin(); rit != a.rend(); ++rit) {
+		auto& elem = *rit;
+		i++;
+	}
+	check_eq(i, 0);
+}
+
+test_case("reverse const iterator empty") { testArrayListReverseConstIteratorEmpty(); }
+comptime_test_case(reverse_const_iterator_empty, { testArrayListReverseConstIteratorEmpty(); });
+
+static constexpr void testArrayListReverseConstIteratorNotEmpty() {
+	const ArrayList<std::string> a = []() {
+		ArrayList<std::string> out;
+		out.push(":D");
+		out.push(":D");
+		return out;
+	}();
+	
+	usize i = 0;
+	for (auto rit = a.rbegin(); rit != a.rend(); ++rit) {
+		auto& elem = *rit;
+		i++;
+		check_eq(elem, ":D");
+	}
+	check_eq(i, 2);
+}
+
+test_case("reverse const iterator not empty") { testArrayListReverseConstIteratorNotEmpty(); }
+comptime_test_case(reverse_const_iterator_not_empty, { testArrayListReverseConstIteratorNotEmpty(); });
 
 #endif
 
