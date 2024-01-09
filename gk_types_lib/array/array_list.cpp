@@ -1267,6 +1267,91 @@ comptime_test_case(append_buffer_copy, {
 	testArrayListAppendBufferCopy();
 });
 
+static constexpr void testArrayListResizeEmptyToEmpty() {
+	ArrayList<std::string> a;
+	a.resize(0, "hello world!");
+	check_eq(a.len(), 0);
+}
+
+test_case("resize empty to empty") {
+	testArrayListResizeEmptyToEmpty();
+}
+
+comptime_test_case(resize_empty_to_empty, {
+	testArrayListResizeEmptyToEmpty();
+});
+
+static constexpr void testArrayListResizeEmptyFill() {
+	ArrayList<std::string> a;
+	a.resize(2, "hello world!");
+	check_eq(a.len(), 2);
+	check_eq(a[0], "hello world!");
+	check_eq(a[1], "hello world!");
+}
+
+test_case("resize empty fill") {
+	testArrayListResizeEmptyFill();
+}
+
+comptime_test_case(resize_empty_fill, {
+	testArrayListResizeEmptyFill();
+});
+
+static constexpr void testArrayListResizeHasElementFill() {
+	ArrayList<std::string> a;
+	a.push("hmm");
+	a.resize(3, "hello world!");
+	check_eq(a.len(), 3);
+	check_eq(a[0], "hmm");
+	check_eq(a[1], "hello world!");
+	check_eq(a[2], "hello world!");
+}
+
+test_case("resize has element fill") {
+	testArrayListResizeHasElementFill();
+}
+
+comptime_test_case(resize_has_element_fill, {
+	testArrayListResizeHasElementFill();
+});
+
+static constexpr void testArrayListResizeHasElementSameResizeLength() {
+	ArrayList<std::string> a;
+	a.push("hmm");
+	a.resize(1, "hello world!");
+	check_eq(a.len(), 1);
+	check_eq(a[0], "hmm");
+}
+
+test_case("resize has element same resize length") {
+	testArrayListResizeHasElementSameResizeLength();
+}
+
+comptime_test_case(resize_has_element_same_resize_length, {
+	testArrayListResizeHasElementSameResizeLength();
+});
+
+static constexpr void testArrayListResizeTruncate() {
+	ArrayList<std::string> a;
+	a.push("0");
+	a.push("1 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.push("2 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.push("3 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+	a.resize(2, "");
+	check_eq(a.len(), 2);
+	check_eq(a[0], "0");
+	check_eq(a[1], "1 asdliajshdlkajshdlakjshdlakjshdlakjshdlakjsdh123456");
+}
+
+test_case("resize truncate") {
+	testArrayListResizeTruncate();
+}
+
+comptime_test_case(resize_truncate, {
+	testArrayListResizeTruncate();
+});
+
+
 #endif
 
 
