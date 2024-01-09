@@ -28,6 +28,7 @@ namespace gk
 		constexpr UniquePtr(UniquePtr&& other) noexcept;
 
 		/**
+		* For UniquePtr's created using `init()`, `deinit()` MUST be called prior to assignment.
 		* Moves the other's pointer into this one, setting the other to nullptr.
 		*/
 		constexpr UniquePtr& operator=(UniquePtr&& other) noexcept;
@@ -68,11 +69,27 @@ namespace gk
 		static UniquePtr init(IAllocator* allocator, ConstructorArgs&&... args);
 
 		/**
-		* Required to free UniquePtr's allocated `init()` using custom allocators.
+		* Explicitly free the owned pointer using a specific allocator.
+		* Required to free UniquePtr's allocated `init()` using custom allocators, because the destructor will fail to free.
+		* For UniquePtr's created using `create()`, gk::globalHeapAllocator() must be used. 
+		* Otherwise, use the same allocator used when `init(allocator)` was called. 
+		* Sets this UniquePtr to nullptr.
 		* 
 		* @param allocator: Used to free the owned unique ptr. Must be non-null.
 		*/
 		void deinit(IAllocator* allocator);
+
+		/**
+		* Swap the owned object of this UniquePtr with another.
+		* 
+		* @param other: UniquePtr to swap ownership with.
+		*/
+		constexpr void swap(UniquePtr& other);
+
+		/**
+		* @return if this UniquePtr owns a specific pointer.
+		*/
+		constexpr bool operator==(T* otherPtr) const { return ptr == otherPtr; }
 
 		/**
 		* @return If this UniquePtr currently owns an object, false otherwise.
@@ -230,8 +247,19 @@ inline gk::UniquePtr<T> gk::UniquePtr<T>::init(IAllocator* allocator, Constructo
 template<typename T>
 inline void gk::UniquePtr<T>::deinit(IAllocator* allocator)
 {
+	if (ptr == nullptr) [[unlikely]] return;
+
 	check_ne(allocator, nullptr);
 
+	ptr->~T();
 	allocator->freeObject<T>(ptr);
 	check_eq(ptr, nullptr);
+}
+
+template<typename T>
+inline constexpr void gk::UniquePtr<T>::swap(UniquePtr& other)
+{
+	T* temp = other.ptr;
+	other.ptr = ptr;
+	ptr = temp;
 }

@@ -143,4 +143,23 @@ static constexpr void testUniquePtrRelease() {
 test_case("release") { testUniquePtrRelease(); }
 comptime_test_case(release, { testUniquePtrRelease(); });
 
+static constexpr void testUniquePtrSwap() {
+	auto p1 = UniquePtr<std::string>::create("hello world!");
+	auto p2 = UniquePtr<std::string>::create("goodbye world!");
+
+	p1.swap(p2);
+	check_eq(*p1, "goodbye world!");
+	check_eq(*p2, "hello world!");
+}
+test_case("swap") { testUniquePtrSwap(); }
+comptime_test_case(swap, { testUniquePtrSwap(); });
+
+static constexpr void testUniquePtrEqual() {
+	auto p = UniquePtr<std::string>::create();
+	std::string* ptr = p.get();
+	check_eq(p, ptr);
+}
+test_case("equal") { testUniquePtrEqual(); }
+comptime_test_case(equal, { testUniquePtrEqual(); });
+
 #endif
