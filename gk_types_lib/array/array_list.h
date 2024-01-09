@@ -1069,7 +1069,7 @@ inline constexpr void gk::ArrayList<T>::truncate(usize newLength)
 template<typename T>
 inline constexpr void gk::ArrayList<T>::appendCopy(const ArrayList& other)
 {
-	if (_length + other._length == _capacity) {
+	if (_length + other._length >= _capacity) {
 		reallocate(gk::upperPowerOfTwo(_length + other._length));
 	}
 
@@ -1087,7 +1087,7 @@ inline constexpr void gk::ArrayList<T>::appendCopy(const ArrayList& other)
 template<typename T>
 inline constexpr void gk::ArrayList<T>::appendList(const std::initializer_list<T>& initializerList)
 {
-	if (_length + initializerList.size() == _capacity) {
+	if (_length + initializerList.size() >= _capacity) {
 		reallocate(gk::upperPowerOfTwo(_length + initializerList.size()));
 	}
 
@@ -1109,7 +1109,7 @@ inline constexpr void gk::ArrayList<T>::appendBufferCopy(const T* buffer, usize 
 {
 	check_ne(buffer, nullptr);
 
-	if (_length + elementsToCopy == _capacity) {
+	if (_length + elementsToCopy >= _capacity) {
 		reallocate(gk::upperPowerOfTwo(_length + elementsToCopy));
 	}
 
