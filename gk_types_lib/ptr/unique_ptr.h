@@ -4,6 +4,13 @@
 
 namespace gk 
 {
+	/**
+	* Smart pointer that owns and manages the lifetime of an object T, destroying it either
+	* when the UniquePtr goes out of scope, or deinit() is explicitly called.
+	* Allows opt-in manual memory management, supporting custom allocators, with `init()` and `deinit()`.
+	* 
+	* @param T: Type of object to own.
+	*/
 	template<typename T>
 	struct UniquePtr 
 	{
