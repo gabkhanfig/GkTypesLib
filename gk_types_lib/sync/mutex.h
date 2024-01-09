@@ -64,7 +64,7 @@ namespace gk
 		}
 
 		template<typename ...ConstructorArgs>
-		Mutex(ConstructorArgs... args)
+		Mutex(ConstructorArgs&&... args)
 			: _data(args...)
 		{
 			InitializeSRWLock(&_lock);

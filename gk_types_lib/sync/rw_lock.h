@@ -90,7 +90,7 @@ namespace gk
 		}
 
 		template<typename ...ConstructorArgs>
-		RwLock(ConstructorArgs... args)
+		RwLock(ConstructorArgs&&... args)
 			: _data(args...)
 		{
 			InitializeSRWLock(&_lock);
