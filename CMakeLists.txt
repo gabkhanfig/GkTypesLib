@@ -9,6 +9,7 @@ project("GkTypesLib")
 
 set(CMAKE_CXX_STANDARD 20)
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 
 add_library(GkTypesLib STATIC 
 "gk_types_lib/lib.cpp" 
