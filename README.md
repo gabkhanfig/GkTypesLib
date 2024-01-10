@@ -91,38 +91,6 @@ Can convert strings to/from json objects.
 
 <h2>
 
-[Option](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/option/option.h)
-
-</h2>
-
-Rust's [option](https://doc.rust-lang.org/std/option/enum.Option.html) type implemented in c++.
-
-<h2>
-
-[Result](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/error/result.h)
-
-</h2>
-
-Rust's [result](https://doc.rust-lang.org/std/result/#:~:text=Module%20std%3A%3Aresult&text=Error%20handling%20with%20the%20Result,and%20containing%20an%20error%20value.) type implenented in c++.
-
-<h2>
-
-[Fptr](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/function/function_ptr.h)
-
-</h2>
-
-Simple way to express function pointers for free functions.
-
-<h2>
-
-[Callback](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/function/callback.h)
-
-</h2>
-
-Allow binding specific objects with corresponding member functions, or free functions, to be called with arguments any amount of times later.
-
-<h2>
-
 [Mutex](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/sync/mutex.h)
 
 </h2>
@@ -164,6 +132,55 @@ It's fully thread safe.
 
 Dispatches jobs across threads, doing automatic load balancing.
 It's fully thread safe.
+
+<h2>
+
+[UniquePtr](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/ptr/unique_ptr.h)
+
+</h2>
+
+Automatic object lifetime management, with opt-in support for manual memory management through the allocator API.
+
+<h2>
+
+[SharedPtr](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/ptr/shared_ptr.h)
+
+</h2>
+
+Automatic object lifetime management with shared reference counting, with opt-in support for manual memory management through the allocator API.
+Allows atomic or non-atomic reference counting depending on context.
+
+<h2>
+
+[Option](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/option/option.h)
+
+</h2>
+
+Rust's [option](https://doc.rust-lang.org/std/option/enum.Option.html) type implemented in c++.
+
+<h2>
+
+[Result](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/error/result.h)
+
+</h2>
+
+Rust's [result](https://doc.rust-lang.org/std/result/#:~:text=Module%20std%3A%3Aresult&text=Error%20handling%20with%20the%20Result,and%20containing%20an%20error%20value.) type implenented in c++.
+
+<h2>
+
+[Fptr](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/function/function_ptr.h)
+
+</h2>
+
+Simple way to express function pointers for free functions.
+
+<h2>
+
+[Callback](https://github.com/gabkhanfig/GkTypesLib/blob/master/gk_types_lib/function/callback.h)
+
+</h2>
+
+Allow binding specific objects with corresponding member functions, or free functions, to be called with arguments any amount of times later.
 
 <h2>
 
