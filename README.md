@@ -1,8 +1,10 @@
 # Gk Types Library
 
+
 ![Static Badge](https://img.shields.io/badge/msvc-done-green)
 ![Static Badge](https://img.shields.io/badge/clang-not%20done-red)
 ![Static Badge](https://img.shields.io/badge/gcc-not%20done-red)
+[![Static Badge](https://img.shields.io/badge/release-v1.0.0-purple)](https://github.com/gabkhanfig/GkTypesLib/releases)
 
 ### CMake library of Useful Containers and Systems for Video Games
 
