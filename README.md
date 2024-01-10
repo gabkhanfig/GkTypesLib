@@ -11,7 +11,7 @@
 GkTypesLib is a library of C++ containers and systems designed to replace parts of the STL for use in Video Games.
 The goals is to provide higher performance abstractions through taking advantage of assumptions on the hardware running the software.
 
-Current only Windows is supported, targeting Requires 64 bit processors, and AVX-2 support minimum.
+Currently only Windows is supported, targeting Requires 64 bit processors, and AVX-2 support minimum.
 
 All unit tests and examples can be found in the corresponding .cpp files. For any types that use SIMD, 
 512 bit or 256 bit extensions usage is automatically determined at runtime given the CPU's featureset.
