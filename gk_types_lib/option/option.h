@@ -84,7 +84,7 @@ namespace gk
 
 		constexpr Option(T value) : _hasValue(true), _refValue(value) {}
 
-		constexpr Option(Option<T>&& other) : _hasValue(other._hasValue) {
+		constexpr Option(Option<T>&& other) noexcept : _hasValue(other._hasValue) {
 			if (this->_hasValue) {
 				std::construct_at(&this->_refValue, other._refValue);
 			}
