@@ -1,5 +1,10 @@
 #include "job_thread.h"
 
+std::thread::id gk::JobThread::getThreadId() const
+{
+	return this->_thread.get_id();
+}
+
 #if GK_TYPES_LIB_TEST
 
 namespace gk
@@ -29,6 +34,7 @@ namespace gk
 			}
 		}
 	}
+	
 }
 
 using gk::unitTests::freeFunctionReturnIntNoArgs;

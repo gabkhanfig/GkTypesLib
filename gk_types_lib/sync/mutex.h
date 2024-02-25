@@ -36,6 +36,10 @@ namespace gk
 
 		[[nodiscard]] const T* get() const;
 
+		[[nodiscard]] T* operator->() { return get(); }
+
+		[[nodiscard]] const T* operator->() const { return get(); }
+
 	private:
 
 		friend struct gk::Option<LockedMutex<T>>;

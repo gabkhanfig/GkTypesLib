@@ -174,6 +174,7 @@ namespace gk
 			return _queuedJobCount.load(std::memory_order::acquire);
 		}
 
+		[[nodiscard]] std::thread::id getThreadId() const;
 
 	private:
 

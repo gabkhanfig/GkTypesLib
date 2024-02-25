@@ -160,16 +160,31 @@ test_case("TryRead") {
 
 test_case("TryWriteAndRead") {
 	gk::RwLock<int> rwlock = 100;
-	auto write = rwlock.tryWrite();
-	check(write.isSome());
-	*write.some().get() = 100;
-
-	auto read = rwlock.tryRead();
-	check(read.isSome());
-	check_eq(*read.some().get(), 100);
+	{
+		auto write = rwlock.tryWrite();
+		check(write.isSome());
+		*write.some().get() = 100;
+	}
+	{
+		auto read = rwlock.tryRead();
+		check(read.isSome());
+		check_eq(*read.some().get(), 100);
+	}
 }
 
-
+test_case("indirection") {
+	gk::RwLock<NoDefaultConstructRwLock> rwlock{5, 9};
+	{
+		auto write = rwlock.write();
+		check_eq(write->a, 5);
+		check_eq(write->b, 9);
+	}
+	{
+		auto read = rwlock.read();
+		check_eq(read->a, 5);
+		check_eq(read->b, 9);
+	}
+}
 
 
 #endif

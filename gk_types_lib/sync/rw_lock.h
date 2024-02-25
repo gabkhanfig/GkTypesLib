@@ -29,6 +29,8 @@ namespace gk
 
 		[[nodiscard]] const T* get() const;
 
+		[[nodiscard]] const T* operator->() const { return get(); }
+
 	private:
 
 		friend struct gk::Option<LockedReader<T>>;
@@ -60,6 +62,8 @@ namespace gk
 		~LockedWriter();
 
 		[[nodiscard]] T* get();
+
+		[[nodiscard]] T* operator->() { return get(); }
 
 	private:
 

@@ -72,4 +72,10 @@ test_case("ConstructWithTypeConstructor") {
 	check_eq((*mutex.getDataNoLock()).b, 9);
 }
 
+test_case("indirection") {
+	gk::Mutex<NoDefaultConstructMutex> mutex = { 5, 9 };
+	auto lock = mutex.lock();
+	check_eq(lock->a, 5);
+	check_eq(lock->b, 9);
+}
 #endif
