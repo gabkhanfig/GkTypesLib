@@ -71,9 +71,81 @@ namespace gk
 		T _ptr;
 	};
 
+	/* Optional type specialization for reference types. */
+	template<typename T>
+	struct Option<T, typename std::enable_if_t< !std::is_pointer_v<T> && std::is_reference_v<T>>>
+	{
+		constexpr Option() : _hasValue(false), _emptyValue(false) {}
+
+		constexpr ~Option() = default;
+
+		constexpr Option(const Option<T>& other) = delete;
+		constexpr Option& operator = (const Option<T>& other) = delete;
+
+		constexpr Option(T value) : _hasValue(true), _refValue(value) {}
+
+		constexpr Option(Option<T>&& other) : _hasValue(other._hasValue) {
+			if (this->_hasValue) {
+				std::construct_at(&this->_refValue, other._refValue);
+			}
+			else {
+				std::construct_at(&this->_emptyValue, false);
+			}
+			other._hasValue = false;
+			std::construct_at(&other._emptyValue, false);
+		}
+
+		constexpr void operator = (T value) {
+			this->_hasValue = true;
+			std::construct_at(&this->_refValue, value);	
+		}
+
+		constexpr void operator = (Option<T>&& other) noexcept {
+			this->_hasValue = other._hasValue;
+			if (this->_hasValue) {
+				std::construct_at(&this->_refValue, other._refValue);
+			}
+			else {
+				std::construct_at(&this->_emptyValue, false);
+			}
+			other._hasValue = false;
+			std::construct_at(&other._emptyValue, false);
+		}
+
+		[[nodiscard]] constexpr T some() {
+			check_message(!none(), "Cannot get optional reference value if its None. Either no reference is stored, or the reference has been already moved out of Option ownership");
+			_hasValue = false;
+			T temp = this->_refValue.get();
+			std::construct_at(&this->_emptyValue, false);
+			return temp;
+		}
+
+		[[nodiscard]] constexpr T someCopy() const {
+			check_message(!none(), "Cannot get optional reference value if its None. Either no reference is stored, or the reference has been already moved out of Option ownership");
+			return this->_refValue.get();
+		}
+
+		[[nodiscard]] constexpr bool none() const {
+			return !_hasValue;
+		}
+
+		[[nodiscard]] constexpr bool isSome() const {
+			return !none();
+		}
+
+	private:
+
+		union {
+			std::reference_wrapper<std::remove_reference_t<T>> _refValue;
+			bool _emptyValue;
+		};
+		bool _hasValue;
+
+	};
+
 	/* Optional type specialization for non-pointer types. */
 	template<typename T>
-	struct Option<T, typename std::enable_if_t< !std::is_pointer_v<T>>>
+	struct Option<T, typename std::enable_if_t< !std::is_pointer_v<T> && !std::is_reference_v<T>>>
 	{
 		constexpr Option() : _hasValue(false), _value(T()) {
 			if constexpr (std::is_fundamental_v<T>) {

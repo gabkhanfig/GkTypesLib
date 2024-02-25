@@ -173,4 +173,35 @@ test_case("NonPointerMoveComplexToOption") {
 	check_eq(*a.some().ptr, 10);
 }
 
+comptime_test_case(ref_option, {
+	int num = 2;
+	{
+		gk::Option<int&> r = num;
+		check(r.isSome());
+		int& numRef = r.some();
+		check(r.none());
+		check_eq(numRef, 2);
+	}
+	{
+		gk::Option<int&> r;
+		check(r.none());
+	}
+	{
+		gk::Option<int&> r;
+		r = num;
+		check(r.isSome());
+		int& numRef = r.some();
+		check(r.none());
+		check_eq(numRef, 2);
+	}
+	{
+		gk::Option<int&> r1 = num;
+		gk::Option<int&> r2 = std::move(r1);
+		check(r2.isSome());
+		int& numRef = r2.some();
+		check(r2.none());
+		check_eq(numRef, 2);
+	}
+});
+
 #endif
