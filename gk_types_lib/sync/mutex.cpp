@@ -1,4 +1,40 @@
 #include "mutex.h"
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+#if defined(_WIN32) || defined(WIN32)
+static_assert(std::is_same_v<void*, decltype(SRWLOCK::Ptr)>);
+static_assert(sizeof(SRWLOCK) == sizeof(void*));
+#endif
+
+gk::RawMutex::RawMutex()
+{
+#if defined(_WIN32) || defined(WIN32)
+	InitializeSRWLock(reinterpret_cast<PSRWLOCK>(&this->srwlock));
+#endif
+}
+
+void gk::RawMutex::lock()
+{
+#if defined(_WIN32) || defined(WIN32)
+	AcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&this->srwlock));
+#endif
+}
+
+bool gk::RawMutex::tryLock()
+{
+#if defined(_WIN32) || defined(WIN32)
+	return TryAcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&this->srwlock));
+#endif
+}
+
+void gk::RawMutex::unlock()
+{
+#if defined(_WIN32) || defined(WIN32)
+	ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&this->srwlock));
+#endif
+}
 
 #if GK_TYPES_LIB_TEST
 #include <thread>

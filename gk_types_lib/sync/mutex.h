@@ -2,12 +2,33 @@
 
 #include "../basic_types.h"
 #include "../option/option.h"
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 
 namespace gk
 {
+	struct RawMutex {
+
+		RawMutex();
+		
+		~RawMutex() = default;
+
+		RawMutex(const RawMutex&) = delete;
+		RawMutex(RawMutex&&) = delete;
+		RawMutex& operator = (const RawMutex&) = delete;
+		RawMutex& operator = (RawMutex&&) = delete;
+
+		void lock();
+
+		[[nodiscard]] bool tryLock();
+
+		void unlock();
+
+	private:
+#if defined(_WIN32) || defined(WIN32)
+		void* srwlock;
+#endif
+	};
+
+
 	template<typename T>
 	struct Mutex;
 
@@ -63,16 +84,12 @@ namespace gk
 
 	public:
 
-		Mutex() {
-			InitializeSRWLock(&_lock);
-		}
+		Mutex() = default;
 
 		template<typename ...ConstructorArgs>
 		Mutex(ConstructorArgs&&... args)
 			: _data(args...)
-		{
-			InitializeSRWLock(&_lock);
-		}
+		{}
 
 		Mutex(const Mutex& other) = delete;
 		Mutex(Mutex&& other) = delete;
@@ -81,26 +98,22 @@ namespace gk
 
 		Mutex(const T& data)
 			: _data(data)
-		{
-			InitializeSRWLock(&_lock);
-		}
+		{}
 
 		Mutex(T&& data)
 			: _data(std::move(data))
-		{
-			InitializeSRWLock(&_lock);
-		}
+		{}
 
 		~Mutex() = default;
 
 		/* Does NOT support recursize locking. Is unlocked by the destructor of LockedMutex<T>. */
 		[[nodiscard]] LockedMutex<T> lock() {
-			AcquireSRWLockExclusive(&_lock);
+			this->_lock.lock();
 			return LockedMutex(this);
 		}
 
 		[[nodiscard]] gk::Option<LockedMutex<T>> tryLock() {
-			if (!TryAcquireSRWLockExclusive(&_lock)) {
+			if (!this->_lock.tryLock()) {
 				return gk::Option<LockedMutex<T>>();
 			}
 			return gk::Option<LockedMutex<T>>(this);
@@ -118,12 +131,12 @@ namespace gk
 
 		/* Is unlocked by the destructor of LockedMutex<T>. For nested locks, it just decrements the lock count. */
 		void unlock() {
-			ReleaseSRWLockExclusive(&_lock);
+			this->_lock.unlock();
 		}
 
 	private:
 
-		SRWLOCK _lock;
+		RawMutex _lock;
 		T _data;
 	};
 
