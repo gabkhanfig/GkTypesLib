@@ -873,7 +873,7 @@ inline constexpr gk::usize gk::HashMap<Key, Value, GROUP_ALLOC_SIZE>::hashKey(co
 	}
 	else {
 		if (std::is_constant_evaluated()) {
-			static_assert(!std::is_pointer<Key>::value, "Cannot use pointer type for HashMap Key in constexpr contexts");
+			throw std::invalid_argument("Cannot use pointer type for HashMap Key in constexpr contexts");
 		}
 		const usize ptrAsNum = reinterpret_cast<usize>(key);
 		return ptrAsNum;
