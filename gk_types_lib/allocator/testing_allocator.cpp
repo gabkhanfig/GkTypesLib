@@ -121,7 +121,7 @@ test_case("intentional invalid lifetime" * doctest::should_fail(true) * doctest:
 	ref1->~AllocatorRef();
 	t.freeObject(ref1);
 
-	// Explicitly don't call destructors to simultate the lifetime still existing
+	// Explicitly don't call destructors to simultate the lifetime still existing, and don't focus on memory leaks
 	t.freeObject(ref2);
 	t.freeObject(ref3);
 }
