@@ -346,7 +346,6 @@ inline void gk::SharedPtr<T, atomic>::decrementRefCount(IAllocator* allocator) c
 		}
 	}
 	else {
-		//std::atomic_size_t refCount;
 		usize current = inner->refCount.load(std::memory_order_acquire);
 		check_ne(current, 0);
 		while (!inner->refCount.compare_exchange_weak(current, current - 1, std::memory_order_release, std::memory_order_relaxed)) {
@@ -354,7 +353,6 @@ inline void gk::SharedPtr<T, atomic>::decrementRefCount(IAllocator* allocator) c
 			std::this_thread::yield();
 		}
 		if ((current - 1) == 0) {
-			//std::cout << "ref count is 0, destroying\n";
 			inner->~Inner();
 			allocator->freeObject(inner);
 			check_eq(inner, nullptr);
