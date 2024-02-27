@@ -5,21 +5,30 @@
 
 namespace gk
 {
+	/// Platform specific Mutex. Locking and unlocking must occur manually.
+	/// See `gk::Mutex` struct for automatic RAII.
 	struct RawMutex {
 
 		RawMutex();
 		
 		~RawMutex() = default;
 
+		/// Moving and copying a mutex may never happen because other threads may
+		/// be waiting on memory that has become invalid.
+
 		RawMutex(const RawMutex&) = delete;
 		RawMutex(RawMutex&&) = delete;
 		RawMutex& operator = (const RawMutex&) = delete;
 		RawMutex& operator = (RawMutex&&) = delete;
 
+		/// Acquire an exclusive lock. To unlock, call `unlock()`.
 		void lock();
 
+		/// Try to acquire an exclusive lock. To unlock, call `unlock()`.
+		/// @return true if the lock was acquired, false if it failed to acquire.
 		[[nodiscard]] bool tryLock();
 
+		/// Unlock an exclusive lock that was acquired by the calling thread.
 		void unlock();
 
 	private:
