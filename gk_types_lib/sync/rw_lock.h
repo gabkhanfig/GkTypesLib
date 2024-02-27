@@ -2,12 +2,55 @@
 
 #include "../basic_types.h"
 #include "../option/option.h"
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 
 namespace gk
 {
+	/// Platform specific RwLock. Locking and unlocking must occur manually.
+	/// See `gk::RwLock` struct for automatic RAII.
+	struct RawRwLock {
+
+		RawRwLock();
+		
+		~RawRwLock() = default;
+
+		/// Moving and copying an rwlock may never happen because other threads may
+		/// be waiting on memory that has become invalid.
+
+		RawRwLock(const RawRwLock&) = delete;
+		RawRwLock(RawRwLock&&) = delete;
+		RawRwLock& operator = (const RawRwLock&) = delete;
+		RawRwLock& operator = (RawRwLock&&) = delete;
+
+		/// Acquire a shared lock. The calling thread MAY NOT acquire an exclusive lock
+		/// while this shared lock is active. To unlock, call `unlockShared()`.
+		void lockShared();
+
+		/// Try to acquire a shared lock. The calling thread MAY NOT acquire an exclusive lock
+		/// while this shared lock is active. To unlock, call `unlockShared()`.
+		/// @return true if the lock was acquired, false if it failed to acquire.
+		[[nodiscard]] bool tryLockShared();
+
+		/// Acquire an exclusive lock. The calling thread MAY NOT acquire an shared lock
+		/// while this exclusive lock is active. To unlock, call `unlockExclusive()`.
+		void lockExclusive();
+
+		/// Try to acquire an exclusive lock. The calling thread MAY NOT acquire an shared lock
+		/// while this exclusive lock is active. To unlock, call `unlockExclusive()`.
+		/// @return true if the lock was acquired, false if it failed to acquire.
+		[[nodiscard]] bool tryLockExclusive();
+
+		/// Unlock a shared lock that was acquired by the calling thread.
+		void unlockShared();
+
+		/// Unlock an exclusive lock that was acquired by the calling thread.
+		void unlockExclusive();
+
+	private:	
+#if defined(_WIN32) || defined(WIN32)
+		void* srwlock;
+#endif
+	};
+
 	template<typename T>
 	struct RwLock;
 
@@ -89,16 +132,12 @@ namespace gk
 
 	public:
 
-		RwLock() {
-			InitializeSRWLock(&_lock);
-		}
+		RwLock() = default;
 
 		template<typename ...ConstructorArgs>
 		RwLock(ConstructorArgs&&... args)
 			: _data(args...)
-		{
-			InitializeSRWLock(&_lock);
-		}
+		{}
 
 		RwLock(const RwLock&) = delete;
 		RwLock(RwLock&&) = delete;
@@ -109,15 +148,11 @@ namespace gk
 
 		RwLock(const T& data)
 			: _data(data)
-		{
-			InitializeSRWLock(&_lock);
-		}
+		{}
 
 		RwLock(T&& data)
 			: _data(std::move(data))
-		{
-			InitializeSRWLock(&_lock);
-		}
+		{}
 
 		/**
 		* Get a shared read-only lock of the owned RwLock data.
@@ -126,7 +161,7 @@ namespace gk
 		* @return A guard around shared, read-only data access
 		*/
 		[[nodiscard]] LockedReader<T> read() const {
-			AcquireSRWLockShared(&_lock);
+			this->_lock.lockShared();
 			return LockedReader(this);
 		}
 
@@ -138,7 +173,7 @@ namespace gk
 		* @return An optional guard around shared, read-only data access. Will be None is access is blocked.
 		*/
 		[[nodiscard]] Option<LockedReader<T>> tryRead() const {
-			if (!TryAcquireSRWLockShared(&_lock)) {
+			if (!this->_lock.tryLockShared()) {
 				return Option<LockedReader<T>>();
 			}
 			return Option<LockedReader<T>>(this);
@@ -151,7 +186,7 @@ namespace gk
 		* @return A guard around exclusive, read/write data access.
 		*/
 		[[nodiscard]] LockedWriter<T> write() {
-			AcquireSRWLockExclusive(&_lock);
+			this->_lock.lockExclusive();
 			return LockedWriter(this);
 		}
 
@@ -163,7 +198,7 @@ namespace gk
 		* @return An optional guard around shared, exclusive, read/write data access. Will be None is access is blocked.
 		*/
 		[[nodiscard]] Option<LockedWriter<T>> tryWrite() {
-			if (!TryAcquireSRWLockExclusive(&_lock)) {
+			if (!this->_lock.tryLockExclusive()) {
 				return Option<LockedWriter<T>>();
 			}
 			return Option<LockedWriter<T>>(this);
@@ -195,17 +230,17 @@ namespace gk
 
 		/* Is unlocked by the destructor of LockedReader<T> */
 		void unlockRead() const {
-			ReleaseSRWLockShared(&_lock);
+			this->_lock.unlockShared();
 		}
 
 		/* Is unlocked by the destructor of LockedWriter<T> */
 		void unlockWrite() {
-			ReleaseSRWLockExclusive(&_lock);
+			this->_lock.unlockExclusive();
 		}
 
 	private:
 
-		mutable SRWLOCK _lock;
+		mutable RawRwLock _lock;
 		T _data;
 
 	};

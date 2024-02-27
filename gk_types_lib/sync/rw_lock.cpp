@@ -1,5 +1,63 @@
 #include "rw_lock.h"
 
+#if defined(_WIN32) || defined(WIN32)
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+static_assert(std::is_same_v<void*, decltype(SRWLOCK::Ptr)>);
+static_assert(sizeof(SRWLOCK) == sizeof(void*));
+#endif
+
+gk::RawRwLock::RawRwLock()
+{
+#if defined(_WIN32) || defined(WIN32)
+	InitializeSRWLock(reinterpret_cast<PSRWLOCK>(&this->srwlock));
+#endif
+}
+
+void gk::RawRwLock::lockShared()
+{
+#if defined(_WIN32) || defined(WIN32)
+	AcquireSRWLockShared(reinterpret_cast<PSRWLOCK>(&this->srwlock));
+#endif
+}
+
+bool gk::RawRwLock::tryLockShared()
+{
+#if defined(_WIN32) || defined(WIN32)
+	return TryAcquireSRWLockShared(reinterpret_cast<PSRWLOCK>(&this->srwlock));
+#endif
+}
+
+void gk::RawRwLock::lockExclusive()
+{
+#if defined(_WIN32) || defined(WIN32)
+	AcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&this->srwlock));
+#endif
+}
+
+bool gk::RawRwLock::tryLockExclusive()
+{
+#if defined(_WIN32) || defined(WIN32)
+	return TryAcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&this->srwlock));
+#endif
+}
+
+void gk::RawRwLock::unlockShared()
+{
+#if defined(_WIN32) || defined(WIN32)
+	ReleaseSRWLockShared(reinterpret_cast<PSRWLOCK>(&this->srwlock));
+#endif
+}
+
+void gk::RawRwLock::unlockExclusive()
+{
+#if defined(_WIN32) || defined(WIN32)
+	ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&this->srwlock));
+#endif
+}
+
 #if GK_TYPES_LIB_TEST
 #include <thread>
 #include <unordered_map>
