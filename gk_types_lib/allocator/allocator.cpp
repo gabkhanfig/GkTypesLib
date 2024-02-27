@@ -6,8 +6,6 @@ using gk::AllocatorRef;
 using gk::IAllocator;
 using gk::usize;
 
-
-
 Result<void*, AllocError> gk::malloc(usize numBytes, usize alignment)
 {
 	void* mem;

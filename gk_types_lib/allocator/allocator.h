@@ -40,6 +40,8 @@ namespace gk
 	class IAllocator {
 	public:
 
+		virtual ~IAllocator() = default;
+
 		/**
 		* @return AllocatoRef to this allocator.
 		*/
