@@ -56,7 +56,6 @@ namespace gk
 
 	template<typename T>
 	struct LockedReader {
-	public:
 
 		LockedReader(const RwLock<T>* rwlock) : _rwlock(rwlock) {}
 
@@ -88,9 +87,6 @@ namespace gk
 
 	template<typename T>
 	struct LockedWriter {
-	private:
-		typedef void(RwLock<T>::* UnlockFunc)();
-	public:
 
 		LockedWriter(RwLock<T>* rwlock) : _rwlock(rwlock) {}
 

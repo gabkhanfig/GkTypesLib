@@ -48,7 +48,6 @@ namespace gk
 	*val = 5;*/
 	template<typename T>
 	struct LockedMutex {
-	public:
 
 		LockedMutex(Mutex<T>* mutex) : _mutex(mutex) {}
 
@@ -86,7 +85,6 @@ namespace gk
 	template<typename T>
 	struct Mutex {
 	private:
-
 
 		template<typename>
 		friend struct LockedMutex;
