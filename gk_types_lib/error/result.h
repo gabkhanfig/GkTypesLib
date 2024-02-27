@@ -75,6 +75,8 @@ namespace gk
 			OkT ok;
 			ErrorT error;
 
+			constexpr ResultUnion() : ok(OkT()) {}
+
 			constexpr ResultUnion(ResultOk<T>&& _ok)
 				: ok(std::move(_ok._value)) {}
 
