@@ -4,11 +4,10 @@
 #include "../hash/hashmap.h"
 
 namespace gk {
-
 	/// The testing allocator. Tracks memory allocations asserting the following conditions:
 	/// - No memory leaks
 	/// - No double frees
-	/// - Reference lifetimes do not exceed the object lifetime
+	/// - Reference lifetimes do not exceed the `TestingAllocator` object lifetime
 	/// This allocator should be used in testing where correct memory usage needs to be verified.
 	class TestingAllocator : public gk::IAllocator {
 	public:
