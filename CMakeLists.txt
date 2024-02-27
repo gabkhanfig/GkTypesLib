@@ -35,7 +35,9 @@ add_library(GkTypesLib STATIC
 "gk_types_lib/string/string_type_conversion.cpp"
 "gk_types_lib/json/json_object.cpp"
 "gk_types_lib/json/serialization.cpp" 
-"gk_types_lib/ptr/unique_ptr.cpp" "gk_types_lib/ptr/shared_ptr.cpp")
+"gk_types_lib/ptr/unique_ptr.cpp" 
+"gk_types_lib/ptr/shared_ptr.cpp"
+"gk_types_lib/allocator/testing_allocator.cpp")
 
 add_executable(GkTypesLibTest 
 "gk_types_lib/test.cpp" 
@@ -61,7 +63,9 @@ add_executable(GkTypesLibTest
 "gk_types_lib/string/string_type_conversion.cpp"
 "gk_types_lib/json/json_object.cpp"
 "gk_types_lib/json/serialization.cpp" 
-"gk_types_lib/ptr/unique_ptr.cpp" "gk_types_lib/ptr/shared_ptr.cpp")
+"gk_types_lib/ptr/unique_ptr.cpp" 
+"gk_types_lib/ptr/shared_ptr.cpp"
+"gk_types_lib/allocator/testing_allocator.cpp")
 
 # https://github.com/doctest/doctest/blob/master/doc/markdown/faq.md#why-are-my-tests-in-a-static-library-not-getting-registered
 #include(doctest_force_link_static_lib_in_target.cmake)
