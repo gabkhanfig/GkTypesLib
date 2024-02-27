@@ -1,9 +1,10 @@
 #include "mutex.h"
+
+#if defined(_WIN32) || defined(WIN32)
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#if defined(_WIN32) || defined(WIN32)
 static_assert(std::is_same_v<void*, decltype(SRWLOCK::Ptr)>);
 static_assert(sizeof(SRWLOCK) == sizeof(void*));
 #endif
