@@ -1,8 +1,100 @@
 #include "job_thread.h"
 
+gk::JobThread::JobThread()
+{
+	_thread = std::thread{ &JobThread::threadLoop, this };
+	_isPendingKill = false;
+	_shouldExecute = false;
+	_isExecuting = false;
+	_queuedJobCount = 0;
+}
+
+gk::JobThread::~JobThread()
+{
+	wait();
+	_isPendingKill = true;
+	notifyExecute();
+	_thread.join();
+}
+
+void gk::JobThread::wait() const
+{
+	std::this_thread::yield();
+	while (_isExecuting.load(std::memory_order::acquire) == true) {
+		std::this_thread::yield();
+	}
+}
+
+bool gk::JobThread::isExecuting() const
+{
+	return _isExecuting.load(std::memory_order::acquire);
+}
+
+gk::u32 gk::JobThread::queuedJobCount() const
+{
+	return _queuedJobCount.load(std::memory_order::acquire);
+}
+
 std::thread::id gk::JobThread::getThreadId() const
 {
 	return this->_thread.get_id();
+}
+
+void gk::JobThread::queueJob(JobContainer&& job)
+{
+	{
+		auto queueLock = _queue.lock();
+		queueLock.get()->push(std::move(job));
+		_queuedJobCount++;
+	}
+	notifyExecute();
+}
+
+void gk::JobThread::notifyExecute()
+{
+	if (_isExecuting.load(std::memory_order::acquire) == true) {
+		// should already be looping the execution, in which if it has any queued jobs, it will execute them.
+		return;
+	}
+	_shouldExecute.store(true, std::memory_order::release);
+	std::scoped_lock lock(_mutex);
+	_condVar.notify_one();
+	_isExecuting.store(true, std::memory_order::release);
+}
+
+void gk::JobThread::threadLoop()
+{
+	while (_isPendingKill.load(std::memory_order::acquire) == false) {
+		{
+			size_t count;
+			{
+				count = _queue.lock().get()->len();
+			}
+			if (count > 0) { // go back and run the jobs
+				executeQueuedJobs();
+				continue;
+			}
+		}
+		_isExecuting.store(false, std::memory_order::release);
+		{ // Wait for shouldExecute, in scope.
+			std::unique_lock lck(_mutex);
+			_condVar.wait(lck, [&] {return _shouldExecute.load(); });
+			_shouldExecute = false;
+		}
+		executeQueuedJobs();
+	}
+}
+
+void gk::JobThread::executeQueuedJobs()
+{
+	auto activeLock = _activeWork.lock();
+	{
+		auto queueLock = _queue.lock();
+		_queuedJobCount.store(0, std::memory_order::release);
+		activeLock.get()->collectJobs(queueLock.get());
+		// queue lock is unlocked here.
+	}
+	activeLock.get()->invokeAllJobs();
 }
 
 #if GK_TYPES_LIB_TEST
