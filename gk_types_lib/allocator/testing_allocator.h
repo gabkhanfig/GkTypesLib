@@ -14,7 +14,7 @@ namespace gk {
 	class TestingAllocator : public gk::IAllocator {
 	public:
 
-		virtual ~TestingAllocator() override;
+		virtual ~TestingAllocator() noexcept(false) override;
 
 	private:
 
