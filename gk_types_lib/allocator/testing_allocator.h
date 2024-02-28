@@ -2,9 +2,11 @@
 
 #include "allocator.h"
 #include "../hash/hashmap.h"
+#include "../sync/mutex.h"
 
 namespace gk {
-	/// The testing allocator. Tracks memory allocations asserting the following conditions:
+	/// The testing allocator. Is multithread safe.
+	/// Tracks memory allocations asserting the following conditions:
 	/// - No memory leaks
 	/// - No double frees
 	/// - Reference lifetimes do not exceed the `TestingAllocator` object lifetime
@@ -33,6 +35,7 @@ namespace gk {
 			usize align;
 		};
 
+		RawMutex mutex;
 		HashMap<void*, SizeAlignTracker> allocTracker;
 		HashMap<void*, SizeAlignTracker> freeTracker;
 		usize refCount = 0;

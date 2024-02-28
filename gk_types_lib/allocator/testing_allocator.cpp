@@ -8,9 +8,11 @@ using gk::Option;
 
 gk::TestingAllocator::~TestingAllocator()
 {
+	this->mutex.lock();
 	check_message(this->refCount == 0, "References to this TestingAllocator instance still exist. Cannot safely destroy")
 
 	if (this->allocTracker.size() == 0) {
+		this->mutex.unlock();
 		return;
 	}
 
@@ -24,6 +26,7 @@ gk::TestingAllocator::~TestingAllocator()
 	for (const auto& allocInfo : this->allocTracker) {
 		gk::free(allocInfo.key, allocInfo.value.size, allocInfo.value.align);
 	}
+	this->mutex.unlock();
 	check_message(false, "Memory leak caught! See stdout for information on memory leak");
 }
 
@@ -31,6 +34,7 @@ Result<void*, AllocError> gk::TestingAllocator::mallocImpl(usize numBytes, usize
 {
 	auto res = gk::malloc(numBytes, alignment);
 	if (res.isOk()) {
+		this->mutex.lock();
 		void* allocMem = res.okCopy();
 		SizeAlignTracker allocInfo{ .size = numBytes, .align = alignment };
 		this->allocTracker.insert(allocMem, allocInfo);
@@ -38,6 +42,7 @@ Result<void*, AllocError> gk::TestingAllocator::mallocImpl(usize numBytes, usize
 		if (found.isSome()) {
 			this->freeTracker.erase(allocMem);
 		}
+		this->mutex.unlock();
 	}
 	return res;
 }
@@ -45,6 +50,7 @@ Result<void*, AllocError> gk::TestingAllocator::mallocImpl(usize numBytes, usize
 void gk::TestingAllocator::freeImpl(void* buffer, usize numBytes, usize alignment)
 {
 	bool failed = false;
+	this->mutex.lock();
 	{
 		gk::Option<SizeAlignTracker*> found = this->freeTracker.find(buffer);
 		if (found.isSome()) {
@@ -64,6 +70,8 @@ void gk::TestingAllocator::freeImpl(void* buffer, usize numBytes, usize alignmen
 			this->allocTracker.erase(buffer);
 		}
 	}
+	this->mutex.unlock();
+
 	if (!failed) {
 		gk::free(buffer, numBytes, alignment);
 	}
@@ -71,13 +79,17 @@ void gk::TestingAllocator::freeImpl(void* buffer, usize numBytes, usize alignmen
 
 void gk::TestingAllocator::incrementRefCount()
 {
-	refCount++;
+	this->mutex.lock();
+	this->refCount++;
+	this->mutex.unlock();
 }
 
 void gk::TestingAllocator::decrementRefCount()
 {
-	check_gt(refCount, 0);
-	refCount--;
+	this->mutex.lock();
+	check_gt(this->refCount, 0);
+	this->refCount--;
+	this->mutex.unlock();
 }
 
 #if GK_TYPES_LIB_TEST
