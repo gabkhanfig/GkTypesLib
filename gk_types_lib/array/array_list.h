@@ -90,23 +90,23 @@ namespace gk
 		[[nodiscard]] constexpr Result<ArrayListUnmanaged, AllocError> cloneWithCapacity(IAllocator* allocator, const usize minCapacity) const;
 
 		///
-		/// @param allocator: Cannot be null
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		[[nodiscard]] static constexpr Result<ArrayListUnmanaged, AllocError> initList(IAllocator* allocator, const std::initializer_list<T>& initializerList);
 
 		///
-		/// @param allocator: Cannot be null
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		[[nodiscard]] static constexpr Result<ArrayListUnmanaged, AllocError> initBufferCopy(IAllocator* allocator, const T* buffer, const usize elementsToCopy);
 		
 		///
-		/// @param allocator: Cannot be null
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		[[nodiscard]] static constexpr Result<ArrayListUnmanaged, AllocError> withCapacity(IAllocator* allocator, const usize minCapacity);
 
 		///
-		/// @param allocator: Cannot be null
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		[[nodiscard]] static constexpr Result<ArrayListUnmanaged, AllocError> withCapacityList(IAllocator* allocator, const usize minCapacity, const std::initializer_list<T>& initializerList);
 
 		///
-		/// @param allocator: Cannot be null
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		[[nodiscard]] static constexpr Result<ArrayListUnmanaged, AllocError> withCapacityBufferCopy(IAllocator* allocator, const usize minCapacity, const T* buffer, const usize elementsToCopy);
 
 		/// Invalidates self.
@@ -120,9 +120,11 @@ namespace gk
 		[[nodiscard]] constexpr usize capacity() const { return _capacity; }
 
 		/// A mutable pointer to the data held by this ArrayList. Accessing beyond `len()`. is undefined behaviour.
+		/// @return Can be null if this ArrayListUnmanaged is empty.
 		[[nodiscard]] constexpr T* data() { return _data; }
 
 		/// An immutable pointer to the data held by this ArrayList. Accessing beyond `len()`. is undefined behaviour.
+		/// @return Can be null if this ArrayListUnmanaged is empty.
 		[[nodiscard]] constexpr const T* data() const { return _data; }
 
 		/// Get a mutable reference to an element in the array at a specified index.
@@ -137,23 +139,27 @@ namespace gk
 
 		/// Pushes a copy of `element` onto the end of the ArrayList, increasing the length by 1.
 		/// May reallocate if there isn't enough capacity already. Requires that T is copyable.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param element: Element to be copied to the end of the ArrayListUnmanaged buffer.
 		constexpr Result<void, AllocError> push(IAllocator* allocator, const T& element);
 
 		/// Moves `element` onto the end of the ArrayList, increasing the length by 1.
 		/// May reallocate if there isn't enough capacity already.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param element: Element to be moved to the end of the ArrayListUnmanaged buffer.
 		constexpr Result<void, AllocError> push(IAllocator* allocator, T&& element);
 
 		/// Reserves additional capacity in the ArrayList. The new capacity will be greater than or equal to `len()` + `additional`.
 		/// May allocate more to avoid frequent reallocation, or any SIMD requirements.
 		/// Use `reserveExact()` if you know extra allocation won't happen.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param additional: Minimum amount to increase the capacity by
 		constexpr Result<void, AllocError> reserve(IAllocator* allocator, const usize additional);
 
 		/// Reserves additional capacity in the ArrayList. The new capacity will be greater than or equal to `len()` + `additional`.
 		/// Will allocate the smallest amount possible to satisfy the reserve, and potential SIMD requirements.
 		/// Use `reserve()` if more allocations will happen.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param additional: Minimum amount to increase the capacity by
 		constexpr Result<void, AllocError> reserveExact(IAllocator* allocator, const usize additional);
 
@@ -178,12 +184,14 @@ namespace gk
 
 		/// Insert a copy of `element` at `index`, shuffling up all subsequent elements to maintain order.
 		/// If order is not required use `insertSwap()` as it will perform better in general.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param index: Where to insert a copy of `element`. Asserts that is less than or equal to `len()`.
 		/// @param element: The element to copy and insert at `index`.
 		constexpr Result<void, AllocError> insert(IAllocator* allocator, const usize index, const T& element);
 
 		/// Insert `element` at `index`, shuffling up all subsequent elements to maintain order.
 		/// If order is not required use `insertSwap()` as it will perform better in general.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param index: Where to insert `element`. Asserts that is less than or equal to `len()`.
 		/// @param element: The element to insert at `index`.
 		constexpr Result<void, AllocError> insert(IAllocator* allocator, const usize index, T&& element);
@@ -191,6 +199,7 @@ namespace gk
 		/// Insert copt of `element` at `index`, swapping the current element at `index` to the
 		/// end of the ArrayListUnmanaged if it's not the last element. Does not maintain order.
 		/// If order is required, use `insert()`.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param index: Where to insert a copy of `element`. Asserts that is less than or equal to `len()`.
 		/// @param element: The element to copy and insert at `index`.
 		constexpr Result<void, AllocError> insertSwap(IAllocator* allocator, const usize index, const T& element);
@@ -198,6 +207,7 @@ namespace gk
 		/// Insert `element` at `index`, swapping the current element at `index` to the
 		/// end of the ArrayListUnmanaged if it's not the last element. Does not maintain order.
 		/// If order is required, use `insert()`.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param index: Where to insert `element`. Asserts that is less than or equal to `len()`.
 		/// @param element: The element to insert at `index`.
 		constexpr Result<void, AllocError> insertSwap(IAllocator* allocator, const usize index, T&& element);
@@ -205,10 +215,12 @@ namespace gk
 		/// Reallocates the ArrayListUnmanaged to occupy the minimum amount of memory required to store
 		/// `len()` elements. For SIMD types, will do the minimum allocation for SIMD requirements,
 		/// and the number of elements.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		constexpr Result<void, AllocError> shrinkToFit(IAllocator* allocator);
 
 		/// Reallocates the ArrayListUnmanaged to occupy the minimum amount of memory required to store
 		/// either `len()` elements, or `minCapacity` elements, whichever is greater.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param minCapacity: Minimum allocation size to shrink to, provided it is greater than `len()`.
 		constexpr Result<void, AllocError> shrinkTo(IAllocator* allocator, const usize minCapacity);
 
@@ -220,16 +232,19 @@ namespace gk
 		constexpr void truncate(const usize newLength);
 
 		/// Appends a copy of another ArrayList's elements to the end of this ArrayList.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param other: ArrayListUnmanaged to copy elements from.
 		constexpr Result<void, AllocError> appendCopy(IAllocator* allocator, const ArrayListUnmanaged& other);
 
 		/// Appends the elements in an initializer list to the end of this ArrayList.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param initializeList: Elements to copy.
 		constexpr Result<void, AllocError> appendList(IAllocator* allocator, const std::initializer_list<T>& initializerList);
 
 		/// Appends the data held at `buffer` to the end of this ArrayList.
 		/// `buffer` must be non-null, and be valid up to `buffer[elementsToCopy - 1].
 		/// If `elementsToCopy` is out of the buffer's range, this function will execute undefined behaviour.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param buffer: Non null pointer of T's to copy.
 		/// @param elementsToCopy: Total number of elements to copy from `buffer`.
 		constexpr Result<void, AllocError> appendBufferCopy(IAllocator* allocator, const T* buffer, usize elementsToCopy);
@@ -238,9 +253,91 @@ namespace gk
 		/// If `newLength` is greater than `len()`, this ArrayListUnmanaged is extended by the difference, with
 		/// each additional slot filled with `fill`. If `newLength` is less than `len()`, the ArrayList
 		/// is truncated.
+		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
 		/// @param newLength: New length of the ArrayList.
 		/// @param fill: Object to copy into all additional slots if `newLength` is greater than `len()`.
 		constexpr Result<void, AllocError> resize(IAllocator* allocator, const usize newLength, const T& fill);
+
+		struct Iterator;
+		struct ConstIterator;
+		struct ReverseIterator;
+		struct ReverseConstIterator;
+	
+		/// Beginning of an iterator over the ArrayList's elements with mutable access.
+		/// Any mutation operations to the ArrayList can be assumed to invalidate the iterator.
+		/// @return Begin of a mutable iterator.
+		[[nodiscard]] constexpr Iterator begin();
+
+		/// End of an iterator over the ArrayList's elements with mutable access.
+		/// Any mutation operations to the ArrayList can be assumed to invalidate the iterator.
+		/// @return End of a mutable iterator.
+		[[nodiscard]] constexpr Iterator end();
+
+		/// Beginning of an iterator over the ArrayList's elements with immutable access.
+		/// Any mutation operations to the ArrayList can be assumed to invalidate the iterator.
+		/// @return Begin of an immutable iterator.
+		[[nodiscard]] constexpr ConstIterator begin() const;
+
+		/// End of an iterator over the ArrayList's elements with immutable access.
+		/// Any mutation operations to the ArrayList can be assumed to invalidate the iterator.
+		/// @return End of an immutable iterator.
+		[[nodiscard]] constexpr ConstIterator end() const;
+
+		/// Beginning of a reverse iterator (starts from the last element) over the ArrayList's elements with mutable access.
+		/// Any mutation operations to the ArrayList can be assumed to invalidate the iterator.
+		/// @return Begin of a mutable reverse iterator.
+		[[nodiscard]] constexpr ReverseIterator rbegin();
+
+		/// End of a reverse iterator (ends at the first element) over the ArrayList's elements with mutable access.
+		/// Any mutation operations to the ArrayList can be assumed to invalidate the iterator.
+		/// @return Begin of a mutable reverse iterator.
+		[[nodiscard]] constexpr ReverseIterator rend();
+
+		/// Beginning of a reverse iterator (starts from the last element) over the ArrayList's elements with immutable access.
+		/// Any mutation operations to the ArrayList can be assumed to invalidate the iterator.
+		/// @return Begin of a immutable reverse iterator.
+		[[nodiscard]] constexpr ReverseConstIterator rbegin() const;
+
+		/// End of a reverse iterator (ends at the first element) over the ArrayList's elements with immutable access.
+		/// Any mutation operations to the ArrayList can be assumed to invalidate the iterator.
+		/// @return Begin of a immutable reverse iterator.
+		[[nodiscard]] constexpr ReverseConstIterator rend() const;
+
+		struct Iterator {
+			constexpr Iterator(T* inData) : arrayData(inData) {}
+			constexpr bool operator ==(const Iterator& other) const { return this->arrayData == other.arrayData; }
+			constexpr T& operator*() const { return *arrayData; }
+			constexpr Iterator& operator++() { arrayData++; return *this; }
+		private:
+			T* arrayData;
+		};
+
+		struct ConstIterator {
+			constexpr ConstIterator(const T* inData) : arrayData(inData) {}
+			constexpr bool operator ==(const ConstIterator& other) const { return this->arrayData == other.arrayData; }
+			constexpr const T& operator*() const { return *arrayData; }
+			constexpr ConstIterator& operator++() { arrayData++; return *this; }
+		private:
+			const T* arrayData;
+		};
+
+		struct ReverseIterator {
+			constexpr ReverseIterator(T* inData) : arrayData(inData) {}
+			constexpr bool operator ==(const ReverseIterator& other) const { return this->arrayData == other.arrayData; }
+			constexpr T& operator*() const { return *(arrayData - 1); }
+			constexpr ReverseIterator& operator++() { arrayData--; return *this; }
+		private:
+			T* arrayData;
+		};
+
+		struct ReverseConstIterator {
+			constexpr ReverseConstIterator(const T* inData) : arrayData(inData) {}
+			constexpr bool operator ==(const ReverseConstIterator& other) const { return this->arrayData == other.arrayData; }
+			constexpr const T& operator*() const { return *(arrayData - 1); }
+			constexpr ReverseConstIterator& operator++() { arrayData--; return *this; }
+		private:
+			const T* arrayData;
+		};
 
 	private:
 
@@ -259,6 +356,8 @@ namespace gk
 		/// Frees a buffer that is `bufferCapacity` elements in size.
 		/// Sets `buffer` to nullptr.
 		static constexpr void freeBuffer(IAllocator* allocator, T*& buffer, const usize bufferCapacity);
+
+		constexpr bool isValidAllocator(IAllocator* allocator) const;
 
 	private:
 
@@ -833,12 +932,7 @@ inline constexpr gk::ArrayListUnmanaged<T>& gk::ArrayListUnmanaged<T>::operator=
 template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::clone(gk::IAllocator* allocator) const
 {
-	if (std::is_constant_evaluated()) {
-		check_eq(allocator, nullptr);
-	}
-	else {
-		check_ne(allocator, nullptr);
-	}
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	usize allocCapacity = this->_length;
 	Result<T*, AllocError> res = mallocBuffer(allocator, &allocCapacity);
@@ -866,12 +960,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::cloneWithCapacity(IAllocator* allocator, const usize minCapacity) const
 {
-	if (std::is_constant_evaluated()) {
-		check_eq(allocator, nullptr);
-	}
-	else {
-		check_ne(allocator, nullptr);
-	}
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	usize allocCapacity = this->_length > minCapacity ? this->_length : minCapacity; 
 	Result<T*, AllocError> res = mallocBuffer(allocator, &allocCapacity);
@@ -899,12 +988,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::initList(IAllocator* allocator, const std::initializer_list<T>& initializerList)
 {
-	if (std::is_constant_evaluated()) {
-		check_eq(allocator, nullptr);
-	}
-	else {
-		check_ne(allocator, nullptr);
-	}
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(initializerList.size());
 	if (res.isError()) {
@@ -928,12 +1012,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::initBufferCopy(IAllocator* allocator, const T* buffer, const usize elementsToCopy)
 {
-	if (std::is_constant_evaluated()) {
-		check_eq(allocator, nullptr);
-	}
-	else {
-		check_ne(allocator, nullptr);
-	}
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(elementsToCopy);
 	if (res.isError()) {
@@ -957,12 +1036,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::withCapacity(IAllocator* allocator, const usize minCapacity)
 {
-	if (std::is_constant_evaluated()) {
-		check_eq(allocator, nullptr);
-	}
-	else {
-		check_ne(allocator, nullptr);
-	}
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	usize allocCapacity = minCapacity;
 	Result<T*, AllocError> res = mallocBuffer(allocator, &allocCapacity);
@@ -980,12 +1054,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::withCapacityList(IAllocator* allocator, const usize minCapacity, const std::initializer_list<T>& initializerList)
 {
-	if (std::is_constant_evaluated()) {
-		check_eq(allocator, nullptr);
-	}
-	else {
-		check_ne(allocator, nullptr);
-	}
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	usize allocCapacity = minCapacity > initializerList.size() ? minCapacity : initializerList.size();
 	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(allocCapacity);
@@ -1010,12 +1079,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::withCapacityBufferCopy(IAllocator* allocator, const usize minCapacity, const T* buffer, const usize elementsToCopy)
 {
-	if (std::is_constant_evaluated()) {
-		check_eq(allocator, nullptr);
-	}
-	else {
-		check_ne(allocator, nullptr);
-	}
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	usize allocCapacity = minCapacity > elementsToCopy ? minCapacity : elementsToCopy;
 	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(elementsToCopy);
@@ -1040,32 +1104,432 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 template<typename T>
 inline constexpr void gk::ArrayListUnmanaged<T>::deinit(IAllocator* allocator)
 {
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
 	deleteExistingBuffer(allocator);
 }
 
 template<typename T>
 inline constexpr T& gk::ArrayListUnmanaged<T>::operator[](const usize index)
 {
-	check_message(index < this->_length, "Out of bounds! Tried to access ArrayListUnmanaged element at index [" << index << "] when the length is [" << this->_length << ']');
+	check_message(index < this->_length, "Out of bounds! Tried to access array element at index [" , index , "] when the length is [" , this->_length , ']');
 	return this->_data[index];
 }
 
 template<typename T>
 inline constexpr const T& gk::ArrayListUnmanaged<T>::operator[](const usize index) const
 {
-	check_message(index < this->_length, "Out of bounds! Tried to access ArrayListUnmanaged element at index [" << index << "] when the length is [" << this->_length << ']');
+	check_message(index < this->_length, "Out of bounds! Tried to access array element at index [" , index , "] when the length is [" , this->_length , ']');
 	return this->_data[index];
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::push(IAllocator* allocator, const T& element)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	if (this->_length == this->_capacity) {
+		Result<void, AllocError> res = this->reallocate(allocator, (this->_capacity + 1) * 2);
+		if (res.isError()) {
+			return res;
+		}
+	}
+
+	if (std::is_constant_evaluated()) {
+		this->_data[this->_length] = element;
+	}
+	else {
+		new (this->_data + this->_length) T(element);
+	}
+	this->_length++;
+	return ResultOk<void>();
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::push(IAllocator* allocator, T&& element)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	if (this->_length == this->_capacity) {
+		Result<void, AllocError> res = this->reallocate(allocator, (this->_capacity + 1) * 2);
+		if (res.isError()) {
+			return res;
+		}
+	}
+
+	if (std::is_constant_evaluated()) {
+		this->_data[this->_length] = std::move(element);
+	}
+	else {
+		new (this->_data + this->_length) T(std::move(element));
+	}
+	this->_length++;
+	return ResultOk<void>();
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::reserve(IAllocator* allocator, const usize additional)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	const usize addedLength = this->_length + additional;
+	if (addedLength <= this->_capacity || addedLength == 0) return ResultOk<void>();
+
+	const usize standardCapacityIncrease = (this->_capacity + 1) * 2;
+	usize newCapacity = addedLength < standardCapacityIncrease ? standardCapacityIncrease : addedLength;
+
+	return this->reallocate(allocator, newCapacity);
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::reserveExact(IAllocator* allocator, const usize additional)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	const usize newCapacity = this->_length + additional;
+	if (newCapacity <= this->_capacity || newCapacity == 0) return ResultOk<void>();
+
+	return reallocate(newCapacity);
+}
+
+template<typename T>
+inline constexpr gk::Option<gk::usize> gk::ArrayListUnmanaged<T>::find(const T& element) const
+{
+	if (std::is_constant_evaluated() || !IS_T_SIMD) { // constexpr and/or NOT simd
+		for (usize i = 0; i < this->_length; i++) {
+			if (this->_data[i] == element) {
+				return gk::Option<usize>(i);
+			}
+		}
+		return gk::Option<usize>();
+	}
+
+	return internal::doSimdArrayElementFind(this->_data, this->_length, element);
+}
+
+template<typename T>
+inline constexpr T gk::ArrayListUnmanaged<T>::remove(const usize index)
+{
+	check_message(index < this->_length, "Index out of bounds! Attempted to removed element index ", index, " from array of length ", this->_length);
+
+	T temp = std::move(this->_data[index]);
+	for (usize i = index; i < _length - 1; i++) {
+		if (std::is_constant_evaluated()) {
+			this->_data[i] = std::move(this->_data[i + 1]);
+		}
+		else {
+			new (this->_data + i) T(std::move(this->_data[i + 1]));
+		}
+	}
+
+	this->_length--;
+	return temp;
+}
+
+template<typename T>
+inline constexpr T gk::ArrayListUnmanaged<T>::removeSwap(const usize index)
+{
+	check_message(index < this->_length, "Index out of bounds! Attempted to removed element index ", index, " from ArrayList of length ", this->_length);
+
+	T temp = std::move(this->_data[index]);
+	if (index != (_length - 1)) { // swap the last element in place if it's not the one being removed
+		if (std::is_constant_evaluated()) {
+			this->_data[index] = std::move(this->_data[this->_length - 1]);
+		}
+		else {
+			new (this->_data + index) T(std::move(this->_data[this->_length - 1]));
+		}
+	}
+
+	this->_length--;
+	return temp;
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::insert(IAllocator* allocator, const usize index, const T& element)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	check_message(index <= this->_length, "Index out of bounds! Attempted to removed element index ", index, " from ArrayList of length ", this->_length);
+
+	// TODO investigate handling shuffling with reallocation
+	if (this->_length == this->_capacity) {
+		Result<void, AllocError> res = this->reallocate(allocator, (this->_capacity + 1) * 2);
+		if (res.isError()) {
+			return res;
+		}
+	}
+
+	usize i = this->_length;
+	while (i > index) {
+		if (std::is_constant_evaluated()) {
+			this->_data[i] = std::move(this->_data[i - 1]);
+		}
+		else {
+			new (this->_data + i) T(std::move(this->_data[i - 1]));
+		}
+		i--;
+	}
+
+	if (std::is_constant_evaluated()) {
+		this->_data[index] = element;
+	}
+	else {
+		new (this->_data + index) T(element);
+	}
+	this->_length++;
+	return ResultOk<void>();
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::insert(IAllocator* allocator, const usize index, T&& element)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	check_message(index <= this->_length, "Index out of bounds! Attempted to removed element index ", index, " from ArrayList of length ", this->_length);
+
+	// TODO investigate handling shuffling with reallocation
+	if (this->_length == this->_capacity) {
+		Result<void, AllocError> res = this->reallocate(allocator, (this->_capacity + 1) * 2);
+		if (res.isError()) {
+			return res;
+		}
+	}
+
+	usize i = this->_length;
+	while (i > index) {
+		if (std::is_constant_evaluated()) {
+			this->_data[i] = std::move(this->_data[i - 1]);
+		}
+		else {
+			new (this->_data + i) T(std::move(this->_data[i - 1]));
+		}
+		i--;
+	}
+
+	if (std::is_constant_evaluated()) {
+		this->_data[index] = std::move(element);
+	}
+	else {
+		new (this->_data + index) T(std::move(element));
+	}
+	this->_length++;
+	return ResultOk<void>();
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::insertSwap(IAllocator* allocator, const usize index, const T& element)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	check_message(index <= this->_length, "Index out of bounds! Attempted to removed element index ", index, " from ArrayList of length ", this->_length);
+
+	if (index == this->_length) {
+		return this->push(element);
+	}
+
+	// TODO investigate handling shuffling with reallocation
+	if (this->_length == this->_capacity) {
+		Result<void, AllocError> res = this->reallocate(allocator, (this->_capacity + 1) * 2);
+		if (res.isError()) {
+			return res;
+		}
+	}
+
+	if (std::is_constant_evaluated()) {
+		this->_data[this->_length] = std::move(this->_data[index]);
+		this->_data[index] = element;
+	}
+	else {
+		new (this->_data + this->_length) T(std::move(this->_data[index]));
+		new (this->_data + index) T(element);
+	}
+	this->_length++;
+	return ResultOk<void>();
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::insertSwap(IAllocator* allocator, const usize index, T&& element)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	check_message(index <= this->_length, "Index out of bounds! Attempted to removed element index ", index, " from ArrayList of length ", this->_length);
+
+	if (index == this->_length) {
+		return this->push(element);
+	}
+
+	// TODO investigate handling shuffling with reallocation
+	if (this->_length == this->_capacity) {
+		Result<void, AllocError> res = this->reallocate(allocator, (this->_capacity + 1) * 2);
+		if (res.isError()) {
+			return res;
+		}
+	}
+
+	if (std::is_constant_evaluated()) {
+		this->_data[this->_length] = std::move(this->_data[index]);
+		this->_data[index] = std::move(element);
+	}
+	else {
+		new (this->_data + this->_length) T(std::move(this->_data[index]));
+		new (this->_data + index) T(std::move(element));
+	}
+	this->_length++;
+	return ResultOk<void>();
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::shrinkToFit(IAllocator* allocator)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	if (this->_length != this->_capacity) {
+		return this->reallocate(_length);
+	}
+	return ResultOk<void>();
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::shrinkTo(IAllocator* allocator, const usize minCapacity)
+{
+	if (minCapacity > this->_length) {
+		return reallocate(minCapacity);
+	}
+	else {
+		return reallocate(this->_length);
+	}
+}
+
+template<typename T>
+inline constexpr void gk::ArrayListUnmanaged<T>::truncate(const usize newLength)
+{
+	if (newLength >= this->_length) {
+		return;
+	}
+
+	for (usize i = newLength; i < this->_length; i++) {
+		_data[i].~T();
+		if (std::is_constant_evaluated()) {
+			std::construct_at(_data + i, T()); // set to default for how constexpr destructor works
+		}
+	}
+	this->_length = newLength;
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::appendCopy(IAllocator* allocator, const ArrayListUnmanaged& other)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	if (this->_length + other._length >= this->_capacity) {
+		Result<void, AllocError> res = this->reallocate(allocator, gk::upperPowerOfTwo(this->_length + other._length));
+		if (res.isError()) {
+			return res;
+		}
+	}
+
+	for (usize i = 0; i < other._length; i++) {
+		if (std::is_constant_evaluated()) {
+			this->_data[this->_length + i] = other[i];
+		}
+		else {
+			new (this->_data + this->_length + i) T(other[i]);
+		}
+	}
+	this->_length = this->_length + other._length;
+	return ResultOk<void>();
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::appendList(IAllocator* allocator, const std::initializer_list<T>& initializerList)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	if (this->_length + initializerList.size() >= this->_capacity) {
+		Result<void, AllocError> res = this->reallocate(gk::upperPowerOfTwo(this->_length + initializerList.size()));
+		if (res.isError()) {
+			return res;
+		}
+	}
+
+	usize i = 0;
+	for (const auto& elem : initializerList) {
+		if (std::is_constant_evaluated()) {
+			this->_data[this->_length + i] = elem;
+		}
+		else {
+			new (this->_data + this->_length + i) T(elem);
+		}
+		i++;
+	}
+	this->_length = this->_length + initializerList.size();
+	return ResultOk<void>();
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::appendBufferCopy(IAllocator* allocator, const T* buffer, usize elementsToCopy)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	check_ne(buffer, nullptr);
+
+	if (this->_length + elementsToCopy >= this->_capacity) {
+		Result<void, AllocError> res = reallocate(gk::upperPowerOfTwo(_length + elementsToCopy));
+		if (res.isError()) {
+			return res;
+		}
+	}
+
+	for (usize i = 0; i < elementsToCopy; i++) {
+		if (std::is_constant_evaluated()) {
+			this->_data[this->_length + i] = buffer[i];
+		}
+		else {
+			new (this->_data + this->_length + i) T(buffer[i]);
+		}
+	}
+	this->_length = this->_length + elementsToCopy;
+	return ResultOk<void>();
+}
+
+template<typename T>
+inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::resize(IAllocator* allocator, const usize newLength, const T& fill)
+{
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	if (newLength == _length) {
+		return;
+	}
+
+	if (newLength < _length) {
+		truncate(newLength);
+		return ResultOk<void>();
+	}
+
+	if (newLength > _capacity) {
+		Result<void, AllocError> res = reallocate(gk::upperPowerOfTwo(newLength));
+		if (res.isError()) {
+			return res;
+		}
+	}
+
+	for (usize i = this->_length; i < newLength; i++) {
+		if (std::is_constant_evaluated()) {
+			this->_data[i] = fill;
+		}
+		else {
+			new (this->_data + i) T(fill);
+		}
+	}
+	_length = newLength;
+	return ResultOk<void>();
 }
 
 template<typename T>
 inline void gk::ArrayListUnmanaged<T>::deleteExistingBuffer(IAllocator* allocator)
 {
-	if (std::is_constant_evaluated()) {
-		check_eq(allocator, nullptr);
-	}
-	else {
-		check_ne(allocator, nullptr);
-	}
+	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	if (this->_data == nullptr) return;
 
@@ -1144,6 +1608,65 @@ inline constexpr void gk::ArrayListUnmanaged<T>::freeBuffer(IAllocator* allocato
 		return;
 	}
 	allocator->freeBuffer(buffer, bufferCapacity);
+}
+
+template<typename T>
+inline constexpr bool gk::ArrayListUnmanaged<T>::isValidAllocator(IAllocator* allocator) const
+{
+	if (std::is_constant_evaluated()) {
+		return allocator == nullptr;
+	}
+	else {
+		return allocator != nullptr;
+	}
+}
+
+template<typename T>
+inline constexpr gk::ArrayListUnmanaged<T>::Iterator gk::ArrayListUnmanaged<T>::begin()
+{
+	return Iterator(this->data());
+}
+
+template<typename T>
+inline constexpr gk::ArrayListUnmanaged<T>::Iterator gk::ArrayListUnmanaged<T>::end()
+{
+	return Iterator(this->data() + this->_length);
+}
+
+template<typename T>
+inline constexpr gk::ArrayListUnmanaged<T>::ConstIterator gk::ArrayListUnmanaged<T>::begin() const
+{
+	return ConstIterator(this->data());
+}
+
+template<typename T>
+inline constexpr gk::ArrayListUnmanaged<T>::ConstIterator gk::ArrayListUnmanaged<T>::end() const
+{
+	return ConstIterator(this->data() + this->_length);
+}
+
+template<typename T>
+inline constexpr gk::ArrayListUnmanaged<T>::ReverseIterator gk::ArrayListUnmanaged<T>::rbegin()
+{
+	return ReverseIterator(this->data() + this->_length);
+}
+
+template<typename T>
+inline constexpr gk::ArrayListUnmanaged<T>::ReverseIterator gk::ArrayListUnmanaged<T>::rend()
+{
+	return ReverseIterator(this->data());
+}
+
+template<typename T>
+inline constexpr gk::ArrayListUnmanaged<T>::ReverseConstIterator gk::ArrayListUnmanaged<T>::rbegin() const
+{
+	return ReverseConstIterator(this->data() + this->_length);
+}
+
+template<typename T>
+inline constexpr gk::ArrayListUnmanaged<T>::ReverseConstIterator gk::ArrayListUnmanaged<T>::rend() const
+{
+	return ReverseConstIterator(this->data());
 }
 
 template<typename T>
@@ -1760,3 +2283,5 @@ inline constexpr gk::ArrayList<T>::ReverseConstIterator gk::ArrayList<T>::rend()
 {
 	return ReverseConstIterator(_data);
 }
+
+#undef GK_ARRAY_LIST_UNMANAGED_VALIDATE_ALLOCATOR
