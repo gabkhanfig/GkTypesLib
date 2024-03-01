@@ -173,7 +173,7 @@ namespace gk
 		/// to maintain order. If order is not required, use `swapRemove()` as it will perform better in general.
 		/// @param index: The element to remove. Asserts that is less than `len()`.
 		/// @return The removed element. Can be ingored.
-		constexpr T remove(const usize index);
+		constexpr T removeOrdered(const usize index);
 
 		/// Removes the element at `index`, swapping the last element in place.
 		/// Does not maintain order. Due to not shuffling elements, in general, performance
@@ -1208,7 +1208,7 @@ inline constexpr gk::Option<gk::usize> gk::ArrayListUnmanaged<T>::find(const T& 
 }
 
 template<typename T>
-inline constexpr T gk::ArrayListUnmanaged<T>::remove(const usize index)
+inline constexpr T gk::ArrayListUnmanaged<T>::removeOrdered(const usize index)
 {
 	check_message(index < this->_length, "Index out of bounds! Attempted to removed element index ", index, " from array of length ", this->_length);
 
