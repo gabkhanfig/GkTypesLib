@@ -1051,7 +1051,6 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 		else {
 			new (out._data + i) T(buffer[i]);
 		}
-		i++;
 	}
 	out._length = elementsToCopy;
 	return ResultOk<ArrayListUnmanaged>(std::move(out));
@@ -1121,7 +1120,6 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 		else {
 			new (out._data + i) T(buffer[i]);
 		}
-		i++;
 	}
 	out._length = elementsToCopy;
 	return ResultOk<ArrayListUnmanaged>(std::move(out));
