@@ -44,6 +44,16 @@ namespace gk
 			}
 		}
 
+		constexpr usize arrayGrowCapacity(const usize current, const usize minRequired) {
+			usize n = current;
+			while (true) {
+				n += n / 2 + 4;
+				if (n >= minRequired) {
+					return n;
+				}
+			}
+		}
+
 	}
 
 	/// ArrayList that doesn't have an allocator built in,
@@ -341,7 +351,7 @@ namespace gk
 
 	private:
 
-		void deleteExistingBuffer(IAllocator* allocator);
+		constexpr void deleteExistingBuffer(IAllocator* allocator);
 
 		/// Reallocate the held array data to have a capacity of at least `minCapacity`.
 		/// If allocation fails, an error is returned and the `ArrayListUnmanaged` is not modified.
@@ -933,6 +943,10 @@ template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::clone(gk::IAllocator* allocator) const
 {
 	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+
+	if (this->_length == 0) {
+		return;
+	}
 
 	usize allocCapacity = this->_length;
 	Result<T*, AllocError> res = mallocBuffer(allocator, &allocCapacity);
@@ -1527,7 +1541,7 @@ inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::res
 }
 
 template<typename T>
-inline void gk::ArrayListUnmanaged<T>::deleteExistingBuffer(IAllocator* allocator)
+inline constexpr void gk::ArrayListUnmanaged<T>::deleteExistingBuffer(IAllocator* allocator)
 {
 	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
