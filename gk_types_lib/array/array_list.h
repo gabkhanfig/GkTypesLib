@@ -996,7 +996,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 	out._length = this->_length;
 	out._capacity = allocCapacity;
 	out._data = mem;
-	return out;
+	return ResultOk<ArrayListUnmanaged>(std::move(out));
 }
 
 template<typename T>
@@ -1020,7 +1020,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 		}
 		i++;
 	}
-	return ResultOk(out);
+	return ResultOk<ArrayListUnmanaged>(std::move(out));
 }
 
 template<typename T>
@@ -1044,7 +1044,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 		}
 		i++;
 	}
-	return ResultOk(out);
+	return ResultOk<ArrayListUnmanaged>(std::move(out));
 }
 
 template<typename T>
@@ -1062,7 +1062,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 	ArrayListUnmanaged out;
 	out._capacity = allocCapacity;
 	out._data = mem;
-	return out;
+	return ResultOk<ArrayListUnmanaged>(std::move(out));
 }
 
 template<typename T>
@@ -1087,7 +1087,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 		}
 		i++;
 	}
-	return ResultOk(out);
+	return ResultOk<ArrayListUnmanaged>(std::move(out));
 }
 
 template<typename T>
@@ -1112,7 +1112,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 		}
 		i++;
 	}
-	return ResultOk(out);
+	return ResultOk<ArrayListUnmanaged>(std::move(out));
 }
 
 template<typename T>
