@@ -945,7 +945,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	if (this->_length == 0) {
-		return;
+		return ResultOk<ArrayListUnmanaged>(gk::ArrayListUnmanaged<T>());
 	}
 
 	usize allocCapacity = this->_length;
@@ -968,7 +968,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 	out._length = this->_length;
 	out._capacity = allocCapacity;
 	out._data = mem;
-	return out;
+	return ResultOk<ArrayListUnmanaged>(std::move(out));
 }
 
 template<typename T>
@@ -1726,7 +1726,7 @@ inline constexpr gk::ArrayList<T>& gk::ArrayList<T>::operator=(const ArrayList& 
 	deleteExistingBuffer();
 	check_eq(_data, nullptr);
 	_length = other._length;
-	_allocator = other._allocator.clone();
+	_allocator = other._allocator;
 	if (_length == 0) {
 		_data = nullptr;
 		_capacity = 0;
