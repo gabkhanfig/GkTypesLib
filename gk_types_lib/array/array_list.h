@@ -367,7 +367,15 @@ namespace gk
 		/// Sets `buffer` to nullptr.
 		static constexpr void freeBuffer(IAllocator* allocator, T*& buffer, const usize bufferCapacity);
 
-		constexpr bool isValidAllocator(IAllocator* allocator) const;
+		static constexpr bool isValidAllocator(IAllocator* allocator);
+
+		//constexpr Result<void, AllocError> ensureTotalCapacity(IAllocator* allocator, const usize requiredCapacity);
+
+		//constexpr Result<void, AllocError> ensureTotalCapacityPrecise(IAllocator* allocator, const usize requiredCapacity);
+
+		//constexpr Result<T*, AllocError> addOne(IAllocator* allocator);
+
+		//constexpr T* addOneUnchecked(IAllocator* allocator);
 
 	private:
 
@@ -1002,9 +1010,9 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::initList(IAllocator* allocator, const std::initializer_list<T>& initializerList)
 {
-	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+	check_message(isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
-	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(initializerList.size());
+	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(allocator, initializerList.size());
 	if (res.isError()) {
 		return ResultErr<AllocError>(res.error());
 	}
@@ -1020,15 +1028,16 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 		}
 		i++;
 	}
+	out._length = initializerList.size();
 	return ResultOk<ArrayListUnmanaged>(std::move(out));
 }
 
 template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::initBufferCopy(IAllocator* allocator, const T* buffer, const usize elementsToCopy)
 {
-	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+	check_message(isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
-	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(elementsToCopy);
+	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(allocator, elementsToCopy);
 	if (res.isError()) {
 		return ResultErr<AllocError>(res.error());
 	}
@@ -1050,7 +1059,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::withCapacity(IAllocator* allocator, const usize minCapacity)
 {
-	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+	check_message(isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	usize allocCapacity = minCapacity;
 	Result<T*, AllocError> res = mallocBuffer(allocator, &allocCapacity);
@@ -1068,10 +1077,10 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::withCapacityList(IAllocator* allocator, const usize minCapacity, const std::initializer_list<T>& initializerList)
 {
-	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+	check_message(isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	usize allocCapacity = minCapacity > initializerList.size() ? minCapacity : initializerList.size();
-	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(allocCapacity);
+	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(allocator, allocCapacity);
 	if (res.isError()) {
 		return ResultErr<AllocError>(res.error());
 	}
@@ -1093,10 +1102,10 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 template<typename T>
 inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::ArrayListUnmanaged<T>::withCapacityBufferCopy(IAllocator* allocator, const usize minCapacity, const T* buffer, const usize elementsToCopy)
 {
-	check_message(this->isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
+	check_message(isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	usize allocCapacity = minCapacity > elementsToCopy ? minCapacity : elementsToCopy;
-	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(elementsToCopy);
+	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(allocator, elementsToCopy);
 	if (res.isError()) {
 		return ResultErr<AllocError>(res.error());
 	}
@@ -1625,7 +1634,7 @@ inline constexpr void gk::ArrayListUnmanaged<T>::freeBuffer(IAllocator* allocato
 }
 
 template<typename T>
-inline constexpr bool gk::ArrayListUnmanaged<T>::isValidAllocator(IAllocator* allocator) const
+inline constexpr bool gk::ArrayListUnmanaged<T>::isValidAllocator(IAllocator* allocator)
 {
 	if (std::is_constant_evaluated()) {
 		return allocator == nullptr;
