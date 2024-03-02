@@ -483,89 +483,62 @@ static constexpr void moveSemantics() {
 test_case("move semantics") { moveSemantics(); }
 comptime_test_case(move_semantics, { moveSemantics(); })
 
-test_case("Copy Construct") {
-	ArrayList<int> a;
-	a.push(1);
-	ArrayList<int> b = a;
-	check_eq(b[0], 1);
-	check_eq(b.len(), 1);
-	check(b.capacity() > 0);
+static constexpr void copySemantics() {
+	UniquePtr<IAllocator> allocator = makeTestingAllocator();
+	{
+		ArrayListUnmanaged<int> a;
+		(void)a.push(allocator.get(), 5);
+		const int* aPtr = a.data();
+
+		ArrayListUnmanaged<int> b = a.clone(allocator.get()).ok();
+		const int* bPtr = b.data();
+
+		check_ne(aPtr, bPtr);
+		check_eq(a[0], b[0]);
+
+		a.deinit(allocator.get());
+		b.deinit(allocator.get());
+	}
+	{
+		ArrayListUnmanaged<int> a;
+		(void)a.push(allocator.get(), 5);
+		const int* aPtr = a.data();
+
+		ArrayListUnmanaged<int> b;
+		b.push(allocator.get(), 5).ok();
+		b.deinit(allocator.get());
+		b = a.clone(allocator.get()).ok(); // basically just move assignment
+		const int* bPtr = b.data();
+
+		check_ne(aPtr, bPtr);
+		check_eq(a[0], b[0]);
+
+		a.deinit(allocator.get());
+		b.deinit(allocator.get());
+	}
+	{
+		ArrayList<int> a;
+		a.push(1);
+		ArrayList<int> b = a;
+		check_eq(b[0], 1);
+		check_eq(b.len(), 1);
+		check(b.capacity() > 0);
+	}
+	{
+		ArrayList<int> a;
+		a.push(1);
+		ArrayList<int> b;
+		b = a;
+		check_eq(b[0], 1);
+		check_eq(b.len(), 1);
+		check(b.capacity() > 0);
+	}
 }
 
-comptime_test_case(CopyConstruct, {
-	ArrayList<int> a;
-	a.push(1);
-	ArrayList<int> b = a;
-	check_eq(b[0], 1);
-	check_eq(b.len(), 1);
-	check(b.capacity() > 0);
-});
+test_case("copy semantics") { copySemantics(); }
+comptime_test_case(copy_semantics, { copySemantics(); })
 
-test_case("Move Construct") {
-	ArrayList<int> a;
-	a.push(1);
-	const int* oldPtr = a.data();
-	ArrayList<int> b = std::move(a);
-	check_eq(b[0], 1);
-	check_eq(b.len(), 1);
-	check(b.capacity() > 0);
-	check_eq(b.data(), oldPtr);
-}
 
-comptime_test_case(MoveConstruct, {
-	ArrayList<int> a;
-	a.push(1);
-	const int* oldPtr = a.data();
-	ArrayList<int> b = std::move(a);
-	check_eq(b[0], 1);
-	check_eq(b.len(), 1);
-	check(b.capacity() > 0);
-	check_eq(b.data(), oldPtr);
-});
-
-test_case("Copy Assign") {
-	ArrayList<int> a;
-	a.push(1);
-	ArrayList<int> b = a;
-	check_eq(b[0], 1);
-	check_eq(b.len(), 1);
-	check(b.capacity() > 0);
-}
-
-comptime_test_case(CopyAssign, {
-	ArrayList<int> a;
-	a.push(1);
-	ArrayList<int> b = a;
-	check_eq(b[0], 1);
-	check_eq(b.len(), 1);
-	check(b.capacity() > 0);
-});
-
-test_case("Move Assign") {
-	ArrayList<int> a;
-	a.push(1);
-	const int* oldPtr = a.data();
-	ArrayList<int> b;
-	b.push(5);
-	b = std::move(a);
-	check_eq(b[0], 1);
-	check_eq(b.len(), 1);
-	check(b.capacity() > 0);
-	check_eq(b.data(), oldPtr);
-}
-
-comptime_test_case(MoveAssign, {
-	ArrayList<int> a;
-	a.push(1);
-	const int* oldPtr = a.data();
-	ArrayList<int> b;
-	b.push(5);
-	b = std::move(a);
-	check_eq(b[0], 1);
-	check_eq(b.len(), 1);
-	check(b.capacity() > 0);
-	check_eq(b.data(), oldPtr);
-});
 
 test_case("Init") {
 	ArrayList<int> a = ArrayList<int>::init(globalHeapAllocator());
