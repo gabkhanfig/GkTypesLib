@@ -533,72 +533,127 @@ static constexpr void copySemantics() {
 		check_eq(b.len(), 1);
 		check(b.capacity() > 0);
 	}
+	{
+		if (!std::is_constant_evaluated()) {
+			ArrayList<int> a;
+			a.push(1);
+			ArrayList<int> b = ArrayList<int>::initCopy(allocator->toRef(), a);
+			check_eq(b[0], 1);
+		}
+	}
 }
 
 test_case("copy semantics") { copySemantics(); }
 comptime_test_case(copy_semantics, { copySemantics(); })
 
-
-
-test_case("Init") {
-	ArrayList<int> a = ArrayList<int>::init(globalHeapAllocator());
-	a.push(1);
-	check_eq(a[0], 1);
+static constexpr void withCapacity() {
+	UniquePtr<IAllocator> allocator = makeTestingAllocator();
+	{
+		ArrayListUnmanaged<int> a = ArrayListUnmanaged<int>::withCapacity(allocator.get(), 20).ok();
+		check_ge(a.capacity(), 20);
+		check_eq(a.len(), 0);
+		a.deinit(allocator.get());
+	}
+	{
+		ArrayListUnmanaged<int> a = ArrayListUnmanaged<int>::withCapacity(allocator.get(), 20).ok();
+		a.push(allocator.get(), 5);
+		check_ge(a.capacity(), 20);
+		check_eq(a.len(), 1);
+		a.deinit(allocator.get());
+	}
+	if (!std::is_constant_evaluated()) {
+		{
+			ArrayList<int> a = ArrayList<int>::withCapacity(allocator->toRef(), 10);
+			check_ge(a.capacity(), 10);
+			check_eq(a.len(), 0);
+		}
+		{
+			ArrayList<int> a = ArrayList<int>::withCapacity(allocator->toRef(), 10);
+			a.push(1);
+			check(a.capacity() >= 10);
+			check_eq(a.len(), 1);
+			check_eq(a[0], 1);
+		}
+	}
 }
 
-test_case("Init And Copy") {
-	ArrayList<int> a;
-	a.push(1);
-	ArrayList<int> b = ArrayList<int>::initCopy(globalHeapAllocator(), a);
-	check_eq(b[0], 1);
+test_case("with capacity") { withCapacity(); }
+comptime_test_case(with_capacity, { withCapacity(); })
+
+static constexpr void cloneWithCapacity() {
+	UniquePtr<IAllocator> allocator = makeTestingAllocator();
+	{
+		ArrayListUnmanaged<int> a;
+		a.push(allocator.get(), 5).ok();
+
+		ArrayListUnmanaged<int> b = a.cloneWithCapacity(allocator.get(), 20).ok();
+		check_ge(b.capacity(), 20);
+		check_eq(b.len(), 1);
+		check_eq(b[0], 5);
+
+		a.deinit(allocator.get());
+		b.deinit(allocator.get());
+	}
 }
 
-test_case("Init And Initialize List") {
-	ArrayList<int> a = ArrayList<int>::initList(globalHeapAllocator(), { 0, 1, 2 });
-	check_eq(a[0], 0);
-	check_eq(a[1], 1);
-	check_eq(a[2], 2);
+test_case("clone with capacity") { cloneWithCapacity(); }
+comptime_test_case(clone_with_capacity, { cloneWithCapacity(); })
+
+static constexpr void initInitializerList() {
+	UniquePtr<IAllocator> allocator = makeTestingAllocator();
+	{
+		ArrayListUnmanaged<int> a = ArrayListUnmanaged<int>::initList(allocator.get(), { 0, 1 }).ok();
+		check_eq(a[0], 0);
+		check_eq(a[1], 1);
+		a.deinit(allocator.get());
+	}
+	{
+		ArrayListUnmanaged<int> a = ArrayListUnmanaged<int>::withCapacityList(allocator.get(), 20, { 0, 1 }).ok();
+		check_eq(a[0], 0);
+		check_eq(a[1], 1);
+		check_ge(a.capacity(), 20);
+		a.deinit(allocator.get());
+	}
+	if (!std::is_constant_evaluated()) {
+		ArrayList<int> a = ArrayList<int>::initList(globalHeapAllocator(), { 0, 1 });
+		check_eq(a[0], 0);
+		check_eq(a[1], 1);	
+	}
 }
 
-test_case("Init And Ptr") {
+test_case("init initializer list") { initInitializerList(); }
+comptime_test_case(init_initializer_list, { initInitializerList(); })
+
+static constexpr void initBufferCopy() {
+	UniquePtr<IAllocator> allocator = makeTestingAllocator();
 	int buf[] = { 0, 1, 2 };
-	ArrayList<int> a = ArrayList<int>::initBufferCopy(globalHeapAllocator(), buf, 3);
-	check_eq(a[0], 0);
-	check_eq(a[1], 1);
-	check_eq(a[2], 2);
+	{
+		ArrayListUnmanaged<int> a = ArrayListUnmanaged<int>::initBufferCopy(allocator.get(), buf, 3).ok();
+		check_eq(a[0], 0);
+		check_eq(a[1], 1);
+		check_eq(a[2], 2);
+		a.deinit(allocator.get());
+	}
+	{
+		ArrayListUnmanaged<int> a = ArrayListUnmanaged<int>::withCapacityBufferCopy(allocator.get(), 20, buf, 3).ok();
+		check_eq(a[0], 0);
+		check_eq(a[1], 1);
+		check_eq(a[2], 2);
+		check_ge(a.capacity(), 20);
+		a.deinit(allocator.get());
+	}
+	if (!std::is_constant_evaluated()) {
+		ArrayList<int> a = ArrayList<int>::initBufferCopy(globalHeapAllocator(), buf, 3);
+		check_eq(a[0], 0);
+		check_eq(a[1], 1);
+		check_eq(a[2], 2);
+	}
 }
 
-test_case("With Capacity") {
-	ArrayList<int> a = ArrayList<int>::withCapacity(globalHeapAllocator(), 10);
-	a.push(1);
-	check(a.capacity() >= 10);
-	check_eq(a[0], 1);
-}
+test_case("init buffer copy") { initBufferCopy(); }
+comptime_test_case(init_buffer_copy, { initBufferCopy(); })
 
-test_case("With Capacity Copy") {
-	ArrayList<int> a;
-	a.push(1);
-	ArrayList<int> b = ArrayList<int>::withCapacityCopy(globalHeapAllocator(), 10, a);
-	check(a.capacity() >= 10);
-	check_eq(b[0], 1);
-}
 
-test_case("With Capacity Initializer List") {
-	ArrayList<int> a = ArrayList<int>::withCapacityList(globalHeapAllocator(), 10, { 0, 1, 2 });
-	check(a.capacity() >= 10);
-	check_eq(a[0], 0);
-	check_eq(a[1], 1);
-	check_eq(a[2], 2);
-}
-
-test_case("With Capacity Ptr") {
-	int buf[] = { 0, 1, 2 };
-	ArrayList<int> a = ArrayList<int>::withCapacityBufferCopy(globalHeapAllocator(), 10, buf, 3);
-	check(a.capacity() >= 10);
-	check_eq(a[0], 0);
-	check_eq(a[1], 1);
-	check_eq(a[2], 2);
-}
 
 test_case("Push std::strings") {
 	ArrayList<std::string> a;
