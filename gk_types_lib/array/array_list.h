@@ -1053,6 +1053,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 		}
 		i++;
 	}
+	out._length = elementsToCopy;
 	return ResultOk<ArrayListUnmanaged>(std::move(out));
 }
 
@@ -1096,6 +1097,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 		}
 		i++;
 	}
+	out._length = initializerList.size();
 	return ResultOk<ArrayListUnmanaged>(std::move(out));
 }
 
@@ -1121,6 +1123,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 		}
 		i++;
 	}
+	out._length = elementsToCopy;
 	return ResultOk<ArrayListUnmanaged>(std::move(out));
 }
 
