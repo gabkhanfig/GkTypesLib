@@ -951,7 +951,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 	usize allocCapacity = this->_length;
 	Result<T*, AllocError> res = mallocBuffer(allocator, &allocCapacity);
 	if (res.isError()) {
-		return ResultErr(res.error());
+		return ResultErr<AllocError>(res.error());
 	}
 
 	T* mem = res.ok();
@@ -979,7 +979,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 	usize allocCapacity = this->_length > minCapacity ? this->_length : minCapacity; 
 	Result<T*, AllocError> res = mallocBuffer(allocator, &allocCapacity);
 	if (res.isError()) {
-		return ResultErr(res.error());
+		return ResultErr<AllocError>(res.error());
 	}
 
 	T* mem = res.ok();
@@ -1006,7 +1006,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 
 	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(initializerList.size());
 	if (res.isError()) {
-		return ResultErr(res.error());
+		return ResultErr<AllocError>(res.error());
 	}
 
 	ArrayListUnmanaged out = res.ok();
@@ -1030,7 +1030,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 
 	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(elementsToCopy);
 	if (res.isError()) {
-		return ResultErr(res.error());
+		return ResultErr<AllocError>(res.error());
 	}
 
 	ArrayListUnmanaged out = res.ok();
@@ -1055,7 +1055,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 	usize allocCapacity = minCapacity;
 	Result<T*, AllocError> res = mallocBuffer(allocator, &allocCapacity);
 	if (res.isError()) {
-		return ResultErr(res.error());
+		return ResultErr<AllocError>(res.error());
 	}
 
 	T* mem = res.ok();
@@ -1073,7 +1073,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 	usize allocCapacity = minCapacity > initializerList.size() ? minCapacity : initializerList.size();
 	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(allocCapacity);
 	if (res.isError()) {
-		return ResultErr(res.error());
+		return ResultErr<AllocError>(res.error());
 	}
 
 	ArrayListUnmanaged out = res.ok();
@@ -1098,7 +1098,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 	usize allocCapacity = minCapacity > elementsToCopy ? minCapacity : elementsToCopy;
 	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(elementsToCopy);
 	if (res.isError()) {
-		return ResultErr(res.error());
+		return ResultErr<AllocError>(res.error());
 	}
 
 	ArrayListUnmanaged out = res.ok();
@@ -1552,8 +1552,8 @@ inline constexpr void gk::ArrayListUnmanaged<T>::deleteExistingBuffer(IAllocator
 			this->_data[i].~T();
 		}
 	}
-
-	freeBuffer(allocator,  _data, _capacity);
+	
+	freeBuffer(allocator, _data, _capacity);
 }
 
 template<typename T>
@@ -1564,7 +1564,7 @@ inline constexpr gk::Result<void, gk::AllocError> gk::ArrayListUnmanaged<T>::rea
 	usize actualAllocCapacity = minCapacity;
 	Result<T*, AllocError> res = mallocBuffer(allocator, &actualAllocCapacity);
 	if (res.isError()) {
-		return ResultErr(res.error());
+		return ResultErr<AllocError>(res.error());
 	}
 
 	T* newData = res.ok();
@@ -1595,7 +1595,6 @@ inline constexpr gk::Result<T*, gk::AllocError> gk::ArrayListUnmanaged<T>::mallo
 		return gk::ResultOk<T*>(new T[capacity]);
 	}
 
-	T* outBuffer;
 	if constexpr (IS_T_SIMD) {
 		constexpr usize numPerSimd = 64 / sizeof(T);
 		const usize remainder = *requiredCapacity % numPerSimd;
@@ -1614,6 +1613,7 @@ inline constexpr void gk::ArrayListUnmanaged<T>::freeBuffer(IAllocator* allocato
 {
 	if (std::is_constant_evaluated()) {
 		delete[] buffer;
+		buffer = nullptr;
 		return;
 	}
 
