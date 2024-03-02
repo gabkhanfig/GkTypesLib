@@ -88,7 +88,7 @@ namespace gk
 		/// The other will have it's data and allocator set to null/invalid.
 		/// The old allocator held by this ArrayListUnmanaged will have it's ref count decremented.
 		/// @param other: Other ArrayListUnmanaged to take ownership of it's held data.
-		constexpr ArrayListUnmanaged& operator = (ArrayListUnmanaged&& other) noexcept;
+		constexpr ArrayListUnmanaged& operator = (ArrayListUnmanaged&& other) noexcept(false);
 
 		/// Make an explicit copy of this `ArrayListUnmanaged` with an allocator.
 		/// @param allocator: Use nullptr for constexpr contexts. Cannot be null at runtime.
@@ -937,7 +937,7 @@ inline constexpr gk::ArrayListUnmanaged<T>::~ArrayListUnmanaged() noexcept(false
 }
 
 template<typename T>
-inline constexpr gk::ArrayListUnmanaged<T>& gk::ArrayListUnmanaged<T>::operator=(ArrayListUnmanaged&& other) noexcept
+inline constexpr gk::ArrayListUnmanaged<T>& gk::ArrayListUnmanaged<T>::operator=(ArrayListUnmanaged&& other) noexcept(false)
 {
 	check_message(this->_data == nullptr, "gk::ArrayListUnmanaged was not properly deinitialized. Call deinit() explicitly.");
 	this->_data = other._data;
@@ -1106,7 +1106,7 @@ inline constexpr gk::Result<gk::ArrayListUnmanaged<T>, gk::AllocError> gk::Array
 	check_message(isValidAllocator(allocator), "Allocator passed is invalid. For constexpr, must be null. For runtime, must be non-null, and the same allocator used on this instance previously");
 
 	usize allocCapacity = minCapacity > elementsToCopy ? minCapacity : elementsToCopy;
-	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(allocator, elementsToCopy);
+	Result<ArrayListUnmanaged, AllocError> res = ArrayListUnmanaged::withCapacity(allocator, allocCapacity);
 	if (res.isError()) {
 		return ResultErr<AllocError>(res.error());
 	}
