@@ -298,27 +298,190 @@ Option<usize> gk::internal::doSimdArrayElementFind8Byte(const i64* arrayListData
 
 #if GK_TYPES_LIB_TEST
 #include <string>
+#include "../allocator/testing_allocator.h"
+#include "../ptr/unique_ptr.h"
 
-template<typename T>
-using ArrayList = gk::ArrayList<T>;
+using gk::ArrayList;
+using gk::ArrayListUnmanaged;
 
+using gk::IAllocator;
 using gk::globalHeapAllocator;
 using gk::AllocatorRef;
+using gk::TestingAllocator;
 
-test_case("Default Construct") {
-	ArrayList<int> a;
-	check_eq(a.len(), 0);
-	check_eq(a.capacity(), 0);
-	check_eq(a.data(), nullptr); // ensure no allocation when not necessary
-	check_eq(a.allocator(), globalHeapAllocator());
+using gk::UniquePtr;
+
+/// Makes an instance of TestingAllocator to use for runtime, or nullptr for compile time tests.
+static constexpr UniquePtr<IAllocator> makeTestingAllocator() {
+	if (std::is_constant_evaluated()) {
+		return UniquePtr<IAllocator>::null();
+	}
+	else {
+		TestingAllocator* newAllocator = new TestingAllocator();
+		return UniquePtr<IAllocator>(newAllocator);
+	}
 }
 
-comptime_test_case(default_construct, {
-	ArrayList<int> a;
-	check_eq(a.len(), 0);
-	check_eq(a.capacity(), 0);
-	check_eq(a.data(), nullptr); // ensure no allocation when not necessary
-})
+static constexpr void defaultConstruct() {
+	UniquePtr<IAllocator> allocator = makeTestingAllocator();
+	{
+		ArrayListUnmanaged<int> a;
+		check_eq(a.len(), 0);
+		check_eq(a.capacity(), 0);
+		check_eq(a.data(), nullptr); // ensure no allocation when not necessary
+	}
+	{
+		{
+			ArrayList<int> a;
+			check_eq(a.len(), 0);
+			check_eq(a.capacity(), 0);
+			check_eq(a.data(), nullptr); // ensure no allocation when not necessary
+			if (!std::is_constant_evaluated()) {
+				check_eq(a.allocator(), globalHeapAllocator());
+			}
+		}
+		if (!std::is_constant_evaluated()) {
+			ArrayList<int> a = ArrayList<int>::init(allocator->toRef()); check_eq(a.len(), 0);
+			check_eq(a.capacity(), 0);
+			check_eq(a.data(), nullptr); // ensure no allocation when not necessary
+			check_eq(a.allocator(), allocator.get());
+		}	
+	}
+}
+
+test_case("default construct") { defaultConstruct(); }
+comptime_test_case(default_construct, { defaultConstruct(); })
+
+static constexpr void pushOneElement() {
+	UniquePtr<IAllocator> allocator = makeTestingAllocator();
+	{
+		ArrayListUnmanaged<int> a;
+		auto res = a.push(allocator.get(), 0);
+		check(res.isOk());
+		check_eq(a[0], 0);
+		check_eq(a.len(), 1);
+		check_ne(a.capacity(), 0);
+		check_ne(a.data(), nullptr);
+		a.deinit(allocator.get());
+	}
+	{
+		{
+			ArrayList<int> a;
+			a.push(0);
+			check_eq(a[0], 0);
+			check_eq(a.len(), 1);
+			check_ne(a.capacity(), 0);
+			check_ne(a.data(), nullptr);
+		}
+		if (!std::is_constant_evaluated()) {
+			ArrayList<int> a = ArrayList<int>::init(allocator->toRef());
+			a.push(0);
+			check_eq(a[0], 0);
+			check_eq(a.len(), 1);
+			check_ne(a.capacity(), 0);
+			check_ne(a.data(), nullptr);
+		}
+	}
+}
+
+test_case("push one element") { pushOneElement(); }
+comptime_test_case(push_one_element, { pushOneElement(); })
+
+static constexpr void moveSemantics() {
+	UniquePtr<IAllocator> allocator = makeTestingAllocator();
+	{
+		{
+			ArrayListUnmanaged<int> a;
+			(void)a.push(allocator.get(), 5);
+			const int* oldPtr = a.data();
+
+			ArrayListUnmanaged<int> b = std::move(a);
+
+			check_eq(b.data(), oldPtr);
+			check_eq(b[0], 5);
+			check_eq(b.len(), 1);
+			check_ne(b.capacity(), 0);
+
+			b.deinit(allocator.get());
+		}
+		{
+			ArrayListUnmanaged<int> a;
+			(void)a.push(allocator.get(), 5);
+			const int* oldPtr = a.data();
+
+			ArrayListUnmanaged<int> b;
+			(void)b.push(allocator.get(), 5);
+			b.deinit(allocator.get());
+			b = std::move(a);
+
+			check_eq(b.data(), oldPtr);
+			check_eq(b[0], 5);
+			check_eq(b.len(), 1);
+			check_ne(b.capacity(), 0);
+
+			b.deinit(allocator.get());
+		}
+	}
+	{
+		{
+			ArrayList<int> a;
+			a.push(1);
+			const int* oldPtr = a.data();
+
+			ArrayList<int> b = std::move(a);
+
+			check_eq(b[0], 1);
+			check_eq(b.len(), 1);
+			check(b.capacity() > 0);
+			check_eq(b.data(), oldPtr);
+		}
+		{
+			ArrayList<int> a;
+			a.push(1);
+			const int* oldPtr = a.data();
+
+			ArrayList<int> b;
+			b.push(1);
+			b = std::move(a);
+
+			check_eq(b[0], 1);
+			check_eq(b.len(), 1);
+			check(b.capacity() > 0);
+			check_eq(b.data(), oldPtr);
+		}
+		if (!std::is_constant_evaluated()) {
+			{
+				ArrayList<int> a = ArrayList<int>::init(allocator->toRef());
+				a.push(1);
+				const int* oldPtr = a.data();
+
+				ArrayList<int> b = std::move(a);
+
+				check_eq(b[0], 1);
+				check_eq(b.len(), 1);
+				check(b.capacity() > 0);
+				check_eq(b.data(), oldPtr);
+			}
+			{
+				ArrayList<int> a = ArrayList<int>::init(allocator->toRef());
+				a.push(1);
+				const int* oldPtr = a.data();
+
+				ArrayList<int> b;
+				b.push(1);
+				b = std::move(a);
+
+				check_eq(b[0], 1);
+				check_eq(b.len(), 1);
+				check(b.capacity() > 0);
+				check_eq(b.data(), oldPtr);
+			}
+		}
+	}
+}
+
+test_case("move semantics") { moveSemantics(); }
+comptime_test_case(move_semantics, { moveSemantics(); })
 
 test_case("Copy Construct") {
 	ArrayList<int> a;
