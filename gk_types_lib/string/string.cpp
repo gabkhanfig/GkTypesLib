@@ -184,7 +184,7 @@ namespace gk
 			// null terminator
 			usize remainder = (len + 1) % 32;
 			const usize bytesToCheck = remainder ? ((len + 1) + (32 - remainder)) : len + 1;
-			for (usize i = 0; i < bytesToCheck; i += 64) {
+			for (usize i = 0; i < bytesToCheck; i += 32) {
 				if (_mm256_cmpeq_epi8_mask(*thisVec, *otherVec) != equal32Bitmask) return false;
 				thisVec++;
 				otherVec++;
